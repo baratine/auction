@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="auctionApp">
+<head>
+  <meta charset="utf-8">
+  <title>Auction</title>
+
+  <link rel="stylesheet"
+        href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.7/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.7/angular-animate.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.7/angular-route.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.7/angular-resource.js"></script>
+
+  <script src="./baratine-js.js"></script>
+
+  <script>
+    var auctionApp = angular.module("auctionApp", []);
+
+    auctionApp.controller('AuctionListCtrl', function ($scope)
+    {
+      $scope.myAuctions = [];
+      $scope.myBids = [];
+
+      $scope.auctionAddedCallback = function (auction)
+      {
+        var price = auction._startingBid;
+
+        if (auction._bids.length > 0)
+          price = auction._bids[auction._bids.length - 1]._bid;
+
+        $scope.$apply(function ()
+                      {
+                        $scope.myAuctions.push({
+                                                 'id': auction._id,
+                                                 'title': auction._title,
+                                                 'price': price,
+                                                 'state': auction._state
+                                               });
+                      }
+        );
+      };
+
+      $scope.auctionUpdatedCallback = function (auction)
+      {
+        var price = auction._startingBid;
+        var state = auction._state;
+
+        if (auction._bids.length > 0)
+          price = auction._bids[auction._bids.length - 1]._bid;
+
+        for (var i in $scope.myAuctions) {
+          var a = $scope.myAuctions[i];
+          if (auction._id == a.id) {
+            $scope.$apply(function ()
+                          {
+                            a.price = price;
+                            a.state = state;
+                          });
+            break;
+          }
+        }
+
+        for (var i in $scope.myBids) {
+          var a = $scope.myBids[i];
+          if (auction._id == a.id) {
+            $scope.$apply(function ()
+                          {
+                            a.price = price;
+                            a.state = state;
+                          });
+            break;
+          }
+        }
+      };
+
+      $scope.searchCallback = function (auction)
+      {
+        var price = auction._startingBid;
+
+        if (auction._bids.length > 0)
+          price = auction._bids[auction._bids.length - 1]._bid;
+
+        $scope.$apply(function ()
+                      {
+                        var myBid;
+                        for (var i in $scope.myBids) {
+                          if (auction._id === $scope.myBids[i].id) {
+                            myBid = $scope.myBids[i];
+                          }
+                        }
+
+                        if (!myBid)
+                          $scope.myBids.push({
+                                               'id': auction._id,
+                                               'title': auction._title,
+                                               'price': price,
+                                               'state': auction._state
+                                             });
+                      }
+        );
+      };
+
+      $scope.auctionTitle = null;
+      $scope.auctionPrice = 1;
+
+      $scope.userForm = ['form-inline'];
+      $scope.btnUserRegister = ['btn', 'btn-default'];
+      $scope.btnUserLogin = ['btn', 'btn-default'];
+
+      $scope.userStatus = 'no logged in user';
+      $scope.user = null;
+      $scope.createAuctionMessage = 'User created no auctions';
+
+      $scope.searchTitle = null;
+
+      $scope.createUser = function (user, password)
+      {
+        var promise =
+                $scope.jampChannel.query("/auction-channel/x",
+                                         "createUser",
+                                         [user, password],
+                                         false,
+                                         null,
+                                         "/createUser");
+
+        promise.then(
+                function (result)
+                {
+                  var message = "account for '" + user;
+
+                  if (result) {
+                    message = message + "' successfully created";
+                  }
+                  else {
+                    message = message + "' was not created";
+                  }
+                  console.log(message);
+
+                  $scope.$apply(function ()
+                                {
+                                  $scope.userStatus = message;
+                                });
+                },
+                function (error)
+                {
+                  alert("user not created due to: " + error);
+                }
+        );
+      };
+
+      $scope.login = function (user, password)
+      {
+        var promise =
+                $scope.jampChannel.query("/auction-channel/x",
+                                         "login",
+                                         [user, password],
+                                         false,
+                                         null,
+                                         "/login");
+
+        promise.then(
+                function (result)
+                {
+                  var message = "'" + user;
+
+                  if (result) {
+                    message = message + "' successfully logged in";
+                    $scope.user = user;
+                  }
+                  else {
+                    message = message + "': login rejected";
+                    $scope.user = null;
+                  }
+                  console.log(message);
+
+                  $scope.$apply(function ()
+                                {
+                                  $scope.userStatus = message;
+                                });
+                },
+                function (error)
+                {
+                  alert(error);
+                }
+        );
+      };
+
+      $scope.createAuction = function (title, price)
+      {
+        var promise =
+                $scope.jampChannel.query("/auction-channel/x",
+                                         "createAuction",
+                                         [title, price],
+                                         false,
+                                         null,
+                                         "/createAuction");
+
+        promise.then(
+                function (auctionId)
+                {
+                  $scope.$apply(
+                          function ()
+                          {
+                            $scope.createAuctionMessage = 'created '
+                                                          + title
+                                                          + ' at starting price '
+                                                          + price;
+                            $scope.addMyAuction(auctionId);
+                            $scope.subscribeAuction(auctionId);
+
+                            $scope.auctionTitle = null;
+                          });
+                },
+                function (error)
+                {
+                  console.log(error);
+                  alert(error);
+                }
+        );
+      };
+
+      $scope.addMyAuction = function (id)
+      {
+        var promise =
+                $scope.jampChannel.query("/auction-channel/x",
+                                         "getAuction",
+                                         [id],
+                                         false,
+                                         null,
+                                         "/getAuction");
+
+        promise.then(
+                function (auction)
+                {
+                  $scope.auctionAddedCallback(auction);
+                },
+                function (error)
+                {
+                  alert(error);
+                }
+        );
+      };
+
+      $scope.subscribeAuction = function (id)
+      {
+        var promise =
+                $scope.jampChannel.send("/auction-channel/x",
+                                        "addAuctionListener",
+                                        [id],
+                                        false,
+                                        null,
+                                        "/addAuctionListener");
+      };
+
+      $scope.findAuction = function (searchTitle)
+      {
+        var promise =
+                $scope.jampChannel.query("/auction-channel/x",
+                                         "findAuction",
+                                         [searchTitle],
+                                         false,
+                                         null,
+                                         "/findAuction");
+
+        promise.then(
+                function (auctionId)
+                {
+                  if (auctionId) {
+                    $scope.addSearchResult(auctionId);
+                    $scope.subscribeAuction(auctionId);
+                  }
+                },
+                function (error)
+                {
+                  alert(error);
+                }
+        );
+      };
+
+      $scope.addSearchResult = function (id)
+      {
+        var promise =
+                $scope.jampChannel.query("/auction-channel/x",
+                                         "getAuction",
+                                         [id],
+                                         false,
+                                         null,
+                                         "/getAuction");
+        promise.then(
+                function (auction)
+                {
+                  if (auction) {
+                    $scope.searchCallback(auction);
+                  }
+                },
+                function (error)
+                {
+                  alert(error);
+                }
+        );
+      };
+
+      $scope.bid = function (id, index)
+      {
+        var auction = $scope.myBids[index];
+        var price = auction.price + 1;
+
+        var promise =
+                $scope.jampChannel.query("/auction-channel/x",
+                                         "bidAuction",
+                                         [id, price],
+                                         false,
+                                         null,
+                                         "/bidAuction");
+      };
+
+      var listener = {};
+      listener.onAuctionUpdate = function (auctionData)
+      {
+        $scope.auctionUpdatedCallback(auctionData);
+      };
+
+      listener.onAuctionClose = function (auctionData)
+      {
+        $scope.auctionUpdatedCallback(auctionData);
+      };
+
+      var onChannel = function() {
+        console.log("on-channel:");
+        $scope.jampChannel.setListener("/auction-channel/x",
+                                       "setListener",
+                                       [],
+                                       null,
+                                       "/ChannelListener",
+                                       listener);
+      };
+
+      $scope.jampChannel
+        = new Jamp.WebSocketChannel("ws://localhost:8085/s/web", onChannel);
+    });
+
+  </script>
+</head>
+
+<body ng-controller="AuctionListCtrl" class="container ">
+<br><br>
+
+<form ng-class="userForm" role="form">
+  <div class="form-group">
+    <label class="sr-only" for="user">Email address</label>
+    <input ng-model="userName" type="text" class="form-control" id="user"
+           placeholder="Enter user name">
+  </div>
+  <div class="form-group">
+    <label class="sr-only" for="password">Password</label>
+    <input ng-model="userPassword" type="password" class="form-control"
+           id="password"
+           placeholder="Password">
+  </div>
+  <button type="submit" ng-class="btnUserLogin"
+          ng-click="login(userName, userPassword)">Sign in
+  </button>
+  <button type="submit" ng-class="btnUserRegister"
+          ng-click="createUser(userName, userPassword)">
+    Register
+  </button>
+</form>
+
+<br>
+
+<div>
+  <p>User: {{userStatus}}</p>
+</div>
+<br>
+
+<form ng-class="userForm" role="form">
+  <div class="form-group">
+    <label class="sr-only" for="auctionTitle">Auction Title</label>
+    <input ng-model="auctionTitle" type="text" class="form-control"
+           id="auctionTitle"
+           placeholder="Auction Title">
+  </div>
+  <div class="form-group">
+    <label class="sr-only" for="price">Price</label>
+    <input ng-model="auctionPrice" type="number" class="form-control"
+           id="price"
+           placeholder="Starting price">
+  </div>
+  <button type="submit" class='btn btn-default'
+          ng-disabled="! user || ! auctionTitle"
+          ng-click="createAuction(auctionTitle, auctionPrice)">
+    Create Auction
+  </button>
+</form>
+
+<br>
+
+<div>
+  <p>{{createAuctionMessage}}</p>
+</div>
+<br>
+
+<table border="1" class="table table-striped">
+  <thead>
+  <th>ID</th>
+  <th>Title</th>
+  <th>Current Bid</th>
+  <th>State</th>
+  </thead>
+  <tbody>
+  <tr ng-repeat="auction in myAuctions">
+    <td>{{auction.id}}</td>
+    <td>{{auction.title}}</td>
+    <td>{{auction.price}}</td>
+    <td>{{auction.state}}</td>
+  </tr>
+  </tbody>
+</table>
+
+<br>
+<br>
+
+<div>
+  <form ng-class="userForm" role="form">
+    <div class="form-group">
+      <label class="sr-only" for="auctionSearchTitle">Auction
+        Title</label>
+      <input ng-model="searchTitle" type="text" class="form-control"
+             id="auctionSearchTitle"
+             placeholder="Search Auction Title">
+    </div>
+    <button type="submit" class='btn btn-default'
+            ng-disabled="! user || ! searchTitle"
+            ng-click="findAuction(searchTitle)">
+      Search
+    </button>
+  </form>
+</div>
+<br>
+<br>
+
+<table border="1" class="table table-striped">
+  <thead>
+  <th>ID</th>
+  <th>Title</th>
+  <th>Current Bid</th>
+  <th></th>
+  <th>State</th>
+  </thead>
+  <tbody>
+  <tr ng-repeat="auction in myBids">
+    <td>{{auction.id}}</td>
+    <td>{{auction.title}}</td>
+    <td>{{auction.price}}</td>
+    <td>
+      <button class='btn btn-link btn-xs'
+              ng-disabled="(auction.state == 'CLOSED')"
+              ng-click="bid(auction.id, $index)">Bid
+      </button>
+    </td>
+    <td>{{auction.state}}</td>
+  </tr>
+  </tbody>
+</table>
+
+</body>
+</html>

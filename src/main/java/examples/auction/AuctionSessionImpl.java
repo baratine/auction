@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 /**
  * User visible channel facade at channel:///auction-channel.
  */
-@SessionService("channel://web/auction-channel/{_id}")
+@SessionService("session://web/auction-session/{_id}")
 public class AuctionSessionImpl implements AuctionSession
 {
   private final static Logger log

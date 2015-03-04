@@ -33,12 +33,12 @@ $BARATINE_HOME/bin/baratine put auction.bar /usr/lib/auction.bar
 $BARATINE_HOME/bin/baratine put src/main/resources/auction.cf /config/pods/auction.cf
 
 
-#$BARATINE_HOME/bin/baratine jamp-query --pod web /auction-channel/x createUser user pass
+#$BARATINE_HOME/bin/baratine jamp-query --pod web /auction-session/x createUser user pass
 echo "Create User ..."
-$BARATINE_HOME/bin/baratine jamp-query --pod web /auction-channel/foo createUser user pass
+$BARATINE_HOME/bin/baratine jamp-query --pod web /auction-session/foo createUser user pass
 
 echo "Authenticate User ..."
-$BARATINE_HOME/bin/baratine jamp-query --pod web /auction-channel/foo login user pass
+$BARATINE_HOME/bin/baratine jamp-query --pod web /auction-session/foo login user pass
 
 #echo "Test /..."
 #$BARATINE_HOME/bin/baratine jamp-query --pod user /test test foo

@@ -118,7 +118,7 @@
       $scope.createUser = function (user, password)
       {
         var promise =
-                $scope.jampChannel.query("/auction-channel/x",
+                $scope.jampChannel.query("/auction-session/x",
                                          "createUser",
                                          [user, password],
                                          false,
@@ -153,7 +153,7 @@
       $scope.login = function (user, password)
       {
         var promise =
-                $scope.jampChannel.query("/auction-channel/x",
+                $scope.jampChannel.query("/auction-session/x",
                                          "login",
                                          [user, password],
                                          false,
@@ -190,7 +190,7 @@
       $scope.createAuction = function (title, price)
       {
         var promise =
-                $scope.jampChannel.query("/auction-channel/x",
+                $scope.jampChannel.query("/auction-session/x",
                                          "createAuction",
                                          [title, price],
                                          false,
@@ -224,7 +224,7 @@
       $scope.addMyAuction = function (id)
       {
         var promise =
-                $scope.jampChannel.query("/auction-channel/x",
+                $scope.jampChannel.query("/auction-session/x",
                                          "getAuction",
                                          [id],
                                          false,
@@ -246,7 +246,7 @@
       $scope.subscribeAuction = function (id)
       {
         var promise =
-                $scope.jampChannel.send("/auction-channel/x",
+                $scope.jampChannel.send("/auction-session/x",
                                         "addAuctionListener",
                                         [id],
                                         false,
@@ -257,7 +257,7 @@
       $scope.findAuction = function (searchTitle)
       {
         var promise =
-                $scope.jampChannel.query("/auction-channel/x",
+                $scope.jampChannel.query("/auction-session/x",
                                          "findAuction",
                                          [searchTitle],
                                          false,
@@ -282,7 +282,7 @@
       $scope.addSearchResult = function (id)
       {
         var promise =
-                $scope.jampChannel.query("/auction-channel/x",
+                $scope.jampChannel.query("/auction-session/x",
                                          "getAuction",
                                          [id],
                                          false,
@@ -308,7 +308,7 @@
         var price = auction.price + 1;
 
         var promise =
-                $scope.jampChannel.query("/auction-channel/x",
+                $scope.jampChannel.query("/auction-session/x",
                                          "bidAuction",
                                          [id, price],
                                          false,
@@ -329,7 +329,7 @@
 
       var onChannel = function() {
         console.log("on-channel:");
-        $scope.jampChannel.setListener("/auction-channel/x",
+        $scope.jampChannel.setListener("/auction-session/x",
                                        "setListener",
                                        [],
                                        null,

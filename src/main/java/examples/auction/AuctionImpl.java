@@ -53,7 +53,7 @@ public class AuctionImpl implements Auction
     log.finer("create auction: " + auctionData);
 
     _db.exec("insert into auction (id, title, value) values (?,?,?)",
-             result.chain(o -> {
+             result.from(o -> {
                _auctionData = auctionData;
                return _id;
              }), _id, title, auctionData);
@@ -76,7 +76,7 @@ public class AuctionImpl implements Auction
   public void load(Result<Boolean> result)
   {
     _db.findOne("select value from auction where id=?",
-                result.chain(c -> loadComplete(c)),
+                result.from(c -> loadComplete(c)),
                 _id);
   }
 

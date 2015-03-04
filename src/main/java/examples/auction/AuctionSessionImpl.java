@@ -1,12 +1,12 @@
 package examples.auction;
 
-import io.baratine.core.ChannelService;
 import io.baratine.core.Lookup;
 import io.baratine.core.OnDestroy;
 import io.baratine.core.Result;
 import io.baratine.core.Service;
 import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
+import io.baratine.core.SessionService;
 
 import javax.inject.Inject;
 import java.util.HashMap;
@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 /**
  * User visible channel facade at channel:///auction-channel.
  */
-@ChannelService("channel://web/auction-channel/{_id}")
+@SessionService("channel://web/auction-channel/{_id}")
 public class AuctionSessionImpl implements AuctionSession
 {
   private final static Logger log
@@ -53,7 +53,7 @@ public class AuctionSessionImpl implements AuctionSession
   {
     _users.authenticate(userName,
                         password,
-                        result.chain(u -> loginImpl(u)));
+                        result.from(u -> loginImpl(u)));
   }
 
   public boolean loginImpl(UserDataPublic userDataPublic)
@@ -86,8 +86,8 @@ public class AuctionSessionImpl implements AuctionSession
     }
 
     _auctions.create(_user.getId(), title, bid,
-                     result.chain((r, x) ->
-                                    afterCreateAuction(x, title, r)));
+                     result.from((x, r) ->
+                                   afterCreateAuction(x, title, r)));
   }
 
   private void afterCreateAuction(String id, String title,
@@ -95,7 +95,7 @@ public class AuctionSessionImpl implements AuctionSession
   {
     Auction auction = _auctionsServiceRef.lookup("/" + id).as(Auction.class);
 
-    auction.open(result.chain(b -> id));
+    auction.open(result.from(b -> id));
 
     //_lucene.update(id, title, Result.empty());
   }

@@ -75,7 +75,7 @@ public class AuctionManagerImpl
   public void find(String title, Result<String> result)
   {
     _db.findOne("select id from auction where title=?",
-                result.chain(c -> c != null ? c.getString(1) : null),
+                result.from(c -> c != null ? c.getString(1) : null),
                 title);
   }
 }

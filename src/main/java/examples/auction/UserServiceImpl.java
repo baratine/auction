@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService
   {
     _db.findOne(
       "select value from users where id=?",
-      result.chain(c -> c != null ? (UserDataPublic) c.getObject(1) : null),
+      result.from(c -> c != null ? (UserDataPublic) c.getObject(1) : null),
       id);
   }
 
@@ -111,7 +111,7 @@ public class UserServiceImpl implements UserService
     //TODO replace with Stream
     _db.findOne(
       "select value from users where name=? and password=?",
-      result.chain(c -> loadAuthenticated(c)),
+      result.from(c -> loadAuthenticated(c)),
       userName, digest);
   }
 

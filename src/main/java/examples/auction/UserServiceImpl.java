@@ -11,7 +11,11 @@ import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 
 import javax.inject.Inject;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -29,19 +33,28 @@ public class UserServiceImpl implements UserService
 
   private final List<NewUser> _newUsers = new ArrayList<>();
 
+  private final MessageDigest _digest;
+
   @Inject @Lookup("bardb:///")
   private DatabaseService _db;
 
   public UserServiceImpl()
   {
+    try {
+      _digest = MessageDigest.getInstance("SHA-1");
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @OnActive
   public boolean onInit()
   {
     try {
+      // for production add salt
       _db.exec(
-        "create table users(id varchar primary key, name varchar, password varchar, value object)");
+        "create table users(id varchar primary key, name varchar, password varchar, value object)",
+        Result.empty());
     } catch (Throwable t) {
       log.log(Level.WARNING, t.getMessage(), t);
     }
@@ -68,16 +81,21 @@ public class UserServiceImpl implements UserService
 
     UserDataPublic user = new UserDataPublic(id, userName);
 
-    _newUsers.add(new NewUser(user, digest));
-
-    result.complete(true);
+    _newUsers.add(new NewUser(user, digest, result));
 
     log.finer("create user: " + userName + ", users " + _newUsers.size());
   }
 
   public String digest(String password)
   {
-    return password;//TODO calculate digest
+    _digest.reset();
+    //for production add salt
+
+    _digest.update(password.getBytes(StandardCharsets.UTF_8));
+
+    String digest = Base64.getEncoder().encodeToString(_digest.digest());
+
+    return digest;
   }
 
   @OnSave
@@ -95,9 +113,27 @@ public class UserServiceImpl implements UserService
 
     for (NewUser newUser : users) {
       UserDataPublic user = newUser.getUser();
+      Result<Boolean> createResult = newUser.getResult();
+
+      _db.findOne("select 1 from users where name=?",
+                  createResult.from((c, r) -> {insert(c, newUser, r);}),
+                  user.getName());
+
+    }
+  }
+
+  public void insert(Cursor c, NewUser newUser, Result<Boolean> result)
+  {
+    if (c != null) {
+      result.complete(false);
+    }
+    else {
       String passwordDigest = newUser.getPasswordDigest();
+
+      UserDataPublic user = newUser.getUser();
+
       _db.exec("insert into users (id, name, password, value) values (?,?,?,?)",
-               Result.empty(),
+               result.from(o -> true),
                user.getId(), user.getName(), passwordDigest, user);
     }
   }
@@ -130,13 +166,17 @@ public class UserServiceImpl implements UserService
 
   static class NewUser
   {
-    UserDataPublic _user;
-    String _passwordDigest;
+    private UserDataPublic _user;
+    private String _passwordDigest;
+    private Result<Boolean> _result;
 
-    public NewUser(UserDataPublic user, String passwordDigest)
+    public NewUser(UserDataPublic user,
+                   String passwordDigest,
+                   Result<Boolean> result)
     {
       _user = user;
       _passwordDigest = passwordDigest;
+      _result = result;
     }
 
     public UserDataPublic getUser()
@@ -147,6 +187,11 @@ public class UserServiceImpl implements UserService
     public String getPasswordDigest()
     {
       return _passwordDigest;
+    }
+
+    public Result<Boolean> getResult()
+    {
+      return _result;
     }
   }
 }

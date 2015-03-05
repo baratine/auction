@@ -21,7 +21,7 @@ public class TestUser extends BaseTest
    * User create correctly sets the user name.
    */
   @Test
-  public void testUserCreateName()
+  public void testUserCreate()
   {
     boolean b = userCreate("Spock", "Password");
 

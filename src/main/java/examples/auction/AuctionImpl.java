@@ -65,6 +65,7 @@ public class AuctionImpl implements Auction
     log.finer("save auction: " + _auctionData);
 
     _db.exec("update auction set title=?, value=? where id=?",
+             Result.empty(),
              _auctionData.getTitle(),
              _auctionData,
              _auctionData.getId());

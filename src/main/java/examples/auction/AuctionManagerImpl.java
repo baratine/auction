@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 /**
  * Notes: Baratine needs to be told when to treat service as secure
  * and the security provider / authenticator to use (possibly for the whole bar)
- * <p>
+ * <p/>
  * The api needs to support reconnecting transparently, e.g. when channel
  * expires it needs to be reestablished using the prescribed login sequence
  */
@@ -44,7 +44,9 @@ public class AuctionManagerImpl
     _self = Services.getCurrentService();
 
     try {
-      _db.exec("create table auction (id varchar primary key, title varchar, value object) with hash '/auction/$id'");
+      _db.exec(
+        "create table auction (id varchar primary key, title varchar, value object) with hash '/auction/$id'",
+        Result.empty());
     } catch (Exception e) {
       log.log(Level.FINE, e.getMessage(), e);
     }

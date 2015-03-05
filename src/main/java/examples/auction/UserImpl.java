@@ -33,6 +33,8 @@ public class UserImpl implements User
   {
     _db = db;
     _id = id;
+
+    log.finer("create new user: " + id);
   }
 
   @Override

@@ -75,6 +75,6 @@ public class UserManagerImpl implements UserManager
   public void find(String name, Result<String> userId)
   {
     _db.findOne("select id from users where name=?",
-                userId.from(c -> c != null ? c.getString(1) : null), userId);
+                userId.from(c -> c != null ? c.getString(1) : null), name);
   }
 }

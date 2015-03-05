@@ -29,9 +29,9 @@ public class TestUser
    * User create correctly sets the user name.
    */
   @Test
-  public void testUserCreate()
+  public void createUser()
   {
-    String id = _userManager.createUser("Spock", "Password");
+    final String id = _userManager.createUser("Spock", "Password");
 
     UserSync user = _userManagerRef.lookup("/" + id).as(UserSync.class);
 
@@ -42,9 +42,9 @@ public class TestUser
   }
 
   @Test
-  public void authenticate()
+  public void authenticateUser()
   {
-    String id = _userManager.createUser("Spock", "Password");
+    final String id = _userManager.createUser("Spock", "Password");
 
     UserSync user = _userManagerRef.lookup("/" + id).as(UserSync.class);
 
@@ -54,5 +54,17 @@ public class TestUser
 
     isLoggedIn = user.authenticate("bogus");
     Assert.assertFalse(isLoggedIn);
+  }
+
+  @Test
+  public void findUser()
+  {
+    final String id = _userManager.createUser("Spock", "Password");
+
+    String findId = _userManager.find("Spock");
+    Assert.assertEquals(id, findId);
+
+    findId = _userManager.find("bogus");
+    Assert.assertNull(findId);
   }
 }

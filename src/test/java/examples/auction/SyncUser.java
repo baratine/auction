@@ -1,6 +1,6 @@
 package examples.auction;
 
-public interface UserSync extends User
+public interface SyncUser extends User
 {
   String create(String userName, String password);
 

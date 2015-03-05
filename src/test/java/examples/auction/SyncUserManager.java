@@ -1,8 +1,8 @@
 package examples.auction;
 
-public interface UserManagerSync extends UserManager
+public interface SyncUserManager extends UserManager
 {
-  String createUser(String userName,
+  String create(String userName,
                             String password);
 
   String find(String name);

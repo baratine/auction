@@ -1,14 +1,8 @@
 package examples.auction;
 
-import examples.auction.Auction;
-import examples.auction.AuctionDataPublic;
-import examples.auction.User;
-import examples.auction.UserDataPublic;
-import examples.auction.UserManager;
 import io.baratine.core.Lookup;
 import io.baratine.core.ResultFuture;
 import io.baratine.core.ServiceRef;
-import org.omg.CORBA.TIMEOUT;
 
 import java.util.concurrent.TimeUnit;
 
@@ -24,7 +18,7 @@ public class BaseTest
   {
     ResultFuture<String> userId = new ResultFuture<>();
 
-    _users.createUser(userName, password, userId);
+    _users.create(userName, password, userId);
 
     return userId.get(10, TimeUnit.SECONDS);
   }

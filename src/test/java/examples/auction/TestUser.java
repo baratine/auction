@@ -20,7 +20,7 @@ import javax.inject.Inject;
 public class TestUser
 {
   @Inject @Lookup("pod://user/user")
-  UserManagerSync _userManager;
+  SyncUserManager _userManager;
 
   @Inject @Lookup("pod://user/user")
   ServiceRef _userManagerRef;
@@ -31,9 +31,9 @@ public class TestUser
   @Test
   public void createUser()
   {
-    final String id = _userManager.createUser("Spock", "Password");
+    final String id = _userManager.create("Spock", "Password");
 
-    UserSync user = _userManagerRef.lookup("/" + id).as(UserSync.class);
+    SyncUser user = _userManagerRef.lookup("/" + id).as(SyncUser.class);
 
     UserDataPublic userData = user.get();
 
@@ -44,9 +44,9 @@ public class TestUser
   @Test
   public void authenticateUser()
   {
-    final String id = _userManager.createUser("Spock", "Password");
+    final String id = _userManager.create("Spock", "Password");
 
-    UserSync user = _userManagerRef.lookup("/" + id).as(UserSync.class);
+    SyncUser user = _userManagerRef.lookup("/" + id).as(SyncUser.class);
 
     boolean isLoggedIn = user.authenticate("Password");
 
@@ -59,7 +59,7 @@ public class TestUser
   @Test
   public void findUser()
   {
-    final String id = _userManager.createUser("Spock", "Password");
+    final String id = _userManager.create("Spock", "Password");
 
     String findId = _userManager.find("Spock");
     Assert.assertEquals(id, findId);

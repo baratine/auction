@@ -48,7 +48,7 @@ public class AuctionSessionImpl implements AuctionSession
   public void createUser(String userName, String password,
                          final Result<Boolean> result)
   {
-    _users.createUser(userName, password, result.from(id -> true));
+    _users.create(userName, password, result.from(id -> true));
   }
 
   public void login(String userName, String password, Result<Boolean> result)

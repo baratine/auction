@@ -60,9 +60,9 @@ public class UserManagerImpl implements UserManager
   }
 
   @Override
-  public void createUser(String userName,
-                         String password,
-                         Result<String> userId)
+  public void create(String userName,
+                     String password,
+                     Result<String> userId)
   {
     String id = UUID.randomUUID().toString();
 

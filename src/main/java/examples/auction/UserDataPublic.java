@@ -4,15 +4,17 @@ public class UserDataPublic
 {
   private String _id;
   private String _name;
+  private String _password;
 
   public UserDataPublic()
   {
   }
 
-  public UserDataPublic(String id, String name)
+  public UserDataPublic(String id, String name, String password)
   {
     _id = id;
     _name = name;
+    _password = password;
   }
 
   public String getId()
@@ -23,6 +25,11 @@ public class UserDataPublic
   public String getName()
   {
     return _name;
+  }
+
+  public String getDigest()
+  {
+    return _password;
   }
 
   @Override

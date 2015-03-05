@@ -16,19 +16,22 @@ import java.util.logging.Logger;
 /**
  * User visible channel facade at channel:///auction-channel.
  */
-@SessionService("session://web/auction-session/{_id}")
+@SessionService("session://web/auction-session/{_sessionId}")
 public class AuctionSessionImpl implements AuctionSession
 {
   private final static Logger log
     = Logger.getLogger(AuctionSessionImpl.class.getName());
 
-  private String _id;
+  private String _sessionId;
 
   @Inject
   private ServiceManager _manager;
 
   @Inject @Lookup("pod://user/user")
-  private UserService _users;
+  private UserManager _users;
+
+  @Inject @Lookup("pod://user/user")
+  private ServiceRef _usersServiceRef;
 
   @Inject @Lookup("pod://auction/auction")
   private AuctionManager _auctions;
@@ -36,45 +39,47 @@ public class AuctionSessionImpl implements AuctionSession
   @Inject @Lookup("pod://auction/auction")
   private ServiceRef _auctionsServiceRef;
 
-  //@Inject @Lookup("lucene:///auction")
-  //private LuceneServiceClient _lucene;
-
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
   private ChannelListener _listener;
-  private UserDataPublic _user;
+
+  private User _user;
 
   public void createUser(String userName, String password,
                          final Result<Boolean> result)
   {
-    _users.createUser(userName, password, result);
+    _users.createUser(userName, password, result.from(id -> true));
   }
 
   public void login(String userName, String password, Result<Boolean> result)
   {
-    _users.authenticate(userName,
-                        password,
-                        result.from(u -> loginImpl(u)));
+    _users.find(userName, result.from((id, r) -> loginImpl(id, password, r)));
   }
 
-  public boolean loginImpl(UserDataPublic userDataPublic)
+  private void loginImpl(String id, String password, Result<Boolean> result)
   {
-    if (userDataPublic != null) {
-      _user = userDataPublic;
-    }
+    User user = _usersServiceRef.lookup("/" + id).as(User.class);
 
-    return _user != null;
+    user.authenticate(password, result.from(b -> completeLogin(b, user)));
+  }
+
+  private boolean completeLogin(boolean isLoggedIn, User user)
+  {
+    if (isLoggedIn)
+      _user = user;
+
+    return isLoggedIn;
   }
 
   /**
    * returns logged in user
    */
-  public void getUser(Result<UserDataPublic> result)
+  public void getUser(Result<UserDataPublic> userData)
   {
     if (_user == null) {
       throw new IllegalStateException("No user is logged in");
     }
 
-    result.complete(_user);
+    _user.get(userData);
   }
 
   public void createAuction(String title,

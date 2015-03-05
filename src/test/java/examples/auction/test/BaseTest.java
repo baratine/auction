@@ -3,7 +3,7 @@ package examples.auction.test;
 import examples.auction.Auction;
 import examples.auction.AuctionDataPublic;
 import examples.auction.UserDataPublic;
-import examples.auction.UserService;
+import examples.auction.UserManager;
 import io.baratine.core.Lookup;
 import io.baratine.core.ResultFuture;
 import io.baratine.core.ServiceRef;
@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class BaseTest
 {
   @Lookup("pod://user/user")
-  UserService _userService;
+  UserManager _userManager;
 
   @Lookup("pod://user/user")
   ServiceRef _userServiceRef;
@@ -22,7 +22,7 @@ public class BaseTest
   {
     ResultFuture<Boolean> future = new ResultFuture<>();
 
-    _userService.createUser(userName, password, future);
+    _userManager.createUser(userName, password, future);
 
     return future.get(10, TimeUnit.SECONDS);
   }
@@ -31,7 +31,7 @@ public class BaseTest
   {
     ResultFuture<UserDataPublic> future = new ResultFuture<>();
 
-    _userService.authenticate(userName, password, future);
+    _userManager.authenticate(userName, password, future);
 
     return future.get(10, TimeUnit.SECONDS);
   }
@@ -40,7 +40,7 @@ public class BaseTest
   {
     ResultFuture<UserDataPublic> future = new ResultFuture<>();
 
-    _userService.getUser(id, future);
+    _userManager.getUser(id, future);
 
     return future.get(10, TimeUnit.SECONDS);
   }
@@ -81,12 +81,12 @@ public class BaseTest
     return result.get();
   }
 
-  protected UserDataPublic getUserDataPublic(UserService userService,
+  protected UserDataPublic getUserDataPublic(UserManager userManager,
                                              String userId)
   {
     ResultFuture<UserDataPublic> result = new ResultFuture<>();
 
-    userService.getUser(userId, result);
+    userManager.getUser(userId, result);
 
     return result.get();
   }

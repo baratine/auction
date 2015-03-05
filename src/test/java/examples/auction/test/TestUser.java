@@ -3,7 +3,7 @@ package examples.auction.test;
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
 import examples.auction.UserDataPublic;
-import examples.auction.UserServiceImpl;
+import examples.auction.UserManagerImpl;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,7 +12,7 @@ import org.junit.runner.RunWith;
  * Unit test for simple App.
  */
 @RunWith(RunnerBaratine.class)
-@ConfigurationBaratine(services = UserServiceImpl.class, pod = "user",
+@ConfigurationBaratine(services = UserManagerImpl.class, pod = "user",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
           @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")})
 public class TestUser extends BaseTest

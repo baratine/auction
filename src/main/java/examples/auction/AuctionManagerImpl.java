@@ -31,8 +31,6 @@ public class AuctionManagerImpl
   ServiceRef _self;
   @Inject @Lookup("bardb:///")
   private DatabaseService _db;
-  @Inject
-  private ServiceManager _manager;
 
   public AuctionManagerImpl()
   {

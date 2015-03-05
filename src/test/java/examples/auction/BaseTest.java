@@ -1,48 +1,57 @@
-package examples.auction.test;
+package examples.auction;
 
 import examples.auction.Auction;
 import examples.auction.AuctionDataPublic;
+import examples.auction.User;
 import examples.auction.UserDataPublic;
 import examples.auction.UserManager;
 import io.baratine.core.Lookup;
 import io.baratine.core.ResultFuture;
 import io.baratine.core.ServiceRef;
+import org.omg.CORBA.TIMEOUT;
 
 import java.util.concurrent.TimeUnit;
 
 public class BaseTest
 {
   @Lookup("pod://user/user")
-  UserManager _userManager;
+  UserManager _users;
 
   @Lookup("pod://user/user")
-  ServiceRef _userServiceRef;
+  ServiceRef _usersServiceRef;
 
-  protected boolean userCreate(String userName, String password)
+  protected String userCreate(String userName, String password)
   {
-    ResultFuture<Boolean> future = new ResultFuture<>();
+    ResultFuture<String> userId = new ResultFuture<>();
 
-    _userManager.createUser(userName, password, future);
+    _users.createUser(userName, password, userId);
 
-    return future.get(10, TimeUnit.SECONDS);
+    return userId.get(10, TimeUnit.SECONDS);
   }
 
-  protected UserDataPublic userAuthenticate(String userName, String password)
+  private User lookupUser(String id)
   {
-    ResultFuture<UserDataPublic> future = new ResultFuture<>();
-
-    _userManager.authenticate(userName, password, future);
-
-    return future.get(10, TimeUnit.SECONDS);
+    return _usersServiceRef.lookup(id).as(User.class);
   }
 
-  protected UserDataPublic userGetById(String id)
+  protected User findUser(String name)
   {
-    ResultFuture<UserDataPublic> future = new ResultFuture<>();
+    ResultFuture<String> futureUserId = new ResultFuture<>();
 
-    _userManager.getUser(id, future);
+    _users.find(name, futureUserId);
 
-    return future.get(10, TimeUnit.SECONDS);
+    String userId = futureUserId.get(2, TimeUnit.SECONDS);
+
+    return _usersServiceRef.lookup("/" + userId).as(User.class);
+  }
+
+  protected boolean userAuthenticate(User user, String password)
+  {
+    ResultFuture<Boolean> result = new ResultFuture<>();
+
+    user.authenticate(password, result);
+
+    return result.get(10, TimeUnit.SECONDS);
   }
 
   protected boolean open(Auction auction)

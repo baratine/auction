@@ -43,6 +43,7 @@ public class AuctionSessionImpl implements AuctionSession
   private ChannelListener _listener;
 
   private User _user;
+  private String _userId;
 
   public void createUser(String userName, String password,
                          final Result<Boolean> result)
@@ -55,17 +56,21 @@ public class AuctionSessionImpl implements AuctionSession
     _users.find(userName, result.from((id, r) -> loginImpl(id, password, r)));
   }
 
-  private void loginImpl(String id, String password, Result<Boolean> result)
+  private void loginImpl(String userId, String password, Result<Boolean> result)
   {
-    User user = _usersServiceRef.lookup("/" + id).as(User.class);
+    User user = _usersServiceRef.lookup("/" + userId).as(User.class);
 
-    user.authenticate(password, result.from(b -> completeLogin(b, user)));
+    user.authenticate(password, result.from(b -> completeLogin(b,
+                                                               userId,
+                                                               user)));
   }
 
-  private boolean completeLogin(boolean isLoggedIn, User user)
+  private boolean completeLogin(boolean isLoggedIn, String userId, User user)
   {
-    if (isLoggedIn)
+    if (isLoggedIn) {
       _user = user;
+      _userId = userId;
+    }
 
     return isLoggedIn;
   }
@@ -90,7 +95,7 @@ public class AuctionSessionImpl implements AuctionSession
       throw new IllegalStateException("No user is logged in");
     }
 
-    _auctions.create(_user.getId(), title, bid,
+    _auctions.create(_userId, title, bid,
                      result.from((x, r) ->
                                    afterCreateAuction(x, title, r)));
   }
@@ -130,7 +135,7 @@ public class AuctionSessionImpl implements AuctionSession
       throw new IllegalStateException("No user is logged in");
     }
 
-    getAuctionService(auctionId).bid(_user.getId(), bid, result);
+    getAuctionService(auctionId).bid(_userId, bid, result);
 
   }
 

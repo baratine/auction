@@ -41,6 +41,8 @@ public class UserImpl implements User
   {
     _user = new UserDataPublic(_id, userName, digest(password));
 
+    userId.complete(_id);
+
     log.finer("creating new user: " + userName);
   }
 

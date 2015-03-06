@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 

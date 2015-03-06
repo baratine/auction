@@ -8,5 +8,5 @@ public interface User
 
   void authenticate(String password, Result<Boolean> result);
 
-  void get(Result<UserDataPublic> user);
+  void getUserData(Result<UserDataPublic> user);
 }

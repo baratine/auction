@@ -92,7 +92,7 @@ public class AuctionImpl implements Auction
     return _auctionData != null;
   }
 
-  public void get(Result<AuctionDataPublic> result)
+  public void getAuctionData(Result<AuctionDataPublic> result)
   {
     result.complete(_auctionData);
   }
@@ -113,7 +113,10 @@ public class AuctionImpl implements Auction
       result.complete(true);
     }
     else {
-      result.complete(false);
+      throw new IllegalStateException(
+        String.format("can't open auction %1s from state %2s",
+                      _auctionData.getId(),
+                      _auctionData.getState()));
     }
   }
 
@@ -154,7 +157,11 @@ public class AuctionImpl implements Auction
       result.complete(true);
     }
     else {
-      result.complete(false);
+      throw new IllegalStateException(
+        String.format("can't close auction %1s from state %2s",
+                      _auctionData.getId(),
+                      _auctionData.getState()));
+
     }
   }
 

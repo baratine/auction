@@ -13,7 +13,7 @@ public interface Auction
 
   void close(Result<Boolean> result);
 
-  void get(Result<AuctionDataPublic> result);
+  void getAuctionData(Result<AuctionDataPublic> result);
 
   void bid(String userId, int bid, Result<Boolean> result)
     throws IllegalStateException;

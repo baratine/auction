@@ -6,5 +6,5 @@ public interface SyncUser extends User
 
   boolean authenticate(String password);
 
-  UserDataPublic get();
+  UserDataPublic getUserData();
 }

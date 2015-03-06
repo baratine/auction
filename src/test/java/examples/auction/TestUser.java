@@ -35,7 +35,7 @@ public class TestUser
 
     SyncUser user = _userManagerRef.lookup("/" + id).as(SyncUser.class);
 
-    UserDataPublic userData = user.get();
+    UserDataPublic userData = user.getUserData();
 
     Assert.assertEquals(id, userData.getId());
     Assert.assertEquals("Spock", userData.getName());

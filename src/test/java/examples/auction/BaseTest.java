@@ -70,7 +70,7 @@ public class BaseTest
   {
     ResultFuture<AuctionDataPublic> result = new ResultFuture<>();
 
-    auction.get(result);
+    auction.getAuctionData(result);
 
     return result.get();
   }
@@ -100,7 +100,7 @@ public class BaseTest
 
     channel.getUser(result);
 
-    return result.get();
+    return result.getAuctionData();
   }
 
   public boolean createUser(ChannelAuction channel,
@@ -111,7 +111,7 @@ public class BaseTest
 
     channel.createUser(user, password, result);
 
-    return result.get();
+    return result.getAuctionData();
   }
 
   protected boolean login(ChannelAuction channel, String user, String password)
@@ -120,7 +120,7 @@ public class BaseTest
 
     channel.login(user, password, result);
 
-    return result.get();
+    return result.getAuctionData();
   }
 
   protected String createAuction(ChannelAuction channel, String title, int bid)
@@ -129,7 +129,7 @@ public class BaseTest
 
     channel.createAuction(title, bid, result);
 
-    return result.get();
+    return result.getAuctionData();
   }
 
   protected AuctionDataPublic getAuctionDataPublic(ChannelAuction channel,
@@ -139,7 +139,7 @@ public class BaseTest
 
     channel.getAuction(id, result);
 
-    return result.get();
+    return result.getAuctionData();
   }
 
   protected String findAuction(ChannelAuction channel, String title)
@@ -148,7 +148,7 @@ public class BaseTest
 
     channel.findAuction(title, result);
 
-    return result.get();
+    return result.getAuctionData();
   }
 
   protected boolean bid(ChannelAuction channel, String auctionId, int bid)
@@ -157,7 +157,7 @@ public class BaseTest
 
     channel.bidAuction(auctionId, bid, result);
 
-    return result.get();
+    return result.getAuctionData();
   }
 
   protected boolean setListener(ChannelAuction channel,
@@ -167,7 +167,7 @@ public class BaseTest
 
     channel.setListener(listener, result);
 
-    return result.get();
+    return result.getAuctionData();
   }
 
   boolean addAuctionListener(ChannelAuction channel, String id)
@@ -176,7 +176,7 @@ public class BaseTest
 
     channel.addAuctionListener(id, result);
 
-    return result.get();
+    return result.getAuctionData();
   }*/
 
   private void sleep(int seconds)

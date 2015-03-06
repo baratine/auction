@@ -84,7 +84,7 @@ public class AuctionSessionImpl implements AuctionSession
       throw new IllegalStateException("No user is logged in");
     }
 
-    _user.get(userData);
+    _user.getUserData(userData);
   }
 
   public void createAuction(String title,
@@ -157,7 +157,7 @@ public class AuctionSessionImpl implements AuctionSession
       throw new IllegalStateException("No user is logged in");
     }
 
-    getAuctionService(id).get(result);
+    getAuctionService(id).getAuctionData(result);
   }
 
   public void setListener(@Service ChannelListener listener,

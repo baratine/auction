@@ -8,7 +8,7 @@ public interface SyncAuction extends Auction
 
   boolean close();
 
-  AuctionDataPublic get();
+  AuctionDataPublic getAuctionData();
 
   boolean bid(String userId, int bid);
 }

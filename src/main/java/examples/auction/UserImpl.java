@@ -87,7 +87,7 @@ public class UserImpl implements User
   }
 
   @Override
-  public void get(Result<UserDataPublic> user)
+  public void getUserData(Result<UserDataPublic> user)
   {
     user.complete(_user);
   }

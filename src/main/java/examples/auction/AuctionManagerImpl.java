@@ -74,6 +74,8 @@ public class AuctionManagerImpl
 
   public void find(String title, Result<String> result)
   {
+    _self.checkpoint();
+
     _db.findOne("select id from auction where title=?",
                 result.from(c -> c != null ? c.getString(1) : null),
                 title);

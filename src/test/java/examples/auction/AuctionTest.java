@@ -3,12 +3,15 @@ package examples.auction;
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
 import io.baratine.core.Lookup;
+import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
+import javax.inject.Named;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
@@ -19,11 +22,13 @@ import java.util.logging.Logger;
 @RunWith(RunnerBaratine.class)
 @ConfigurationBaratine(services = UserManagerImpl.class, pod = "user",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")})
+          @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
+  testTime = 0)
 
 @ConfigurationBaratine(services = AuctionManagerImpl.class, pod = "auction",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")})
+          @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
+  testTime = 0)
 
 public class AuctionTest
 {
@@ -45,6 +50,9 @@ public class AuctionTest
   @Inject
   RunnerBaratine _testContext;
 
+  @Inject @Named("auction")
+  ServiceManager _auctionPod;
+
   /**
    * User create correctly sets the user name.
    */
@@ -63,17 +71,27 @@ public class AuctionTest
     Assert.assertEquals(data.getTitle(), "book");
   }
 
-  private SyncUser createUser(String name, String password)
+  SyncUser createUser(String name, String password)
   {
     String id = _users.create(name, password);
 
+    return getUser(id);
+  }
+
+  SyncUser getUser(String id)
+  {
     return _usersRef.lookup("/" + id).as(SyncUser.class);
   }
 
-  private SyncAuction createAuction(SyncUser user, String title, int bid)
+  SyncAuction createAuction(SyncUser user, String title, int bid)
   {
     String id = _auctions.create(user.getUserData().getId(), title, bid);
 
+    return getAuction(id);
+  }
+
+  SyncAuction getAuction(String id)
+  {
     return _auctionsRef.lookup("/" + id).as(SyncAuction.class);
   }
 
@@ -210,119 +228,114 @@ public class AuctionTest
     Assert.assertFalse(result);
     data = auction.getAuctionData();
     Assert.assertEquals(data.getLastBid().getBid(), 20);
-    Assert.assertEquals(data.getLastBid().getUserId(), userKirk.getUserData().getId());
+    Assert.assertEquals(data.getLastBid().getUserId(),
+                        userKirk.getUserData().getId());
 
     result = auction.close();
     Assert.assertTrue(result);
 
     data = auction.getAuctionData();
     Assert.assertEquals(data.getLastBid().getBid(), 20);
-    Assert.assertEquals(data.getLastBid().getUserId(), userKirk.getUserData().getId());
+    Assert.assertEquals(data.getLastBid().getUserId(),
+                        userKirk.getUserData().getId());
   }
 
-/**
- * Tests auction events.
- *//*
+  /**
+   * Tests auction events.
+   */
 
   @Test
   public void testAuctionEvents() throws InterruptedException
   {
-    User userSpock = _users.create("Spock", "test").as(User.class);
-    User userKirk = _users.create("Kirk", "test").as(User.class);
+    SyncUser userSpock = createUser("Spock", "test");
+    SyncUser userKirk = createUser("Kirk", "test");
 
-    Auction auction = _auctionManager.create(userSpock, "book", 15)
-                                     .as(Auction.class);
+    SyncAuction auction = createAuction(userSpock, "book", 15);
 
     Assert.assertNotNull(auction);
 
-    open(auction);
+    auction.open();
 
-    AuctionDataPublic data = getAuctionDataPublic(auction);
+    AuctionDataPublic data = auction.getAuctionData();
     String id = data.getId();
 
-    String url = "event:///auction/" + id;
+    String url = "event://auction/auction/" + id;
 
-    ServiceRef eventRef = _manager.lookup(url);
+    ServiceRef eventRef = _auctionPod.lookup(url);
 
-    AuctionListenerImpl actionCallback = new AuctionListenerImpl("book");
+    AuctionListenerImpl auctionCallback = new AuctionListenerImpl("book");
 
-    ServiceRef callbackRef = _manager.service(actionCallback);
+    eventRef.subscribe(auctionCallback);
 
-    eventRef.subscribe(callbackRef, 0);
-
-    bid(auction, userKirk, 17);
+    auction.bid(userKirk.getUserData().getId(), 17);
 
     // wait for events
     Thread.sleep(100);
 
-    Assert.assertEquals("bid", actionCallback.getType());
-    Assert.assertEquals(userKirk, actionCallback.getUser());
-    Assert.assertEquals(actionCallback.getBid(), 17);
-    Assert.assertEquals(actionCallback.getCount(), 1);
+    System.out.println("AuctionTest.testAuctionEvents::::"
+                       + auctionCallback.getAndClear());
+    Assert.assertEquals("bid", auctionCallback.getType());
+    Assert.assertEquals(userKirk.getUserData().getId(),
+                        auctionCallback.getUser().getUserData().getId());
+    Assert.assertEquals(auctionCallback.getBid(), 17);
+    Assert.assertEquals(auctionCallback.getCount(), 1);
 
-    close(auction);
+    auction.close();
 
     // wait for events
     Thread.sleep(100);
 
-    Assert.assertEquals("close", actionCallback.getType());
-    Assert.assertEquals(userKirk, actionCallback.getUser());
-    Assert.assertEquals(actionCallback.getBid(), 17);
-    Assert.assertEquals(actionCallback.getCount(), 2);
+    Assert.assertEquals("close", auctionCallback.getType());
+    Assert.assertEquals(userKirk.getUserData().getId(),
+                        auctionCallback.getUser().getUserData().getId());
+    Assert.assertEquals(auctionCallback.getBid(), 17);
+    Assert.assertEquals(auctionCallback.getCount(), 2);
   }
 
-  */
-/**
- * Tests normal auction expire (5 days)
- *//*
+  /**
+   * Tests normal auction expire (5 days)
+   */
 
   @Test
   public void testAuctionExpire() throws InterruptedException
   {
-    User userSpock = _users.create("Spock", "test").as(User.class);
-    User userKirk = _users.create("Kirk", "test").as(User.class);
+    SyncUser userSpock = createUser("Spock", "test");
+    SyncUser userKirk = createUser("Kirk", "test");
 
-    Auction auction = _auctionManager.create(userSpock, "book", 15).as(
-      Auction.class);
+    SyncAuction auction = createAuction(userSpock, "book", 15);
 
     Assert.assertNotNull(auction);
 
-    boolean result = open(auction);
+    boolean result = auction.open();
     Assert.assertTrue(result);
 
-    result = bid(auction, userKirk, 20);
+    result = auction.bid(userKirk.getUserData().getId(), 20);
     Assert.assertTrue(result);
 
-    String id = getAuctionDataPublic(auction).getId();
+    String id = auction.getAuctionData().getId();
 
-    String url = "event:///auction/" + id;
-    ServiceRef eventRef = _manager.lookup(url);
+    String url = "event://auction/auction/" + id;
+    ServiceRef eventRef = _auctionPod.lookup(url);
     AuctionListenerImpl auctionCallback = new AuctionListenerImpl("book");
-    ServiceRef callbackRef = _manager.service(auctionCallback);
+    ServiceRef callbackRef = _auctionPod.service(auctionCallback);
     eventRef.subscribe(callbackRef, 0);
 
-    // 4 hours later auction is still open
-    _testContext.addTime(4, TimeUnit.HOURS);
+    // 25 seconds later auction is still open
+    _testContext.addTime(15, TimeUnit.SECONDS);
 
     Thread.sleep(100);
 
-    AuctionDataPublic data;
-    try {
-      data = getAuctionDataPublic(auction);
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw e;
-    }
-    Assert.assertEquals(Auction.State.OPEN, data.getState());
+    AuctionDataPublic data = auction.getAuctionData();
+    Assert.assertEquals(AuctionDataPublic.State.OPEN, data.getState());
 
     Assert.assertEquals("", auctionCallback.getAndClear());
 
     // 2 hours after that, auction is closed
-    _testContext.addTime(2, TimeUnit.HOURS);
+    _testContext.addTime(16, TimeUnit.SECONDS);
     Thread.sleep(100);
 
-    data = getAuctionDataPublic(auction);
-    Assert.assertEquals(Auction.State.CLOSED, data.getState());
+    data = auction.getAuctionData();
+    Assert.assertEquals(AuctionDataPublic.State.CLOSED, data.getState());
     Assert.assertEquals("close book user=Kirk 20",
                         auctionCallback.getAndClear());
 
@@ -332,11 +345,11 @@ public class AuctionTest
     Assert.assertEquals("", auctionCallback.getAndClear());
   }
 
-  static class AuctionListenerImpl implements AuctionEvents
+  class AuctionListenerImpl implements AuctionEvents
   {
     private String _title;
     private String _msg = "";
-    private User _user;
+    private SyncUser _user;
     private int _bid;
     private String _type = "none";
     private int _count;
@@ -346,7 +359,7 @@ public class AuctionTest
       _title = title;
     }
 
-    public User getUser()
+    public SyncUser getUser()
     {
       return _user;
     }
@@ -377,7 +390,7 @@ public class AuctionTest
     @Override
     public void onBid(AuctionDataPublic data)
     {
-      _user = data.getLastBid().getUser();
+      _user = AuctionTest.this.getUser(data.getLastBid().getUserId());
       _bid = data.getLastBid().getBid();
       _type = "bid";
       _count++;
@@ -385,7 +398,7 @@ public class AuctionTest
       addMsg("bid "
              + _title
              + " user="
-             + getUserDataPublic(_user).getName()
+             + _user.getUserData().getName()
              + " "
              + _bid);
     }
@@ -402,7 +415,7 @@ public class AuctionTest
     @Override
     public void onClose(AuctionDataPublic data)
     {
-      _user = data.getLastBid().getUser();
+      _user = AuctionTest.this.getUser(data.getLastBid().getUserId());
       _bid = data.getLastBid().getBid();
       _type = "close";
       _count++;
@@ -410,19 +423,9 @@ public class AuctionTest
       addMsg("close "
              + _title
              + " user="
-             + getUserDataPublic(_user).getName()
+             + _user.getUserData().getName()
              + " "
              + _bid);
     }
-
-    private UserDataPublic getUserDataPublic(User user)
-    {
-      ResultFuture<UserDataPublic> result = new ResultFuture<>();
-
-      user.getAuctionData(result);
-
-      return result.getAuctionData();
-    }
   }
-*/
 }

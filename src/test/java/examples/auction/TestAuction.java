@@ -30,10 +30,10 @@ import java.util.logging.Logger;
           @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
   testTime = 0)
 
-public class AuctionTest
+public class TestAuction
 {
   private static final Logger log
-    = Logger.getLogger(AuctionTest.class.getName());
+    = Logger.getLogger(TestAuction.class.getName());
 
   @Inject @Lookup("pod://user/user")
   SyncUserManager _users;
@@ -50,7 +50,7 @@ public class AuctionTest
   @Inject
   RunnerBaratine _testContext;
 
-  @Inject @Named("auction")
+  @Inject @Lookup("pod://auction/")
   ServiceManager _auctionPod;
 
   /**
@@ -390,7 +390,7 @@ public class AuctionTest
     @Override
     public void onBid(AuctionDataPublic data)
     {
-      _user = AuctionTest.this.getUser(data.getLastBid().getUserId());
+      _user = TestAuction.this.getUser(data.getLastBid().getUserId());
       _bid = data.getLastBid().getBid();
       _type = "bid";
       _count++;
@@ -415,7 +415,7 @@ public class AuctionTest
     @Override
     public void onClose(AuctionDataPublic data)
     {
-      _user = AuctionTest.this.getUser(data.getLastBid().getUserId());
+      _user = TestAuction.this.getUser(data.getLastBid().getUserId());
       _bid = data.getLastBid().getBid();
       _type = "close";
       _count++;

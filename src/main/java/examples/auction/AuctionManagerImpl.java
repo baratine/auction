@@ -28,9 +28,12 @@ public class AuctionManagerImpl
 {
   private final static Logger log
     = Logger.getLogger(AuctionManagerImpl.class.getName());
+
   ServiceRef _self;
   @Inject @Lookup("bardb:///")
   private DatabaseService _db;
+
+
 
   public AuctionManagerImpl()
   {
@@ -57,7 +60,7 @@ public class AuctionManagerImpl
 
     log.finer("lookup auction: " + id);
 
-    return new AuctionImpl(_db, id);
+    return new AuctionImpl(Services.getCurrentManager(), _db, id);
   }
 
   public void create(String ownerId,

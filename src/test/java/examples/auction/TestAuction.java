@@ -20,11 +20,13 @@ import java.util.logging.Logger;
  */
 @RunWith(RunnerBaratine.class)
 @ConfigurationBaratine(services = UserManagerImpl.class, pod = "user",
+  logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
           @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
   testTime = 0)
 
 @ConfigurationBaratine(services = AuctionManagerImpl.class, pod = "auction",
+  logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
           @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
   testTime = 0)
@@ -262,6 +264,8 @@ public class TestAuction
 
     ServiceRef eventRef = _auctionPod.lookup(url);
 
+    System.out.println("TestAuction.testAuctionEvents: " + _auctionPod);
+
     AuctionListenerImpl auctionCallback = new AuctionListenerImpl("book");
 
     eventRef.subscribe(auctionCallback);
@@ -271,8 +275,6 @@ public class TestAuction
     // wait for events
     Thread.sleep(100);
 
-    System.out.println("AuctionTest.testAuctionEvents::::"
-                       + auctionCallback.getAndClear());
     Assert.assertEquals("bid", auctionCallback.getType());
     Assert.assertEquals(userKirk.getUserData().getId(),
                         auctionCallback.getUser().getUserData().getId());
@@ -325,6 +327,7 @@ public class TestAuction
     Thread.sleep(100);
 
     AuctionDataPublic data = auction.getAuctionData();
+
     Assert.assertEquals(AuctionDataPublic.State.OPEN, data.getState());
 
     Assert.assertEquals("", auctionCallback.getAndClear());

@@ -18,6 +18,7 @@ public class AuctionImpl implements Auction
   private final static Logger log
     = Logger.getLogger(AuctionImpl.class.getName());
 
+  private ServiceManager _manager;
   private DatabaseService _db;
 
   private String _id;
@@ -29,8 +30,9 @@ public class AuctionImpl implements Auction
   {
   }
 
-  public AuctionImpl(DatabaseService db, String id)
+  public AuctionImpl(ServiceManager manager, DatabaseService db, String id)
   {
+    _manager = manager;
     _db = db;
     _id = id;
   }
@@ -168,11 +170,18 @@ public class AuctionImpl implements Auction
   private AuctionEvents getEvents()
   {
     if (_events == null) {
+/*
       ServiceManager manager = Services.getCurrentManager();
+
+      log.finer("mmmmmm: " + manager);
+*/
+
+
+      log.finer("mmmmmm: " + _manager);
 
       String url = "event://auction/auction/" + _auctionData.getId();
 
-      _events = manager.lookup(url).as(AuctionEvents.class);
+      _events = _manager.lookup(url).as(AuctionEvents.class);
     }
 
     return _events;
@@ -192,11 +201,15 @@ public class AuctionImpl implements Auction
     boolean isSuccess = _auctionData.bid(userId, bid);
 
     if (isSuccess) {
+      log.finer("bid placed for auction: " + _auctionData);
+
       getEvents().onBid(_auctionData);
 
       result.complete(true);
     }
     else {
+      log.finer("bid rejected for auction: " + _auctionData);
+
       result.complete(false);
     }
   }

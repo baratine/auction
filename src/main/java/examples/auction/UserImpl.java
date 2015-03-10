@@ -51,6 +51,8 @@ public class UserImpl implements User
   @OnLoad
   public void load(Result<Boolean> result)
   {
+    log.finer("loading user: " + _id + " ...");
+
     _db.findOne("select value from users where id=?",
                 result.from(c -> setUser(c)), _id);
   }
@@ -66,12 +68,12 @@ public class UserImpl implements User
   }
 
   @OnSave
-  public void save()
+  public void save(Result<Boolean> result)
   {
     log.finer("saving user: " + _user);
 
     _db.exec("insert into users(id, name, value) values(?,?,?)",
-             Result.empty(),
+             result.from(o->(Boolean)o),
              _id,
              _user.getName(),
              _user);

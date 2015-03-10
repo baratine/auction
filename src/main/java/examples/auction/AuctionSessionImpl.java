@@ -11,6 +11,7 @@ import io.baratine.core.SessionService;
 import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -73,6 +74,17 @@ public class AuctionSessionImpl implements AuctionSession
     }
 
     return isLoggedIn;
+  }
+
+  @Override
+  public void logout(Result<Boolean> result)
+  {
+    _user = null;
+    _userId = null;
+
+    unsubscribe();
+
+    result.complete(true);
   }
 
   /**
@@ -177,12 +189,19 @@ public class AuctionSessionImpl implements AuctionSession
     Objects.requireNonNull(id);
     try {
       addAuctionListenerImpl(id);
+
+      result.complete(true);
     } catch (Throwable t) {
-      t.printStackTrace();
+      log.log(Level.WARNING, t.getMessage(), t);
+
+      if (t instanceof RuntimeException)
+        throw (RuntimeException) t;
+      else
+        throw new RuntimeException(t);
     }
   }
 
-  private void addAuctionListenerImpl(String id)//, AuctionService auction)
+  private void addAuctionListenerImpl(String id)
   {
     String url = "event://auction/auction/" + id;
 
@@ -200,9 +219,16 @@ public class AuctionSessionImpl implements AuctionSession
   {
     log.finer("destroy auction channel: " + this);
 
+    unsubscribe();
+  }
+
+  private void unsubscribe()
+  {
     for (AuctionEventsImpl events : _listenerMap.values()) {
       events.unsubscribe();
     }
+
+    _listenerMap.clear();
   }
 
   private class AuctionEventsImpl implements AuctionEvents

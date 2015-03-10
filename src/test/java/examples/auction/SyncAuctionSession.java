@@ -8,6 +8,8 @@ public interface SyncAuctionSession extends AuctionSession
 
   boolean login(String userName, String password);
 
+  boolean logout();
+
   UserDataPublic getUser();
 
   String createAuction(String title, int bid);

@@ -170,15 +170,6 @@ public class AuctionImpl implements Auction
   private AuctionEvents getEvents()
   {
     if (_events == null) {
-/*
-      ServiceManager manager = Services.getCurrentManager();
-
-      log.finer("mmmmmm: " + manager);
-*/
-
-
-      log.finer("mmmmmm: " + _manager);
-
       String url = "event://auction/auction/" + _auctionData.getId();
 
       _events = _manager.lookup(url).as(AuctionEvents.class);

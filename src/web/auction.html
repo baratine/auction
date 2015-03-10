@@ -173,6 +173,7 @@
                     message = message + "': login rejected";
                     $scope.user = null;
                   }
+
                   console.log(message);
 
                   $scope.$apply(function ()
@@ -185,6 +186,32 @@
                   alert(error);
                 }
         );
+      };
+
+      $scope.logout = function ()
+      {
+        var promise = $scope.jampChannel.query("/auction-session/x",
+                                               "logout",
+                                               [],
+                                               false,
+                                               null,
+                                               "/logout");
+
+        promise.then(function (result)
+                     {
+                       $scope.$apply(function ()
+                                     {
+                                       $scope.user = null;
+                                       $scope.myAuctions = [];
+                                       $scope.myBids = [];
+                                       $scope.userStatus = "no user logged in";
+                                       $scope.createAuctionMessage = "";
+                                     });
+                     },
+                     function (error)
+                     {
+                       console.log(error);
+                     })
       };
 
       $scope.createAuction = function (title, price)
@@ -366,6 +393,12 @@
           ng-click="createUser(userName, userPassword)">
     Register
   </button>
+
+  <button type="submit" class="btn btn-default"
+          ng-click="logout()" ng-disabled="! user ">
+    Logout
+  </button>
+
 </form>
 
 <br>

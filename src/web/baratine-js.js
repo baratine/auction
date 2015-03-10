@@ -1,7 +1,7 @@
 var Jamp = {};
 
 Jamp.unserialize = function (json)
-{ console.log(json);
+{
   var array = JSON.parse(json);
 
   return Jamp.unserializeArray(array);
@@ -592,7 +592,7 @@ Jamp.Promise = function ()
     return this;
   };
 };
-Jamp.HttpChannel = function (url)
+Jamp.HttpChannel = function (url, onChannel)
 {
   Jamp.Channel.call(this, url);
 
@@ -708,7 +708,7 @@ Jamp.HttpChannel = function (url)
 
   return this;
 };
-Jamp.WebSocketChannel = function (url, onOpen)
+Jamp.WebSocketChannel = function (url, onChannel)
 {
   Jamp.Channel.call(this, url);
 
@@ -742,7 +742,7 @@ Jamp.WebSocketChannel = function (url, onOpen)
   };
 
   this.conn = new Jamp.WebSocketConnection(url, this.onMessageJson, this);
-  this.onOpen = onOpen;
+  this.onChannel = onChannel;
   this.conn.init(this.conn);
 };
 
@@ -787,7 +787,9 @@ Jamp.WebSocketConnection = function (url,
 
     conn.socket.onopen = function ()
     {
-      conn.channel.onOpen();
+      if (conn.channel.onChannel)
+        conn.channel.onChannel(conn.channel);
+
       conn.submitRequestLoop();
     };
 

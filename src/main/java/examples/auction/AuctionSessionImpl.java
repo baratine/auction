@@ -61,9 +61,8 @@ public class AuctionSessionImpl implements AuctionSession
   {
     User user = _usersServiceRef.lookup("/" + userId).as(User.class);
 
-    user.authenticate(password, result.from(b -> completeLogin(b,
-                                                               userId,
-                                                               user)));
+    user.authenticate(password,
+                      result.from(b -> completeLogin(b, userId, user)));
   }
 
   private boolean completeLogin(boolean isLoggedIn, String userId, User user)

@@ -97,6 +97,22 @@ public class TestSession
   }
 
   /**
+   * Login correctly sets user.
+   */
+  @Test
+  public void userLoginReject()
+  {
+    SyncAuctionSession session = getSession();
+
+    Assert.assertNotNull(session);
+
+    boolean result = session.login("bogus", null);
+    Assert.assertFalse(result);
+
+    UserDataPublic user = session.getUser();
+  }
+
+  /**
    * creates an auction
    */
   @Test

@@ -73,7 +73,7 @@ public class UserImpl implements User
     log.finer("saving user: " + _user);
 
     _db.exec("insert into users(id, name, value) values(?,?,?)",
-             result.from(o->(Boolean)o),
+             result.from(o -> (Boolean) o),
              _id,
              _user.getName(),
              _user);
@@ -82,8 +82,11 @@ public class UserImpl implements User
   @Override
   public void authenticate(String password, Result<Boolean> result)
   {
-    if (_user == null)
-      throw new IllegalStateException();
+    if (_user == null) {
+      result.complete(false);
+
+      return;
+    }
 
     result.complete(_user.getDigest().equals(digest(password)));
   }
@@ -102,6 +105,9 @@ public class UserImpl implements User
 
       _digest.reset();
 
+      if (password == null)
+        password = "";
+
       //for production add salt
       _digest.update(password.getBytes(StandardCharsets.UTF_8));
 
@@ -113,5 +119,4 @@ public class UserImpl implements User
     }
   }
 }
-
 

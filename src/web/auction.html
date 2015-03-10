@@ -115,12 +115,12 @@
 
       $scope.searchTitle = null;
 
-      $scope.createUser = function (user, password)
+      $scope.createUser = function ()
       {
         var promise =
                 $scope.jampChannel.query("/auction-session/x",
                                          "createUser",
-                                         [user, password],
+                                         [$scope.userName, $scope.userPassword],
                                          false,
                                          null,
                                          "/createUser");
@@ -128,7 +128,7 @@
         promise.then(
                 function (result)
                 {
-                  var message = "account for '" + user;
+                  var message = "account for '" + $scope.userName;
 
                   if (result) {
                     message = message + "' successfully created";
@@ -150,20 +150,21 @@
         );
       };
 
-      $scope.login = function (user, password)
+      $scope.login = function ()
       {
         var promise =
                 $scope.jampChannel.query("/auction-session/x",
                                          "login",
-                                         [user, password],
+                                         [$scope.userName, $scope.userPassword],
                                          false,
                                          null,
                                          "/login");
 
+        console.log("user: " + $scope.userName + " / " + $scope.userPassword);
         promise.then(
                 function (result)
                 {
-                  var message = "'" + user;
+                  var message = "'" + $scope.userName;
 
                   if (result) {
                     message = message + "' successfully logged in";
@@ -179,6 +180,7 @@
                   $scope.$apply(function ()
                                 {
                                   $scope.userStatus = message;
+                                  $scope.clearLoginFields();
                                 });
                 },
                 function (error)
@@ -186,6 +188,11 @@
                   alert(error);
                 }
         );
+      };
+
+      $scope.clearLoginFields = function() {
+        $scope.userName = "";
+        $scope.userPassword = "";
       };
 
       $scope.logout = function ()
@@ -297,6 +304,7 @@
                   if (auctionId) {
                     $scope.addSearchResult(auctionId);
                     $scope.subscribeAuction(auctionId);
+                    $scope.searchTitle = "";
                   }
                 },
                 function (error)
@@ -376,21 +384,19 @@
 
 <form ng-class="userForm" role="form">
   <div class="form-group">
-    <label class="sr-only" for="user">Email address</label>
     <input ng-model="userName" type="text" class="form-control" id="user"
            placeholder="Enter user name">
   </div>
   <div class="form-group">
-    <label class="sr-only" for="password">Password</label>
     <input ng-model="userPassword" type="password" class="form-control"
            id="password"
            placeholder="Password">
   </div>
   <button type="submit" ng-class="btnUserLogin"
-          ng-click="login(userName, userPassword)">Sign in
+          ng-click="login()">Sign in
   </button>
   <button type="submit" ng-class="btnUserRegister"
-          ng-click="createUser(userName, userPassword)">
+          ng-click="createUser()">
     Register
   </button>
 

@@ -37,3 +37,5 @@ $BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web /auction-session
 
 $BARATINE_HOME/bin/baratine cat $BARATINE_ARGS /proc/services
 
+open src/web/auction.html
+

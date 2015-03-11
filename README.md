@@ -41,6 +41,6 @@ Java:
 – cd to auction directory and run src/main/bin/run-auction.sh script
 - navigate to src/web directory and open auction.html file in a browser that supports WebSockets
 
-For additional information see [Baratine]
-[Baratine]: https://baratine.io
+For additional documentaton on Baratine visit [Baratine Home]
+[Baratine Home]: http://baratine.io
 

@@ -1,9 +1,8 @@
-## Baratine™ Auction
+### Baratine™ Auction
 
 ***
 
-#### Auction application demonstrates how to use Baratine™ to
-build a Single Page Web Applicaton.
+##### Auction application demonstrates how to use Baratine™ to build a Single Page Web Application.
 
 The application uses the following Baratine provided services
  * Database
@@ -11,7 +10,7 @@ The application uses the following Baratine provided services
  * Events
  * WebSocket
 
-#### The main interfaces are
+##### The main interfaces are
 
 Java:
 
@@ -25,7 +24,7 @@ Java:
 HTML, JavaScript:
 * auction.html
 
-#### The main classes are
+##### The main classes are
 
 Java:
 

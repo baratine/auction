@@ -17,11 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Notes: Baratine needs to be told when to treat service as secure
- * and the security provider / authenticator to use (possibly for the whole bar)
- * <p/>
- * The api needs to support reconnecting transparently, e.g. when channel
- * expires it needs to be reestablished using the prescribed login sequence
+ *
  */
 @Service("pod://auction/auction")
 public class AuctionManagerImpl
@@ -32,8 +28,6 @@ public class AuctionManagerImpl
   ServiceRef _self;
   @Inject @Lookup("bardb:///")
   private DatabaseService _db;
-
-
 
   public AuctionManagerImpl()
   {

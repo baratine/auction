@@ -3,12 +3,9 @@ package examples.auction;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Notes:
- * - this class is easy to test because it does not require a container
- * - {_id} -> super._id injection from declaring service should be suppored
+ *
  */
 public class AuctionDataPublic implements Serializable
 {
@@ -46,6 +43,36 @@ public class AuctionDataPublic implements Serializable
   public String getId()
   {
     return _id;
+  }
+
+  public String getTitle()
+  {
+    return _title;
+  }
+
+  public void setTitle(String title)
+  {
+    _title = title;
+  }
+
+  public int getStartingBid()
+  {
+    return _startingBid;
+  }
+
+  public void setStartingBid(int startingBid)
+  {
+    _startingBid = startingBid;
+  }
+
+  public ZonedDateTime getDateToClose()
+  {
+    return _dateToClose;
+  }
+
+  public String getOwnerId()
+  {
+    return _ownerId;
   }
 
   public boolean bid(String bidderId, int bid)
@@ -88,11 +115,6 @@ public class AuctionDataPublic implements Serializable
     }
   }
 
-  public String getOwnerId()
-  {
-    return _ownerId;
-  }
-
   public State getState()
   {
     return _state;
@@ -105,26 +127,6 @@ public class AuctionDataPublic implements Serializable
     }
 
     _state = State.OPEN;
-  }
-
-  public int getStartingBid()
-  {
-    return _startingBid;
-  }
-
-  public void setStartingBid(int startingBid)
-  {
-    _startingBid = startingBid;
-  }
-
-  public String getTitle()
-  {
-    return _title;
-  }
-
-  public void setTitle(String title)
-  {
-    _title = title;
   }
 
   public void toClose()
@@ -147,11 +149,6 @@ public class AuctionDataPublic implements Serializable
     sb.append("]");
 
     return sb.toString();
-  }
-
-  public ZonedDateTime getDateToClose()
-  {
-    return _dateToClose;
   }
 
   static enum State

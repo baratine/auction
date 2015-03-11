@@ -94,11 +94,6 @@ public class AuctionImpl implements Auction
     return _auctionData != null;
   }
 
-  public void getAuctionData(Result<AuctionDataPublic> result)
-  {
-    result.complete(_auctionData);
-  }
-
   @Modify
   public void open(Result<Boolean> result)
   {
@@ -139,6 +134,38 @@ public class AuctionImpl implements Auction
     log.finer("start timer for auction: " + _auctionData);
   }
 
+  @Modify
+  public void bid(String userId,
+                  int bid,
+                  Result<Boolean> result)
+    throws IllegalStateException
+  {
+    if (_auctionData == null)
+      throw new IllegalStateException();
+
+    log.finer("bid auction: " + _auctionData);
+
+    boolean isSuccess = _auctionData.bid(userId, bid);
+
+    if (isSuccess) {
+      log.finer("bid placed for auction: " + _auctionData);
+
+      getEvents().onBid(_auctionData);
+
+      result.complete(true);
+    }
+    else {
+      log.finer("bid rejected for auction: " + _auctionData);
+
+      result.complete(false);
+    }
+  }
+
+  public void getAuctionData(Result<AuctionDataPublic> result)
+  {
+    result.complete(_auctionData);
+  }
+
   /**
    * Administrator can close the auction. Additionally, method is called by
    * a system timer ("timer:) see below
@@ -177,31 +204,5 @@ public class AuctionImpl implements Auction
 
     return _events;
   }
-
-  @Modify
-  public void bid(String userId,
-                  int bid,
-                  Result<Boolean> result)
-    throws IllegalStateException
-  {
-    if (_auctionData == null)
-      throw new IllegalStateException();
-
-    log.finer("bid auction: " + _auctionData);
-
-    boolean isSuccess = _auctionData.bid(userId, bid);
-
-    if (isSuccess) {
-      log.finer("bid placed for auction: " + _auctionData);
-
-      getEvents().onBid(_auctionData);
-
-      result.complete(true);
-    }
-    else {
-      log.finer("bid rejected for auction: " + _auctionData);
-
-      result.complete(false);
-    }
-  }
 }
+

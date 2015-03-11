@@ -23,6 +23,19 @@
       $scope.myAuctions = [];
       $scope.myBids = [];
 
+      $scope.auctionTitle = null;
+      $scope.auctionPrice = 1;
+
+      $scope.userForm = ['form-inline'];
+      $scope.btnUserRegister = ['btn', 'btn-default'];
+      $scope.btnUserLogin = ['btn', 'btn-default'];
+
+      $scope.userStatus = 'no logged in user';
+      $scope.user = null;
+      $scope.createAuctionMessage = 'User created no auctions';
+
+      $scope.searchTitle = null;
+
       $scope.auctionAddedCallback = function (auction)
       {
         var price = auction._startingBid;
@@ -50,29 +63,23 @@
         if (auction._bids.length > 0)
           price = auction._bids[auction._bids.length - 1]._bid;
 
-        for (var i in $scope.myAuctions) {
-          var a = $scope.myAuctions[i];
-          if (auction._id == a.id) {
-            $scope.$apply(function ()
-                          {
-                            a.price = price;
-                            a.state = state;
-                          });
-            break;
+        var updateAuctionModels = function (auctions)
+        {
+          for (var i in auctions) {
+            var a = auctions[i];
+            if (auction._id == a.id) {
+              $scope.$apply(function ()
+                            {
+                              a.price = price;
+                              a.state = state;
+                            });
+              break;
+            }
           }
-        }
+        };
 
-        for (var i in $scope.myBids) {
-          var a = $scope.myBids[i];
-          if (auction._id == a.id) {
-            $scope.$apply(function ()
-                          {
-                            a.price = price;
-                            a.state = state;
-                          });
-            break;
-          }
-        }
+        updateAuctionModels($scope.myAuctions);
+        updateAuctionModels($scope.myBids);
       };
 
       $scope.searchCallback = function (auction)
@@ -102,19 +109,6 @@
         );
       };
 
-      $scope.auctionTitle = null;
-      $scope.auctionPrice = 1;
-
-      $scope.userForm = ['form-inline'];
-      $scope.btnUserRegister = ['btn', 'btn-default'];
-      $scope.btnUserLogin = ['btn', 'btn-default'];
-
-      $scope.userStatus = 'no logged in user';
-      $scope.user = null;
-      $scope.createAuctionMessage = 'User created no auctions';
-
-      $scope.searchTitle = null;
-
       $scope.createUser = function ()
       {
         var promise =
@@ -136,7 +130,6 @@
                   else {
                     message = message + "' was not created";
                   }
-                  console.log(message);
 
                   $scope.$apply(function ()
                                 {
@@ -160,7 +153,6 @@
                                          null,
                                          "/login");
 
-        console.log("user: " + $scope.userName + " / " + $scope.userPassword);
         promise.then(
                 function (result)
                 {

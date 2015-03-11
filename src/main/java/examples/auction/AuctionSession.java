@@ -12,8 +12,6 @@ public interface AuctionSession
 
   void login(String userName, String password, Result<Boolean> result);
 
-  void logout(Result<Boolean> result);
-
   void getUser(Result<UserDataPublic> result);
 
   void createAuction(String title, int bid, Result<String> result);
@@ -29,4 +27,6 @@ public interface AuctionSession
 
   void addAuctionListener(String idAuction,
                           Result<Boolean> result);
+
+  void logout(Result<Boolean> result);
 }

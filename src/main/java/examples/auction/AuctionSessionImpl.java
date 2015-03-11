@@ -75,17 +75,6 @@ public class AuctionSessionImpl implements AuctionSession
     return isLoggedIn;
   }
 
-  @Override
-  public void logout(Result<Boolean> result)
-  {
-    _user = null;
-    _userId = null;
-
-    unsubscribe();
-
-    result.complete(true);
-  }
-
   /**
    * returns logged in user
    */
@@ -117,8 +106,19 @@ public class AuctionSessionImpl implements AuctionSession
     Auction auction = _auctionsServiceRef.lookup("/" + id).as(Auction.class);
 
     auction.open(result.from(b -> id));
+  }
 
-    //_lucene.update(id, title, Result.empty());
+  public void getAuction(String id, Result<AuctionDataPublic> result)
+  {
+    if (id == null) {
+      throw new IllegalArgumentException();
+    }
+
+    if (_user == null) {
+      throw new IllegalStateException("No user is logged in");
+    }
+
+    getAuctionService(id).getAuctionData(result);
   }
 
   public void findAuction(String title,
@@ -156,19 +156,6 @@ public class AuctionSessionImpl implements AuctionSession
       = _auctionsServiceRef.lookup('/' + id).as(Auction.class);
 
     return auction;
-  }
-
-  public void getAuction(String id, Result<AuctionDataPublic> result)
-  {
-    if (id == null) {
-      throw new IllegalArgumentException();
-    }
-
-    if (_user == null) {
-      throw new IllegalStateException("No user is logged in");
-    }
-
-    getAuctionService(id).getAuctionData(result);
   }
 
   public void setListener(@Service ChannelListener listener,
@@ -213,8 +200,19 @@ public class AuctionSessionImpl implements AuctionSession
     _listenerMap.put(id, auctionListener);
   }
 
+  @Override
+  public void logout(Result<Boolean> result)
+  {
+    _user = null;
+    _userId = null;
+
+    unsubscribe();
+
+    result.complete(true);
+  }
+
   @OnDestroy
-  public void onDestroy()
+  public void destroy()
   {
     log.finer("destroy auction channel: " + this);
 
@@ -228,6 +226,17 @@ public class AuctionSessionImpl implements AuctionSession
     }
 
     _listenerMap.clear();
+  }
+
+  @Override
+  public String toString()
+  {
+    return this.getClass().getSimpleName()
+           + '['
+           + _sessionId
+           + ", "
+           + _userId
+           + ']';
   }
 
   private class AuctionEventsImpl implements AuctionEvents

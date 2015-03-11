@@ -11,10 +11,11 @@ public interface Auction
 
   void open(Result<Boolean> result);
 
-  void close(Result<Boolean> result);
+  void bid(String userId, int bid, Result<Boolean> result)
+    throws IllegalStateException;
 
   void getAuctionData(Result<AuctionDataPublic> result);
 
-  void bid(String userId, int bid, Result<Boolean> result)
-    throws IllegalStateException;
+  void close(Result<Boolean> result);
 }
+

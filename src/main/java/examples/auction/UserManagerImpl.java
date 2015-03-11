@@ -26,9 +26,6 @@ public class UserManagerImpl implements UserManager
   @Inject @Lookup("bardb:///")
   private DatabaseService _db;
 
-  @Inject @Lookup("bardb:///")
-  private ServiceRef _temp;
-
   private ServiceRef _self;
 
   public UserManagerImpl()
@@ -45,8 +42,6 @@ public class UserManagerImpl implements UserManager
       _db.exec(
         "create table users(id varchar primary key, name varchar, value object)",
         Result.empty());
-
-      _temp.checkpoint();
     } catch (Throwable t) {
       log.log(Level.FINE, t.getMessage(), t);
     }

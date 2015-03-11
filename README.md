@@ -36,10 +36,10 @@ Java:
 
 ##### Running the Auction application
 
-- install Baratine™ version 0.8.8 or better
-– set BARATINE_HOME to point to installation directory (or create a link from ~/baratine)
-– cd to auction directory and run src/main/bin/run-auction.sh script
-- navigate to src/web directory and open auction.html file in a browser that supports WebSockets
+* install Baratine™ version 0.8.8 or better
+* set BARATINE_HOME to point to installation directory or create a link from ~/baratine
+* cd to auction directory and run src/main/bin/run-auction.sh script
+* navigate to src/web directory and open auction.html file in a browser that supports WebSockets
 
 For additional documentaton on Baratine™ visit [Baratine Home]
 [Baratine Home]: http://baratine.io

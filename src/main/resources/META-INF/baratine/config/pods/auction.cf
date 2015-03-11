@@ -1,0 +1,11 @@
+pod auction {
+  archive "/usr/lib/pods/auction.bar";
+}
+
+pod user {
+  archive "/usr/lib/pods/auction.bar";
+}
+
+pod web {
+  archive "/usr/lib/pods/auction.bar";
+}

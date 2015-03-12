@@ -16,7 +16,7 @@
   </repositories>
 
   <properties>
-    <baratine-home>/Users/alex/baratine</baratine-home>
+    <baratine-home>${user.home}/baratine</baratine-home>
   </properties>
 
   <profiles>
@@ -26,35 +26,35 @@
         <dependency>
           <groupId>io.baratine</groupId>
           <artifactId>baratine-api</artifactId>
-          <version>0.8.6</version>
+          <version>SNAPSHOT</version>
           <scope>system</scope>
           <systemPath>${baratine-home}/lib/baratine-api.jar</systemPath>
         </dependency>
         <dependency>
           <groupId>io.baratine</groupId>
           <artifactId>baratine</artifactId>
-          <version>0.8.6</version>
+          <version>SNAPSHOT</version>
           <scope>system</scope>
           <systemPath>${baratine-home}/lib/baratine.jar</systemPath>
         </dependency>
         <dependency>
           <groupId>io.baratine</groupId>
           <artifactId>baratine-junit</artifactId>
-          <version>0.8.6</version>
+          <version>SNAPSHOT</version>
           <scope>system</scope>
           <systemPath>${baratine-home}/lib/baratine-junit.jar</systemPath>
         </dependency>
         <dependency>
           <groupId>io.baratine</groupId>
           <artifactId>baratine-jee</artifactId>
-          <version>0.8.6</version>
+          <version>SNAPSHOT</version>
           <scope>system</scope>
           <systemPath>${baratine-home}/lib/javaee-7.jar</systemPath>
         </dependency>
         <dependency>
           <groupId>io.baratine</groupId>
           <artifactId>baratine-hessian</artifactId>
-          <version>0.8.6</version>
+          <version>SNAPSHOT</version>
           <scope>system</scope>
           <systemPath>${baratine-home}/lib/hessian.jar</systemPath>
         </dependency>

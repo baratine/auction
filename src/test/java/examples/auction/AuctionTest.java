@@ -31,19 +31,19 @@ import java.util.logging.Logger;
           @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
   testTime = 0)
 
-public class TestAuction
+public class AuctionTest
 {
   private static final Logger log
-    = Logger.getLogger(TestAuction.class.getName());
+    = Logger.getLogger(AuctionTest.class.getName());
 
   @Inject @Lookup("pod://user/user")
-  SyncUserManager _users;
+  UserManagerSync _users;
 
   @Inject @Lookup("pod://user/user")
   ServiceRef _usersRef;
 
   @Inject @Lookup("pod://auction/auction")
-  SyncAuctionManager _auctions;
+  AuctionManagerSync _auctions;
 
   @Inject @Lookup("pod://auction/auction")
   ServiceRef _auctionsRef;
@@ -60,9 +60,9 @@ public class TestAuction
   @Test
   public void testAuctionCreateName()
   {
-    SyncUser user = createUser("Spock", "Password");
+    UserSync user = createUser("Spock", "Password");
 
-    SyncAuction auction = createAuction(user, "book", 15);
+    AuctionSync auction = createAuction(user, "book", 15);
     Assert.assertNotNull(auction);
 
     AuctionDataPublic data = auction.getAuctionData();
@@ -72,28 +72,28 @@ public class TestAuction
     Assert.assertEquals(data.getTitle(), "book");
   }
 
-  SyncUser createUser(String name, String password)
+  UserSync createUser(String name, String password)
   {
     String id = _users.create(name, password);
 
     return getUser(id);
   }
 
-  SyncUser getUser(String id)
+  UserSync getUser(String id)
   {
-    return _usersRef.lookup("/" + id).as(SyncUser.class);
+    return _usersRef.lookup("/" + id).as(UserSync.class);
   }
 
-  SyncAuction createAuction(SyncUser user, String title, int bid)
+  AuctionSync createAuction(UserSync user, String title, int bid)
   {
     String id = _auctions.create(user.getUserData().getId(), title, bid);
 
     return getAuction(id);
   }
 
-  SyncAuction getAuction(String id)
+  AuctionSync getAuction(String id)
   {
-    return _auctionsRef.lookup("/" + id).as(SyncAuction.class);
+    return _auctionsRef.lookup("/" + id).as(AuctionSync.class);
   }
 
   /**
@@ -103,9 +103,9 @@ public class TestAuction
   @Test
   public void openClose() throws InterruptedException
   {
-    SyncUser user = createUser("Spock", "test");
+    UserSync user = createUser("Spock", "test");
 
-    SyncAuction auction = createAuction(user, "book", 15);
+    AuctionSync auction = createAuction(user, "book", 15);
 
     Assert.assertNotNull(auction);
 
@@ -131,9 +131,9 @@ public class TestAuction
   @Test
   public void openOpen() throws InterruptedException
   {
-    SyncUser user = createUser("Spock", "test");
+    UserSync user = createUser("Spock", "test");
 
-    SyncAuction auction = createAuction(user, "book", 15);
+    AuctionSync auction = createAuction(user, "book", 15);
 
     Assert.assertNotNull(auction);
 
@@ -155,9 +155,9 @@ public class TestAuction
   @Test
   public void initClose() throws InterruptedException
   {
-    SyncUser user = createUser("Spock", "test");
+    UserSync user = createUser("Spock", "test");
 
-    SyncAuction auction = createAuction(user, "book", 15);
+    AuctionSync auction = createAuction(user, "book", 15);
 
     Assert.assertNotNull(auction);
 
@@ -177,9 +177,9 @@ public class TestAuction
   @Test
   public void closeOpen() throws InterruptedException
   {
-    SyncUser user = createUser("Spock", "test");
+    UserSync user = createUser("Spock", "test");
 
-    SyncAuction auction = createAuction(user, "book", 15);
+    AuctionSync auction = createAuction(user, "book", 15);
 
     Assert.assertNotNull(auction);
 
@@ -205,11 +205,11 @@ public class TestAuction
   @Test
   public void testAuctionBid() throws InterruptedException
   {
-    SyncUser userSpock = createUser("Spock", "test");
-    SyncUser userKirk = createUser("Kirk", "test");
-    SyncUser userUhura = createUser("Uhura", "test");
+    UserSync userSpock = createUser("Spock", "test");
+    UserSync userKirk = createUser("Kirk", "test");
+    UserSync userUhura = createUser("Uhura", "test");
 
-    SyncAuction auction = createAuction(userSpock, "book", 15);
+    AuctionSync auction = createAuction(userSpock, "book", 15);
 
     Assert.assertNotNull(auction);
 
@@ -248,10 +248,10 @@ public class TestAuction
   @Test
   public void testAuctionEvents() throws InterruptedException
   {
-    SyncUser userSpock = createUser("Spock", "test");
-    SyncUser userKirk = createUser("Kirk", "test");
+    UserSync userSpock = createUser("Spock", "test");
+    UserSync userKirk = createUser("Kirk", "test");
 
-    SyncAuction auction = createAuction(userSpock, "book", 15);
+    AuctionSync auction = createAuction(userSpock, "book", 15);
 
     Assert.assertNotNull(auction);
 
@@ -300,10 +300,10 @@ public class TestAuction
   @Test
   public void testAuctionExpire() throws InterruptedException
   {
-    SyncUser userSpock = createUser("Spock", "test");
-    SyncUser userKirk = createUser("Kirk", "test");
+    UserSync userSpock = createUser("Spock", "test");
+    UserSync userKirk = createUser("Kirk", "test");
 
-    SyncAuction auction = createAuction(userSpock, "book", 15);
+    AuctionSync auction = createAuction(userSpock, "book", 15);
 
     Assert.assertNotNull(auction);
 
@@ -351,7 +351,7 @@ public class TestAuction
   {
     private String _title;
     private String _msg = "";
-    private SyncUser _user;
+    private UserSync _user;
     private int _bid;
     private String _type = "none";
     private int _count;
@@ -361,7 +361,7 @@ public class TestAuction
       _title = title;
     }
 
-    public SyncUser getUser()
+    public UserSync getUser()
     {
       return _user;
     }
@@ -392,7 +392,7 @@ public class TestAuction
     @Override
     public void onBid(AuctionDataPublic data)
     {
-      _user = TestAuction.this.getUser(data.getLastBid().getUserId());
+      _user = AuctionTest.this.getUser(data.getLastBid().getUserId());
       _bid = data.getLastBid().getBid();
       _type = "bid";
       _count++;
@@ -417,7 +417,7 @@ public class TestAuction
     @Override
     public void onClose(AuctionDataPublic data)
     {
-      _user = TestAuction.this.getUser(data.getLastBid().getUserId());
+      _user = AuctionTest.this.getUser(data.getLastBid().getUserId());
       _bid = data.getLastBid().getBid();
       _type = "close";
       _count++;

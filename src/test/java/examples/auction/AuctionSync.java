@@ -1,6 +1,6 @@
 package examples.auction;
 
-public interface SyncAuction extends Auction
+public interface AuctionSync extends Auction
 {
   String create(String ownerId, String title, int startingBid);
 

@@ -2,7 +2,7 @@ package examples.auction;
 
 import io.baratine.core.Service;
 
-public interface SyncAuctionSession extends AuctionSession
+public interface AuctionSessionSync extends AuctionSession
 {
   boolean createUser(String userName, String password);
 

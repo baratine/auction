@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
           @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
   testTime = 0)
-public class TestSession
+public class AuctionSessionTest
 {
   @Inject @Lookup("pod://web/")
   ServiceManager _auctionPod;
@@ -48,7 +48,7 @@ public class TestSession
   @Test
   public void userCreate()
   {
-    SyncAuctionSession session = getSession();
+    AuctionSessionSync session = getSession();
 
     Assert.assertNotNull(session);
 
@@ -63,10 +63,10 @@ public class TestSession
     Assert.assertEquals("Spock", data.getName());
   }
 
-  SyncAuctionSession getSession()
+  AuctionSessionSync getSession()
   {
-    SyncAuctionSession session = _auctionPod.lookup(
-      "session://web/auction-session/test").as(SyncAuctionSession.class);
+    AuctionSessionSync session = _auctionPod.lookup(
+      "session://web/auction-session/test").as(AuctionSessionSync.class);
 
     return session;
   }
@@ -77,7 +77,7 @@ public class TestSession
   @Test
   public void userLogin()
   {
-    SyncAuctionSession session = getSession();
+    AuctionSessionSync session = getSession();
 
     Assert.assertNotNull(session);
 
@@ -102,7 +102,7 @@ public class TestSession
   @Test
   public void userLoginReject()
   {
-    SyncAuctionSession session = getSession();
+    AuctionSessionSync session = getSession();
 
     Assert.assertNotNull(session);
 
@@ -118,7 +118,7 @@ public class TestSession
   @Test
   public void auctionCreate()
   {
-    SyncAuctionSession session = getSession();
+    AuctionSessionSync session = getSession();
 
     Assert.assertNotNull(session);
 
@@ -141,7 +141,7 @@ public class TestSession
   public void auctionFind()
   {
     // create the auction by User Spock
-    SyncAuctionSession sessionSpok = getSession();
+    AuctionSessionSync sessionSpok = getSession();
 
     boolean result = sessionSpok.createUser("Spock", "passwd");
     Assert.assertTrue(result);
@@ -150,7 +150,7 @@ public class TestSession
     Assert.assertNotNull(id);
 
     // find the auction by User Kirk
-    SyncAuctionSession channelKirk = getSession();
+    AuctionSessionSync channelKirk = getSession();
 
     result = channelKirk.createUser("Kirk", "passwd");
     Assert.assertTrue(result);
@@ -171,13 +171,13 @@ public class TestSession
   public void auctionBid()
   {
     // create the auction by User Spock
-    SyncAuctionSession sessionSpock = createUser("Spock", "password");
+    AuctionSessionSync sessionSpock = createUser("Spock", "password");
 
     String id = sessionSpock.createAuction("book", 15);
     Assert.assertNotNull(id);
 
     // bid on the auction by User Kirk
-    SyncAuctionSession sessionKirk = createUser("Kirk", "password");
+    AuctionSessionSync sessionKirk = createUser("Kirk", "password");
 
     String idBid = sessionKirk.findAuction("book");
     Assert.assertNotNull(idBid);
@@ -190,9 +190,9 @@ public class TestSession
     Assert.assertEquals(data.getLastBid().getBid(), 17);
   }
 
-  private SyncAuctionSession createUser(String user, String password)
+  private AuctionSessionSync createUser(String user, String password)
   {
-    SyncAuctionSession session = getSession();
+    AuctionSessionSync session = getSession();
 
     boolean result = session.createUser(user, password);
 
@@ -210,7 +210,7 @@ public class TestSession
   public void auctionBidListener() throws InterruptedException
   {
     // create the auction by User Spock
-    SyncAuctionSession sessionSpock = createUser("Spock1", "password");
+    AuctionSessionSync sessionSpock = createUser("Spock1", "password");
 
     Assert.assertTrue(sessionSpock.login("Spock1", "password"));
 
@@ -226,7 +226,7 @@ public class TestSession
     Assert.assertTrue(result);
 
     // bid on the auction by User Kirk
-    SyncAuctionSession sessionKirk = createUser("Kirk", "password");
+    AuctionSessionSync sessionKirk = createUser("Kirk", "password");
 
     String idBid = sessionKirk.findAuction("book-listener");
     Assert.assertNotNull(idBid);
@@ -262,7 +262,7 @@ public class TestSession
   public void auctionCompleteListener() throws InterruptedException
   {
     // create the auction by User Spock
-    SyncAuctionSession sessionSpock2 = createUser("Spock2", "password");
+    AuctionSessionSync sessionSpock2 = createUser("Spock2", "password");
 
     sessionSpock2.login("Spock2", "password");
 
@@ -277,7 +277,7 @@ public class TestSession
     Assert.assertTrue(result);
 
     // bid on the auction by User Kirk
-    SyncAuctionSession sessionKirk = createUser("Kirk", "password");
+    AuctionSessionSync sessionKirk = createUser("Kirk", "password");
 
     String idBid = sessionKirk.findAuction("book-close");
     Assert.assertNotNull(idBid);

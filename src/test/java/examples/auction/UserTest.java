@@ -18,10 +18,10 @@ import javax.inject.Inject;
   logLevel = "FINER",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
           @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")})
-public class TestUser
+public class UserTest
 {
   @Inject @Lookup("pod://user/user")
-  SyncUserManager _userManager;
+  UserManagerSync _userManager;
 
   @Inject @Lookup("pod://user/user")
   ServiceRef _userManagerRef;
@@ -34,7 +34,7 @@ public class TestUser
   {
     final String id = _userManager.create("Spock", "Password");
 
-    SyncUser user = _userManagerRef.lookup("/" + id).as(SyncUser.class);
+    UserSync user = _userManagerRef.lookup("/" + id).as(UserSync.class);
 
     UserDataPublic userData = user.getUserData();
 
@@ -47,7 +47,7 @@ public class TestUser
   {
     final String id = _userManager.create("Kirk", "Password");
 
-    SyncUser user = _userManagerRef.lookup("/" + id).as(SyncUser.class);
+    UserSync user = _userManagerRef.lookup("/" + id).as(UserSync.class);
 
     boolean isLoggedIn = user.authenticate("Password");
 

@@ -45,7 +45,7 @@ public class TestUser
   @Test
   public void authenticateUser()
   {
-    final String id = _userManager.create("Spock", "Password");
+    final String id = _userManager.create("Kirk", "Password");
 
     SyncUser user = _userManagerRef.lookup("/" + id).as(SyncUser.class);
 
@@ -60,9 +60,9 @@ public class TestUser
   @Test
   public void findUser()
   {
-    final String id = _userManager.create("Spock", "Password");
+    final String id = _userManager.create("Doug", "Password");
 
-    String findId = _userManager.find("Spock");
+    String findId = _userManager.find("Doug");
     Assert.assertEquals(id, findId);
 
     findId = _userManager.find("bogus");

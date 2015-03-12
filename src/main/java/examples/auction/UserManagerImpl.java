@@ -41,7 +41,7 @@ public class UserManagerImpl implements UserManager
       // for production add salt
       _db.exec(
         "create table users(id varchar primary key, name varchar, value object)",
-        Result.empty());
+        result.from(o -> o != null));
     } catch (Throwable t) {
       log.log(Level.FINE, t.getMessage(), t);
     }

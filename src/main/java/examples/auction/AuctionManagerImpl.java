@@ -5,10 +5,8 @@ import io.baratine.core.OnInit;
 import io.baratine.core.OnLookup;
 import io.baratine.core.Result;
 import io.baratine.core.Service;
-import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
 import io.baratine.core.Services;
-import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 
 import javax.inject.Inject;
@@ -34,14 +32,14 @@ public class AuctionManagerImpl
   }
 
   @OnInit
-  public void init()
+  public void init(Result<Boolean> result)
   {
     _self = Services.getCurrentService();
 
     try {
       _db.exec(
         "create table auction (id varchar primary key, title varchar, value object) with hash '/auction/$id'",
-        Result.empty());
+        result.from(o -> o != null));
     } catch (Exception e) {
       log.log(Level.FINE, e.getMessage(), e);
     }

@@ -210,9 +210,9 @@ public class TestSession
   public void auctionBidListener() throws InterruptedException
   {
     // create the auction by User Spock
-    SyncAuctionSession sessionSpock = createUser("Spock", "password");
+    SyncAuctionSession sessionSpock = createUser("Spock1", "password");
 
-    Assert.assertTrue(sessionSpock.login("Spock", "password"));
+    Assert.assertTrue(sessionSpock.login("Spock1", "password"));
 
     String id = sessionSpock.createAuction("book-listener", 15);
     Assert.assertNotNull(id);

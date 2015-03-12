@@ -62,17 +62,15 @@ public class AuctionImpl implements Auction
   }
 
   @OnSave
-  public boolean save()
+  public void save(Result<Boolean> result)
   {
     log.finer("save auction: " + _auctionData);
 
     _db.exec("update auction set title=?, value=? where id=?",
-             Result.empty(),
+             result.from(o -> o != null),
              _auctionData.getTitle(),
              _auctionData,
              _auctionData.getId());
-
-    return true;
   }
 
   @OnLoad
@@ -128,7 +126,7 @@ public class AuctionImpl implements Auction
                              .lookup("/" + _id)
                              .as(Auction.class);
 
-    timer.runAt(() -> service.close(Result.empty()),
+    timer.runAt(() -> service.close(Result.ignore()),
                 _auctionData.getDateToClose().toInstant().toEpochMilli());
 
     log.finer("start timer for auction: " + _auctionData);

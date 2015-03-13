@@ -17,6 +17,8 @@ mkdir classes
 
 javac -cp $cp -d classes src/main/java/examples/auction/*.java
 
+find . -name .DS_Store | xargs rm -rf
+
 jar -cMf auction.bar classes -C src/main/resources META-INF
 
 BARATINE_DATA_DIR=/tmp/baratine

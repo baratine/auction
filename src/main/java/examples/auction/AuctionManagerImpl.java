@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  *
  */
 @Service("pod://auction/auction")
-public class AuctionManagerImpl
+public class AuctionManagerImpl implements AuctionManager
 {
   private final static Logger log
     = Logger.getLogger(AuctionManagerImpl.class.getName());

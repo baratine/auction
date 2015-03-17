@@ -1,5 +1,6 @@
 package examples.auction;
 
+import io.baratine.core.Journal;
 import io.baratine.core.Modify;
 import io.baratine.core.OnLoad;
 import io.baratine.core.OnSave;
@@ -13,6 +14,7 @@ import io.baratine.timer.TimerService;
 import java.time.ZonedDateTime;
 import java.util.logging.Logger;
 
+@Journal
 public class AuctionImpl implements Auction
 {
   private final static Logger log

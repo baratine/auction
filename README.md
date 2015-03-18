@@ -5,9 +5,10 @@
 ##### Auction application demonstrates how to use Baratine™ to build a Single Page Web Application.
 
 The application uses the following Baratine provided services
- * Database
+ * DatabaseService
+ * Store (key - value)
  * Timer
- * Events
+ * Event
  * WebSocket
 
 ##### The main interfaces are

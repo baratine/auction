@@ -19,13 +19,13 @@ import java.util.logging.Logger;
  * testTime is set to use artificial time to test auction timeouts.
  */
 @RunWith(RunnerBaratine.class)
-@ConfigurationBaratine(services = UserManagerImpl.class, pod = "user",
+@ConfigurationBaratine(services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
   logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
           @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
   testTime = 0)
 
-@ConfigurationBaratine(services = AuctionManagerImpl.class, pod = "auction",
+@ConfigurationBaratine(services = {IdentityManagerImpl.class, AuctionManagerImpl.class}, pod = "auction",
   logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
           @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},

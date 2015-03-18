@@ -1,7 +1,7 @@
 package examples.auction;
 
 import io.baratine.core.Lookup;
-import io.baratine.core.OnActive;
+import io.baratine.core.OnInit;
 import io.baratine.core.OnLookup;
 import io.baratine.core.Result;
 import io.baratine.core.Service;
@@ -10,7 +10,6 @@ import io.baratine.core.Services;
 import io.baratine.db.DatabaseService;
 
 import javax.inject.Inject;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,13 +25,16 @@ public class UserManagerImpl implements UserManager
   @Inject @Lookup("bardb:///")
   private DatabaseService _db;
 
+  @Inject @Lookup("/identity-manager")
+  private IdentityManager _identityManager;
+
   private ServiceRef _self;
 
   public UserManagerImpl()
   {
   }
 
-  @OnActive
+  @OnInit
   public void onInit(Result<Boolean> result)
   {
     _self = Services.getCurrentService();
@@ -64,8 +66,18 @@ public class UserManagerImpl implements UserManager
                      String password,
                      Result<String> userId)
   {
-    String id = UUID.randomUUID().toString();
+    _identityManager.nextId(userId.from((id, r)
+                                          -> createWithId(id,
+                                                          userName,
+                                                          password,
+                                                          r)));
+  }
 
+  private void createWithId(String id,
+                            String userName,
+                            String password,
+                            Result<String> userId)
+  {
     User user = _self.lookup("/" + id).as(User.class);
 
     user.create(userName, password, userId);

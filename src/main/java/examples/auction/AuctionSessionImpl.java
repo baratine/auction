@@ -276,7 +276,8 @@ public class AuctionSessionImpl implements AuctionSession
     {
       log.finer("on close event for auction: " + auctionData);
 
-      _listener.onAuctionClose(auctionData);
+      if (_listener != null)
+        _listener.onAuctionClose(auctionData);
     }
   }
 }

@@ -10,7 +10,6 @@ import io.baratine.core.Services;
 import io.baratine.db.DatabaseService;
 
 import javax.inject.Inject;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,14 +17,18 @@ import java.util.logging.Logger;
  *
  */
 @Service("pod://auction/auction")
-public class AuctionManagerImpl
+public class AuctionManagerImpl implements AuctionManager
 {
   private final static Logger log
     = Logger.getLogger(AuctionManagerImpl.class.getName());
 
   ServiceRef _self;
+
   @Inject @Lookup("bardb:///")
   private DatabaseService _db;
+
+  @Inject @Lookup("/identity-manager")
+  private IdentityManager _identityManager;
 
   public AuctionManagerImpl()
   {
@@ -55,13 +58,26 @@ public class AuctionManagerImpl
     return new AuctionImpl(Services.getCurrentManager(), _db, id);
   }
 
+  @Override
   public void create(String ownerId,
                      String title,
                      int bid,
                      Result<String> auctionId)
   {
-    String id = UUID.randomUUID().toString();
+    _identityManager.nextId(auctionId.from((id, r)
+                                             -> createWithId(id,
+                                                             ownerId,
+                                                             title,
+                                                             bid,
+                                                             r)));
+  }
 
+  private void createWithId(String id,
+                            String ownerId,
+                            String title,
+                            int bid,
+                            Result<String> auctionId)
+  {
     Auction auction = _self.lookup("/" + id).as(Auction.class);
 
     auction.create(ownerId, title, bid, auctionId);

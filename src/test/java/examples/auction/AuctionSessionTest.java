@@ -18,13 +18,13 @@ import java.util.concurrent.TimeUnit;
  */
 @RunWith(RunnerBaratine.class)
 
-@ConfigurationBaratine(services = UserManagerImpl.class, pod = "user",
+@ConfigurationBaratine(services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
   logLevel = "FINER",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
           @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
   port = 8085,
   testTime = 0)
-@ConfigurationBaratine(services = AuctionManagerImpl.class, pod = "auction",
+@ConfigurationBaratine(services = {IdentityManagerImpl.class, AuctionManagerImpl.class}, pod = "auction",
   logLevel = "FINER",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
           @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},

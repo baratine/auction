@@ -14,7 +14,7 @@ import javax.inject.Inject;
  * Unit test for simple App.
  */
 @RunWith(RunnerBaratine.class)
-@ConfigurationBaratine(services = UserManagerImpl.class, pod = "user",
+@ConfigurationBaratine(services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
   logLevel = "FINER",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
           @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")})

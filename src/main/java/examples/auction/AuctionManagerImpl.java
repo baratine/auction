@@ -85,7 +85,7 @@ public class AuctionManagerImpl implements AuctionManager
 
   public void find(String title, Result<String> result)
   {
-    _self.checkpoint();
+    _self.save();
 
     _db.findOne("select id from auction where title=?",
                 result.from(c -> c != null ? c.getString(1) : null),

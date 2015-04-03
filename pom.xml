@@ -6,7 +6,8 @@
 
   <groupId>com.caucho</groupId>
   <artifactId>auction</artifactId>
-  <version>0.8.7</version>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>baratine</packaging>
 
   <repositories>
     <repository>
@@ -130,6 +131,12 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>io.baratine</groupId>
+        <artifactId>baratine-plugin</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <extensions>true</extensions>
       </plugin>
     </plugins>
   </build>

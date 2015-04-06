@@ -45,6 +45,8 @@ public class AuctionManagerImpl implements AuctionManager
         result.from(o -> o != null));
     } catch (Exception e) {
       log.log(Level.FINE, e.getMessage(), e);
+      //assume that exception is due to existing table and complete with true
+      result.complete(true);
     }
   }
 

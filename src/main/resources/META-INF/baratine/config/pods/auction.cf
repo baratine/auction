@@ -8,4 +8,6 @@ pod user {
 
 pod web {
   archive "/usr/lib/pods/auction.bar";
+
+  web "/" "web";
 }

@@ -839,6 +839,8 @@ Jamp.WebSocketConnection = function (url,
 
       var json = msg.serialize();
 
+      console.log(json);
+
       this.socket.send(json);
 
       request.sent(this.channel);

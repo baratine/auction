@@ -35,6 +35,10 @@ Java:
 * AuctionImpl - implements Auction; manages AuctionDataPublic class which contains Auction detail
 * AuctionManagerImpl - creates and manages auctions
 
+##### Building the Auction application
+
+* install Baratine Maven Collection [Baratine Maven Collection] 
+
 ##### Running the Auction application
 
 * install Baratine™ version 0.8.8 or better
@@ -45,4 +49,5 @@ Java:
 
 For additional documentaton on Baratine™ visit [Baratine Home]
 [Baratine Home]: http://baratine.io
+[Baratine Maven Collection]: https://github.com/baratine/maven-collection-baratine
 

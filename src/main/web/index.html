@@ -36,145 +36,12 @@
 
       $scope.searchTitle = null;
 
-      $scope.auctionAddedCallback = function (auction)
+      $scope.apply = function ()
       {
-        var price = auction._startingBid;
-
-        if (auction._bids.length > 0)
-          price = auction._bids[auction._bids.length - 1]._bid;
-
         $scope.$apply(function ()
                       {
-                        $scope.myAuctions.push({
-                                                 'id': auction._id,
-                                                 'title': auction._title,
-                                                 'price': price,
-                                                 'state': auction._state
-                                               });
-                      }
-        );
-      };
-
-      $scope.auctionUpdatedCallback = function (auction)
-      {
-        var price = auction._startingBid;
-        var state = auction._state;
-
-        if (auction._bids.length > 0)
-          price = auction._bids[auction._bids.length - 1]._bid;
-
-        var updateAuctionModels = function (auctions)
-        {
-          for (var i in auctions) {
-            var a = auctions[i];
-            if (auction._id == a.id) {
-              $scope.$apply(function ()
-                            {
-                              a.price = price;
-                              a.state = state;
-                            });
-              break;
-            }
-          }
-        };
-
-        updateAuctionModels($scope.myAuctions);
-        updateAuctionModels($scope.myBids);
-      };
-
-      $scope.searchCallback = function (auction)
-      {
-        var price = auction._startingBid;
-
-        if (auction._bids.length > 0)
-          price = auction._bids[auction._bids.length - 1]._bid;
-
-        $scope.$apply(function ()
-                      {
-                        var myBid;
-                        for (var i in $scope.myBids) {
-                          if (auction._id === $scope.myBids[i].id) {
-                            myBid = $scope.myBids[i];
-                          }
-                        }
-
-                        if (!myBid)
-                          $scope.myBids.push({
-                                               'id': auction._id,
-                                               'title': auction._title,
-                                               'price': price,
-                                               'state': auction._state
-                                             });
-                      }
-        );
-      };
-
-      $scope.createUser = function ()
-      {
-        var callback = function (result)
-        {
-          var message = "account for '" + $scope.userName;
-
-          if (result) {
-            message = message + "' successfully created";
-          }
-          else {
-            message = message + "' was not created";
-          }
-
-          $scope.$apply(function ()
-                        {
-                          $scope.userStatus = message;
-                        });
-        };
-
-        callback.onfail = function (error)
-        {
-          alert("user not created due to: " + error);
-        };
-
-        $scope.client.query("/auction-session/x",
-                            "createUser",
-                [$scope.userName, $scope.userPassword],
-                            callback);
-      };
-
-      $scope.login = function ()
-      {
-        var callback = function (result)
-        {
-          console.log("login:");
-          console.log(result);
-
-          var message = "'" + $scope.userName;
-
-          if (result) {
-            message = message + "' successfully logged in";
-            $scope.user = user;
-          }
-          else {
-            message = message + "': login rejected";
-            $scope.user = null;
-          }
-
-          console.log(message);
-
-          $scope.$apply(function ()
-                        {
-                          $scope.userStatus = message;
-                          $scope.clearLoginFields();
-                        });
-        };
-
-        callback.onfail = function (error)
-        {
-          alert(error);
-        };
-
-        $scope.client.query("/auction-session/x",
-                            "login",
-                [$scope.userName, $scope.userPassword],
-                            callback);
+                        //this triggers angular js mode update
+                      });
       };
 
       $scope.clearLoginFields = function() {
@@ -182,123 +49,217 @@
         $scope.userPassword = "";
       };
 
-      $scope.logout = function ()
+      $scope.onUserCreate = function (result)
       {
-        var callback = function (result)
-        {
-          $scope.$apply(function ()
-                        {
-                          $scope.user = null;
-                          $scope.myAuctions = [];
-                          $scope.myBids = [];
-                          $scope.userStatus = "no user logged in";
-                          $scope.createAuctionMessage = "";
-                        });
-        };
+        var message = "account for '" + $scope.userName;
 
-        callback.onfail(function (error)
-                        {
-                          console.log(error);
-                        });
+        if (result) {
+          message = message + "' successfully created";
+        }
+        else {
+          message = message + "' was not created";
+        }
 
-        $scope.client.query("/auction-session/x",
-                            "logout",
-                [], callback);
+        $scope.userStatus = message;
 
+        $scope.apply();
       };
 
-      $scope.createAuction = function (title, price)
+      $scope.onUserCreate.onfail = function (error)
       {
-        var callback = function (auctionId)
-        {
-          $scope.$apply(
-                  function ()
-                  {
-                    $scope.createAuctionMessage = 'created '
-                                                  + title
-                                                  + ' at starting price '
-                                                  + price;
-                    $scope.addMyAuction(auctionId);
-                    $scope.subscribeAuction(auctionId);
+        alert("user not created due to: " + error);
+      };
 
-                    $scope.auctionTitle = null;
-                  });
-        };
+      $scope.createUser = function ()
+      {
+        $scope.client.query("/auction-session",
+                            "createUser",
+                [$scope.userName, $scope.userPassword],
+                            $scope.onUserCreate);
+      };
 
-        callback.onfail = function (error)
-        {
-          console.log(error);
-          alert(error);
-        };
+      $scope.onUserLogin = function (result)
+      {
+        console.log("login result: " + result);
 
-        $scope.client.query("/auction-session/x",
-                            "createAuction",
-                [title, price], callback);
+        var message = "'" + $scope.userName;
 
+        if (result) {
+          message = message + "' successfully logged in";
+          $scope.user = user;
+        }
+        else {
+          message = message + "': login rejected";
+          $scope.user = null;
+        }
+
+        $scope.userStatus = message;
+
+        $scope.clearLoginFields();
+
+        $scope.apply();
+      };
+
+      $scope.onUserLogin.onfail = function (error)
+      {
+        alert(error);
+      };
+
+      $scope.login = function ()
+      {
+        $scope.client.query("/auction-session",
+                            "login",
+                [$scope.userName, $scope.userPassword],
+                            $scope.onUserLogin);
+      };
+
+      $scope.onUserLogout = function (result)
+      {
+        $scope.user = null;
+        $scope.myAuctions = [];
+        $scope.myBids = [];
+        $scope.userStatus = "no user logged in";
+        $scope.createAuctionMessage = "";
+
+        $scope.apply();
+      };
+
+      $scope.onUserLogout.onfail = function (error)
+      {
+        console.log(error);
+      };
+
+      $scope.logout = function ()
+      {
+        $scope.client.query("/auction-session",
+                            "logout",
+                [], $scope.onUserLogout);
+      };
+
+      $scope.onAuctionCreated = function (auction)
+      {
+        $scope.myAuctions.push({
+          'id': auction._id,
+          'title': auction._title,
+          'price': auction._startingBid,
+          'state': auction._state
+        });
+
+        $scope.createAuctionMessage = "Created auction '"
+                                      + auction._title
+                                      + "' at starting price '"
+                                      + auction._startingBid
+                                      + "'";
+
+        $scope.apply();
+      };
+
+      $scope.onAuctionIdCreated = function (auctionId)
+      {
+        $scope.addMyAuction(auctionId);
+        $scope.subscribeAuction(auctionId);
       };
 
       $scope.addMyAuction = function (id)
       {
-        var callback = function (auction)
-        {
-          $scope.auctionAddedCallback(auction);
-        };
-        callback.onfail = function (error)
-        {
-          alert(error);
-        };
-
-        $scope.client.query("/auction-session/x", "getAuction", [id],
-                            callback);
-
+        $scope.client.query("/auction-session", "getAuction", [id],
+                            $scope.onAuctionCreated);
       };
 
       $scope.subscribeAuction = function (id)
       {
-        $scope.client.send("/auction-session/x", "addAuctionListener", [id]);
+        $scope.client.send("/auction-session", "addAuctionListener", [id]);
       };
 
-      $scope.findAuction = function (searchTitle)
+      $scope.createAuction = function (title, price)
       {
-        var callback = function (auctionId)
-        {
-          if (auctionId) {
-            $scope.addSearchResult(auctionId);
-            $scope.subscribeAuction(auctionId);
-            $scope.searchTitle = "";
-          }
-        };
-
-        callback.onfail = function (error)
-        {
-          alert(error);
-        };
-
-        $scope.client.query("/auction-session/x", "findAuction", [searchTitle],
-                            callback);
+        $scope.client.query("/auction-session",
+                            "createAuction",
+                [title, price], $scope.onAuctionIdCreated);
       };
 
-      $scope.addSearchResult = function (id)
+      $scope.onAuctionListener = function (auction)
       {
-        var callback = function (auction)
-        {
-          if (auction) {
-            $scope.searchCallback(auction);
+        var price = auction._startingBid;
+        var state = auction._state;
+
+        if (auction._bids.length > 0)
+          price = auction._bids[auction._bids.length - 1]._bid;
+
+        $scope.updateAuctionModels($scope.myAuctions, auction, price, state);
+        $scope.updateAuctionModels($scope.myBids, auction, price, state);
+
+        $scope.apply();
+      };
+
+      $scope.updateAuctionModels = function (auctions, auction, price, state)
+      {
+        for (var i in auctions) {
+          var a = auctions[i];
+          if (auction._id == a.id) {
+            $scope.$apply(function ()
+                          {
+                            a.price = price;
+                            a.state = state;
+                          });
+            break;
           }
-        };
-        callback.onfail = function (error)
-        {
-          alert(error);
-        };
-        $scope.client.query("/auction-session/x",
-                            "getAuction", [id], callback);
+        }
+      };
+
+      $scope.onSearchResult = function (auction)
+      {
+        console.log("onSearchResult: " + JSON.stringify(auction));
+
+        var price = auction._startingBid;
+
+        if (auction._bids.length > 0)
+          price = auction._bids[auction._bids.length - 1]._bid;
+
+        var myBid;
+
+        for (var i in $scope.myBids) {
+          if (auction._id === $scope.myBids[i].id) {
+            myBid = $scope.myBids[i];
+          }
+        }
+
+        if (myBid === undefined)
+          $scope.myBids.push({
+            'id': auction._id,
+            'title': auction._title,
+            'price': price,
+            'state': auction._state
+          });
+
+        $scope.apply();
+      };
+
+      $scope.onSearch = function (auctionId)
+      {
+        console.log("onSearchComplete: " + auctionId);
+
+        if (auctionId === undefined) {
+        }
+        else {
+          $scope.client.query("/auction-session",
+                              "getAuction", [auctionId], $scope.onSearchResult);
+          $scope.subscribeAuction(auctionId);
+        }
+      };
+
+      $scope.search = function (searchTitle)
+      {
+        $scope.client.query("/auction-session", "findAuction", [searchTitle],
+                            $scope.onSearch);
       };
 
       $scope.bid = function (id, index)
       {
         var auction = $scope.myBids[index];
         var price = auction.price + 1;
-        $scope.client.query("/auction-session/x", "bidAuction", [id, price]);
+
+        $scope.client.query("/auction-session", "bidAuction", [id, price]);
       };
 
       $scope.client = new Jamp.BaratineClient("ws://localhost:8085/s/web");
@@ -307,18 +268,18 @@
 
       listener.onAuctionUpdate = function (auctionData)
       {
-        $scope.auctionUpdatedCallback(auctionData);
+        $scope.onAuctionListener(auctionData);
       };
 
       listener.onAuctionClose = function (auctionData)
       {
-        $scope.auctionUpdatedCallback(auctionData);
+        $scope.onAuctionListener(auctionData);
       };
 
       $scope.client.onSession = function ()
       {
         console.log("on-session:");
-        $scope.client.query("/auction-session/x", "setListener", [listener]);
+        $scope.client.query("/auction-session", "setListener", [listener]);
       };
     });
 
@@ -418,7 +379,7 @@
     </div>
     <button type="submit" class='btn btn-default'
             ng-disabled="! user || ! searchTitle"
-            ng-click="findAuction(searchTitle)">
+            ng-click="search(searchTitle)">
       Search
     </button>
   </form>

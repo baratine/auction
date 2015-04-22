@@ -111,75 +111,70 @@
 
       $scope.createUser = function ()
       {
-        var promise =
-                $scope.jampChannel.query("/auction-session/x",
-                                         "createUser",
-                                         [$scope.userName, $scope.userPassword],
-                                         false,
-                                         null,
-                                         "/createUser");
+        var callback = function (result)
+        {
+          var message = "account for '" + $scope.userName;
 
-        promise.then(
-                function (result)
-                {
-                  var message = "account for '" + $scope.userName;
+          if (result) {
+            message = message + "' successfully created";
+          }
+          else {
+            message = message + "' was not created";
+          }
 
-                  if (result) {
-                    message = message + "' successfully created";
-                  }
-                  else {
-                    message = message + "' was not created";
-                  }
+          $scope.$apply(function ()
+                        {
+                          $scope.userStatus = message;
+                        });
+        };
 
-                  $scope.$apply(function ()
-                                {
-                                  $scope.userStatus = message;
-                                });
-                },
-                function (error)
-                {
-                  alert("user not created due to: " + error);
-                }
-        );
+        callback.onfail = function (error)
+        {
+          alert("user not created due to: " + error);
+        };
+
+        $scope.client.query("/auction-session/x",
+                            "createUser",
+                [$scope.userName, $scope.userPassword],
+                            callback);
       };
 
       $scope.login = function ()
       {
-        var promise =
-                $scope.jampChannel.query("/auction-session/x",
-                                         "login",
-                                         [$scope.userName, $scope.userPassword],
-                                         false,
-                                         null,
-                                         "/login");
+        var callback = function (result)
+        {
+          console.log("login:");
+          console.log(result);
 
-        promise.then(
-                function (result)
-                {
-                  var message = "'" + $scope.userName;
+          var message = "'" + $scope.userName;
 
-                  if (result) {
-                    message = message + "' successfully logged in";
-                    $scope.user = user;
-                  }
-                  else {
-                    message = message + "': login rejected";
-                    $scope.user = null;
-                  }
+          if (result) {
+            message = message + "' successfully logged in";
+            $scope.user = user;
+          }
+          else {
+            message = message + "': login rejected";
+            $scope.user = null;
+          }
 
-                  console.log(message);
+          console.log(message);
 
-                  $scope.$apply(function ()
-                                {
-                                  $scope.userStatus = message;
-                                  $scope.clearLoginFields();
-                                });
-                },
-                function (error)
-                {
-                  alert(error);
-                }
-        );
+          $scope.$apply(function ()
+                        {
+                          $scope.userStatus = message;
+                          $scope.clearLoginFields();
+                        });
+        };
+
+        callback.onfail = function (error)
+        {
+          alert(error);
+        };
+
+        $scope.client.query("/auction-session/x",
+                            "login",
+                [$scope.userName, $scope.userPassword],
+                            callback);
       };
 
       $scope.clearLoginFields = function() {
@@ -189,161 +184,127 @@
 
       $scope.logout = function ()
       {
-        var promise = $scope.jampChannel.query("/auction-session/x",
-                                               "logout",
-                                               [],
-                                               false,
-                                               null,
-                                               "/logout");
+        var callback = function (result)
+        {
+          $scope.$apply(function ()
+                        {
+                          $scope.user = null;
+                          $scope.myAuctions = [];
+                          $scope.myBids = [];
+                          $scope.userStatus = "no user logged in";
+                          $scope.createAuctionMessage = "";
+                        });
+        };
 
-        promise.then(function (result)
-                     {
-                       $scope.$apply(function ()
-                                     {
-                                       $scope.user = null;
-                                       $scope.myAuctions = [];
-                                       $scope.myBids = [];
-                                       $scope.userStatus = "no user logged in";
-                                       $scope.createAuctionMessage = "";
-                                     });
-                     },
-                     function (error)
-                     {
-                       console.log(error);
-                     })
+        callback.onfail(function (error)
+                        {
+                          console.log(error);
+                        });
+
+        $scope.client.query("/auction-session/x",
+                            "logout",
+                [], callback);
+
       };
 
       $scope.createAuction = function (title, price)
       {
-        var promise =
-                $scope.jampChannel.query("/auction-session/x",
-                                         "createAuction",
-                                         [title, price],
-                                         false,
-                                         null,
-                                         "/createAuction");
+        var callback = function (auctionId)
+        {
+          $scope.$apply(
+                  function ()
+                  {
+                    $scope.createAuctionMessage = 'created '
+                                                  + title
+                                                  + ' at starting price '
+                                                  + price;
+                    $scope.addMyAuction(auctionId);
+                    $scope.subscribeAuction(auctionId);
 
-        promise.then(
-                function (auctionId)
-                {
-                  $scope.$apply(
-                          function ()
-                          {
-                            $scope.createAuctionMessage = 'created '
-                                                          + title
-                                                          + ' at starting price '
-                                                          + price;
-                            $scope.addMyAuction(auctionId);
-                            $scope.subscribeAuction(auctionId);
+                    $scope.auctionTitle = null;
+                  });
+        };
 
-                            $scope.auctionTitle = null;
-                          });
-                },
-                function (error)
-                {
-                  console.log(error);
-                  alert(error);
-                }
-        );
+        callback.onfail = function (error)
+        {
+          console.log(error);
+          alert(error);
+        };
+
+        $scope.client.query("/auction-session/x",
+                            "createAuction",
+                [title, price], callback);
+
       };
 
       $scope.addMyAuction = function (id)
       {
-        var promise =
-                $scope.jampChannel.query("/auction-session/x",
-                                         "getAuction",
-                                         [id],
-                                         false,
-                                         null,
-                                         "/getAuction");
+        var callback = function (auction)
+        {
+          $scope.auctionAddedCallback(auction);
+        };
+        callback.onfail = function (error)
+        {
+          alert(error);
+        };
 
-        promise.then(
-                function (auction)
-                {
-                  $scope.auctionAddedCallback(auction);
-                },
-                function (error)
-                {
-                  alert(error);
-                }
-        );
+        $scope.client.query("/auction-session/x", "getAuction", [id],
+                            callback);
+
       };
 
       $scope.subscribeAuction = function (id)
       {
-        var promise =
-                $scope.jampChannel.send("/auction-session/x",
-                                        "addAuctionListener",
-                                        [id],
-                                        false,
-                                        null,
-                                        "/addAuctionListener");
+        $scope.client.send("/auction-session/x", "addAuctionListener", [id]);
       };
 
       $scope.findAuction = function (searchTitle)
       {
-        var promise =
-                $scope.jampChannel.query("/auction-session/x",
-                                         "findAuction",
-                                         [searchTitle],
-                                         false,
-                                         null,
-                                         "/findAuction");
+        var callback = function (auctionId)
+        {
+          if (auctionId) {
+            $scope.addSearchResult(auctionId);
+            $scope.subscribeAuction(auctionId);
+            $scope.searchTitle = "";
+          }
+        };
 
-        promise.then(
-                function (auctionId)
-                {
-                  if (auctionId) {
-                    $scope.addSearchResult(auctionId);
-                    $scope.subscribeAuction(auctionId);
-                    $scope.searchTitle = "";
-                  }
-                },
-                function (error)
-                {
-                  alert(error);
-                }
-        );
+        callback.onfail = function (error)
+        {
+          alert(error);
+        };
+
+        $scope.client.query("/auction-session/x", "findAuction", [searchTitle],
+                            callback);
       };
 
       $scope.addSearchResult = function (id)
       {
-        var promise =
-                $scope.jampChannel.query("/auction-session/x",
-                                         "getAuction",
-                                         [id],
-                                         false,
-                                         null,
-                                         "/getAuction");
-        promise.then(
-                function (auction)
-                {
-                  if (auction) {
-                    $scope.searchCallback(auction);
-                  }
-                },
-                function (error)
-                {
-                  alert(error);
-                }
-        );
+        var callback = function (auction)
+        {
+          if (auction) {
+            $scope.searchCallback(auction);
+          }
+        };
+        callback.onfail = function (error)
+        {
+          alert(error);
+        };
+        $scope.client.query("/auction-session/x",
+                            "getAuction", [id], callback);
       };
 
       $scope.bid = function (id, index)
       {
         var auction = $scope.myBids[index];
         var price = auction.price + 1;
-
-        var promise =
-                $scope.jampChannel.query("/auction-session/x",
-                                         "bidAuction",
-                                         [id, price],
-                                         false,
-                                         null,
-                                         "/bidAuction");
+        $scope.client.query("/auction-session/x", "bidAuction", [id, price]);
       };
 
-      var listener = {};
+      $scope.client = new Jamp.BaratineClient("ws://localhost:8085/s/web");
+
+      var listener = $scope.client.createListener();
+
       listener.onAuctionUpdate = function (auctionData)
       {
         $scope.auctionUpdatedCallback(auctionData);
@@ -354,18 +315,11 @@
         $scope.auctionUpdatedCallback(auctionData);
       };
 
-      var onChannel = function() {
-        console.log("on-channel:");
-        $scope.jampChannel.setListener("/auction-session/x",
-                                       "setListener",
-                                       [],
-                                       null,
-                                       "/ChannelListener",
-                                       listener);
+      $scope.client.onSession = function ()
+      {
+        console.log("on-session:");
+        $scope.client.query("/auction-session/x", "setListener", [listener]);
       };
-
-      $scope.jampChannel
-        = new Jamp.WebSocketChannel("ws://localhost:8085/s/web", onChannel);
     });
 
   </script>

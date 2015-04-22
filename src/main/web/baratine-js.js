@@ -27,21 +27,7 @@ Jamp.BaratineClient.prototype.query = function (service,
                                                 callback,
                                                 headers)
 {
-  var promise = this.client.query(service, method, args, callback, headers);
-
-  promise.then(function (data)
-               {
-                 if (callback !== undefined)
-                   callback(data);
-               }, function (error)
-               {
-                 if (callback !== undefined && callback["onfail"] !== undefined) {
-                   callback.onfail(error);
-                 }
-                 else {
-                   console.log(error);
-                 }
-               });
+  this.client.query(service, method, args, callback, headers);
 };
 
 Jamp.BaratineClient.prototype.lookup = function (path)
@@ -657,7 +643,7 @@ Jamp.Client.prototype.send = function (service,
 Jamp.Client.prototype.query = function (service,
                                         method,
                                         args,
-                                        callback,  //onfail()
+                                        callback,
                                         headerMap)
 {
   var queryId = this.queryCount++;
@@ -677,11 +663,9 @@ Jamp.Client.prototype.query = function (service,
     }
   }
 
-  var request = this.createQueryRequest(queryId, msg);
+  var request = this.createQueryRequest(queryId, msg, callback);
 
   this.submitRequest(request);
-
-  return request.promise;
 };
 
 Jamp.Client.prototype.onfail = function (error)
@@ -689,9 +673,9 @@ Jamp.Client.prototype.onfail = function (error)
   console.log("error: " + JSON.stringify(error));
 };
 
-Jamp.Client.prototype.createQueryRequest = function (queryId, msg)
+Jamp.Client.prototype.createQueryRequest = function (queryId, msg, callback)
 {
-  var request = new Jamp.QueryRequest(queryId, msg);
+  var request = new Jamp.QueryRequest(queryId, msg, callback);
 
   this.requestMap[queryId] = request;
 
@@ -718,7 +702,6 @@ Jamp.Request = function (queryId, msg, timeout)
   this.msg = msg;
 
   this.expirationTime = timeout;
-  this.promise = new Jamp.Promise();
 
   if (timeout == null) {
     this.expirationTime = new Date(new Date().getTime() + 1000 * 60 * 5);
@@ -733,22 +716,20 @@ Jamp.Request = function (queryId, msg, timeout)
     return (now.getTime() - this.expirationTime.getTime()) > 0;
   };
 
-  this.sent = function (channel)
+  this.sent = function (client)
   {
   };
 
-  this.completed = function (channel, value)
+  this.completed = function (client, value)
   {
-    if (!this.promise.isCompleted) {
-      this.promise.resolve(value);
-    }
+    client.remove(this.queryId);
   };
 
-  this.error = function (channel, value)
+  this.error = function (client, value)
   {
-    if (!this.promise.isCompleted) {
-      this.promise.reject(value);
-    }
+    client.remove(queryId);
+
+    console.log(value);
   };
 };
 
@@ -756,58 +737,37 @@ Jamp.SendRequest = function (queryId, msg, timeout)
 {
   Jamp.Request.call(this, queryId, msg, timeout);
 
-  this.sent = function (channel)
+  this.sent = function (client)
   {
-    channel.removeRequest(this.queryId);
+    client.removeRequest(this.queryId);
   };
 };
 
-Jamp.QueryRequest = function (queryId, msg, timeout)
+Jamp.QueryRequest = function (queryId, msg, callback, timeout)
 {
   Jamp.Request.call(this, queryId, msg, timeout);
-};
 
-Jamp.Promise = function ()
-{
-  this.resolvedValue = null;
-  this.rejectedValue = null;
+  this.callback = callback;
 
-  this.onFulfilledArray = new Array();
-  this.onRejectedArray = new Array();
-
-  this.isCompleted = false;
-
-  this.resolve = function (value)
+  this.completed = function (client, value)
   {
-    this.resolvedValue = value;
-    this.isCompleted = true;
+    client.removeRequest(this.queryId);
 
-    for (var i = 0; i < this.onFulfilledArray.length; i++) {
-      this.onFulfilledArray[i](value);
+    if (this.callback !== undefined) {
+      callback(value);
     }
   };
 
-  this.reject = function (value)
+  this.error = function (client, value)
   {
-    this.rejectedValue = value;
-    this.isCompleted = true;
+    client.removeRequest(this.queryId);
 
-    for (var i = 0; i < this.onRejectedArray.length; i++) {
-      this.onRejectedArray[i](value);
+    if (this.callback !== undefined && this.callback.onfail !== undefined) {
+      callback.onfail(value);
     }
-  };
-
-  this.then = function (onFulfilled, onRejected)
-  {
-    if (onFulfilled != null) {
-      this.onFulfilledArray.push(onFulfilled);
+    else {
+      console.log(value);
     }
-
-    if (onRejected != null) {
-      this.onRejectedArray.push(onRejected);
-    }
-
-    return this;
   };
 };
 Jamp.HttpTransport = function (url, client)

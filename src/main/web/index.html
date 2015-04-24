@@ -39,12 +39,12 @@
       $scope.apply = function ()
       {
         $scope.$apply(function ()
-                      {
-                        //this triggers angular js mode update
+                      {/*angular js model update*/
                       });
       };
 
-      $scope.clearLoginFields = function() {
+      $scope.clearLoginFields = function ()
+      {
         $scope.userName = "";
         $scope.userPassword = "";
       };
@@ -127,6 +127,8 @@
       $scope.onUserLogout.onfail = function (error)
       {
         console.log(error);
+
+        alert(error);
       };
 
       $scope.logout = function ()

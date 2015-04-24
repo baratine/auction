@@ -52,6 +52,10 @@ Jamp.BaratineClient.prototype.createListener = function ()
   return new Jamp.ServiceListener();
 };
 
+Jamp.BaratineClient.prototype.close = function () {
+  this.client.close();
+};
+
 Jamp.BaratineClient.prototype.toString = function ()
 {
   return "BaratineClient[" + this.client + "]";
@@ -774,12 +778,16 @@ Jamp.HttpTransport = function (url, client)
 {
   this.url = url;
   this.client = client;
+  this.isClosed = false;
 
   return this;
 };
 
 Jamp.HttpTransport.prototype.submitRequest = function (request)
 {
+  if (this.isClosed)
+    throw this.toString() + " was already closed.";
+
   var httpRequest;
 
   httpRequest = this.initPushRequest();
@@ -820,7 +828,12 @@ Jamp.HttpTransport.prototype.submitRequest = function (request)
 
 Jamp.HttpTransport.prototype.pull = function (client)
 {
+  if(this.isClosed)
+    return;
+
   var httpRequest = this.initPullRequest();
+  this.pullRequest = httpRequest;
+
   httpRequest.send("[]");
 
   var transport = this;
@@ -848,12 +861,15 @@ Jamp.HttpTransport.prototype.pull = function (client)
                   + httpRequest.responseText);
     }
 
+    transport.pullRequest = undefined;
+
     transport.pull(client);
   };
 
   httpRequest.ontimeout = function ()
   {
-    transport.pull(client);
+    if (! transport.isClosed)
+      transport.pull(client);
   };
 };
 
@@ -875,6 +891,20 @@ Jamp.HttpTransport.prototype.initPullRequest = function ()
   httpRequest.setRequestHeader("Content-Type", "x-application/jamp-pull");
 
   return httpRequest;
+};
+
+Jamp.HttpTransport.prototype.close = function ()
+{
+  this.isClosed = true;
+
+  var pullRequest = this.pullRequest;
+
+  if (pullRequest !== undefined) {
+    try {
+      pullRequest.abort();
+    } catch (err) {
+    }
+  }
 };
 
 Jamp.HttpTransport.prototype.toString = function ()
@@ -912,6 +942,10 @@ Jamp.WsTransport.prototype.removeRequest = function (queryId)
 Jamp.WsTransport.prototype.submitRequest = function (request)
 {
   this.conn.addRequest(request);
+
+  if (this.conn.isOpen) {
+    this.conn.submitRequestLoop();
+  }
 };
 
 Jamp.WsTransport.prototype.toString = function ()
@@ -935,6 +969,7 @@ Jamp.WsConnection = function (client,
   this.reconnectIntervalMs = 5000;
   this.isReconnectOnClose = true;
   this.isReconnectOnError = true;
+  this.isOpen = false;
 
   if (reconnectIntervalMs != null) {
     this.reconnectIntervalMs = reconnectIntervalMs;
@@ -962,11 +997,15 @@ Jamp.WsConnection.prototype.init = function (conn)
     if (conn.client.onOpen !== undefined)
       conn.client.onOpen();
 
+    conn.isOpen = true;
+
     conn.submitRequestLoop();
   };
 
   conn.socket.onclose = function ()
   {
+    conn.isOpen = false;
+
     if (conn.isClosing) {
       return;
     }
@@ -976,6 +1015,8 @@ Jamp.WsConnection.prototype.init = function (conn)
 
   conn.socket.onerror = function ()
   {
+    conn.isOpen = false;
+
     if (conn.isClosing) {
       return;
     }
@@ -996,16 +1037,13 @@ Jamp.WsConnection.prototype.addRequest = function (data)
   }
 
   this.requestQueue.push(data);
-
-  if (this.socket.readyState = WebSocket.OPEN) {
-    this.submitRequestLoop();
-  }
 };
 
 Jamp.WsConnection.prototype.submitRequestLoop = function ()
 {
   while (this.socket.readyState === WebSocket.OPEN
-         && this.requestQueue.length > 0) {
+         && this.requestQueue.length > 0
+         && ! this.isClosing) {
     var request = this.requestQueue[0];
     var msg = request.msg;
 
@@ -1032,8 +1070,10 @@ Jamp.WsConnection.prototype.close = function ()
 {
   this.isClosing = true;
 
-  if (this.socket.readyState == WebSocket.OPEN) {
+  try {
     this.socket.close();
+  } catch (err ) {
+
   }
 };
 

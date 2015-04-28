@@ -39,6 +39,7 @@ public class AuctionImpl implements Auction
     _id = id;
   }
 
+  @Modify
   public void create(String ownerId,
                      String title,
                      int startingBid,

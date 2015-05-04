@@ -1,6 +1,5 @@
 package examples.auction;
 
-import io.baratine.core.Journal;
 import io.baratine.core.Modify;
 import io.baratine.core.OnLoad;
 import io.baratine.core.OnSave;
@@ -14,7 +13,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.logging.Logger;
 
-@Journal(count = 1)
 public class UserImpl implements User
 {
   private static final Logger log = Logger.getLogger(UserImpl.class.getName());

@@ -1,5 +1,6 @@
 package examples.auction;
 
+import io.baratine.core.Journal;
 import io.baratine.core.Lookup;
 import io.baratine.core.OnInit;
 import io.baratine.core.OnLookup;
@@ -17,6 +18,7 @@ import java.util.logging.Logger;
  *
  */
 @Service("pod://user/user")
+@Journal
 public class UserManagerImpl implements UserManager
 {
   private final static Logger log

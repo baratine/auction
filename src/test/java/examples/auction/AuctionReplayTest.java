@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
@@ -29,6 +28,7 @@ import java.util.logging.Logger;
   logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
           @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
+  port = 6810,
   testTime = 0)
 
 public class AuctionReplayTest
@@ -75,7 +75,12 @@ public class AuctionReplayTest
 
   AuctionSync getAuction(String id)
   {
-    return _auctionsRef.lookup("/" + id).as(AuctionSync.class);
+    return getAuctionServiceRef(id).as(AuctionSync.class);
+  }
+
+  ServiceRef getAuctionServiceRef(String id)
+  {
+    return _auctionsRef.lookup("/" + id);
   }
 
   /**
@@ -95,6 +100,8 @@ public class AuctionReplayTest
     boolean result = auction.open();
     Assert.assertTrue(result);
 
+    String auctionId = auction.getAuctionData().getId();
+
     // successful bid
     result = auction.bid(userKirk.getUserData().getId(), 20);
     Assert.assertTrue(result);
@@ -103,10 +110,13 @@ public class AuctionReplayTest
     Assert.assertEquals(data.getLastBid().getUserId(),
                         userKirk.getUserData().getId());
 
+    try {Thread.sleep(10);} catch (Exception e) {}
+
     _testContext.closeImmediate();
 
     _testContext.start();
 
+    auction = getAuction(auctionId);
 
     data = auction.getAuctionData();
     Assert.assertEquals(data.getLastBid().getBid(), 20);

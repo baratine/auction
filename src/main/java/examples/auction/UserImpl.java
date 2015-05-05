@@ -31,8 +31,6 @@ public class UserImpl implements User
   {
     _db = db;
     _id = id;
-
-    log.finer("create new user: " + id);
   }
 
   @Override
@@ -41,9 +39,13 @@ public class UserImpl implements User
   {
     _user = new UserDataPublic(_id, userName, digest(password));
 
-    userId.complete(_id);
-
     log.finer("creating new user: " + userName);
+
+    _db.exec("insert into users(id, name, value) values(?,?,?)",
+             userId.from(o -> _id),
+             _id,
+             _user.getName(),
+             _user);
   }
 
   @OnLoad

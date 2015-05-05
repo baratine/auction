@@ -55,17 +55,19 @@ public class AuctionImpl implements Auction
 
     log.finer("create auction: " + auctionData);
 
+    _auctionData = auctionData;
+
     _db.exec("insert into auction (id, title, value) values (?,?,?)",
-             result.from(o -> {
-               _auctionData = auctionData;
-               return _id;
-             }), _id, title, auctionData);
+             result.from(o -> _id), _id, title, auctionData);
   }
 
   @OnSave
   public void save(Result<Boolean> result)
   {
-    log.finer("save auction: " + _auctionData);
+    log.finer("save auction @"
+              + System.identityHashCode(this)
+              + ": "
+              + _auctionData);
 
     _db.exec("update auction set title=?, value=? where id=?",
              result.from(o -> o != null),
@@ -162,6 +164,10 @@ public class AuctionImpl implements Auction
 
   public void getAuctionData(Result<AuctionDataPublic> result)
   {
+    log.finer("get auction data public @"
+              + System.identityHashCode(this)
+              + " : "
+              + _auctionData);
     result.complete(_auctionData);
   }
 

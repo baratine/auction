@@ -143,7 +143,11 @@ public class AuctionDataPublic implements Serializable
   {
     StringBuilder sb = new StringBuilder();
 
-    sb.append(getClass().getSimpleName()).append("[");
+    sb.append(getClass().getSimpleName())
+      .append("@")
+      .append(System.identityHashCode(this))
+      .append(
+        "[");
     sb.append(_id);
     sb.append(",bid=").append(_lastBid);
     sb.append("]");
@@ -202,7 +206,14 @@ public class AuctionDataPublic implements Serializable
     @Override
     public String toString()
     {
-      return getClass().getSimpleName() + "[" + _userId + "," + _bid + "]";
+      return getClass().getSimpleName()
+             + "@"
+             + System.identityHashCode(this)
+             + "["
+             + _userId
+             + ","
+             + _bid
+             + "]";
     }
   }
 }

@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  *
  */
 @Service("pod://user/user")
-@Journal
+@Journal(count = 1)
 public class UserManagerImpl implements UserManager
 {
   private final static Logger log
@@ -68,6 +68,8 @@ public class UserManagerImpl implements UserManager
                      String password,
                      Result<String> userId)
   {
+    log.finer("create new user: " + userName);
+
     _identityManager.nextId(userId.from((id, r)
                                           -> createWithId(id,
                                                           userName,

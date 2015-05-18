@@ -66,7 +66,7 @@ public class AuctionSessionTest
   AuctionSessionSync getSession()
   {
     AuctionSessionSync session = _auctionPod.lookup(
-      "session://web/auction-session").as(AuctionSessionSync.class);
+      "session://web/auction-session/test").as(AuctionSessionSync.class);
 
     return session;
   }
@@ -108,8 +108,6 @@ public class AuctionSessionTest
 
     boolean result = session.login("bogus", null);
     Assert.assertFalse(result);
-
-    UserDataPublic user = session.getUser();
   }
 
   /**

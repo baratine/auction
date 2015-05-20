@@ -17,7 +17,7 @@ $BARATINE_HOME/bin/baratine shutdown $BARATINE_ARGS
 
 rm -rf $BARATINE_DATA_DIR
 
-mvn -Dmaven.test.skip=true -P release clean package
+mvn -Dmaven.test.skip=true -P local clean package
 
 cp  target/auction-*.bar auction.bar
 

@@ -6,7 +6,6 @@ import io.baratine.core.Result;
 import io.baratine.core.Service;
 import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
-import io.baratine.core.SessionService;
 
 import javax.inject.Inject;
 import java.util.HashMap;
@@ -15,9 +14,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * User visible channel facade at channel:///auction-channel.
+ * User visible channel facade at session:///auction-session.
  */
-@SessionService("session://web/auction-session/{_sessionId}")
+@Service("session://web/auction-session")
 public class AuctionSessionImpl implements AuctionSession
 {
   private final static Logger log

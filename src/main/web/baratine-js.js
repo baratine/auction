@@ -726,14 +726,14 @@ Jamp.Request = function (queryId, msg, timeout)
 
   this.completed = function (client, value)
   {
-    client.remove(this.queryId);
+    client.removeRequest(this.queryId);
   };
 
-  this.error = function (client, value)
+  this.error = function (client, err)
   {
-    client.remove(queryId);
+    console.log(err);
 
-    console.log(value);
+    client.removeRequest(this.queryId);
   };
 };
 
@@ -813,7 +813,7 @@ Jamp.HttpTransport.prototype.submitRequest = function (request)
       transport.pull(client);
     }
     else {
-      request.error(this,
+      request.error(client,
                     "error submitting query "
                     + httpRequest.status
                     + " "
@@ -850,6 +850,8 @@ Jamp.HttpTransport.prototype.pull = function (client)
       var list = JSON.parse(json);
 
       client.onMessageArray(list);
+
+      transport.pull(client);
     }
     else {
       console.log(this,
@@ -862,8 +864,6 @@ Jamp.HttpTransport.prototype.pull = function (client)
     }
 
     transport.pullRequest = undefined;
-
-    transport.pull(client);
   };
 
   httpRequest.ontimeout = function ()
@@ -943,9 +943,7 @@ Jamp.WsTransport.prototype.submitRequest = function (request)
 {
   this.conn.addRequest(request);
 
-  if (this.conn.isOpen) {
-    this.conn.submitRequestLoop();
-  }
+  this.conn.submitRequestLoop();
 };
 
 Jamp.WsTransport.prototype.toString = function ()
@@ -1026,6 +1024,7 @@ Jamp.WsConnection.prototype.init = function (conn)
 
   this.socket.onmessage = function (event)
   {
+    console.log(event.data);
     conn.client.onMessageJson(event.data, conn.client);
   }
 };
@@ -1041,6 +1040,9 @@ Jamp.WsConnection.prototype.addRequest = function (data)
 
 Jamp.WsConnection.prototype.submitRequestLoop = function ()
 {
+  if (! this.isOpen)
+    return;
+
   while (this.socket.readyState === WebSocket.OPEN
          && this.requestQueue.length > 0
          && ! this.isClosing) {

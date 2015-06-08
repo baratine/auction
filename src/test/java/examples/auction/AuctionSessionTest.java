@@ -108,8 +108,6 @@ public class AuctionSessionTest
 
     boolean result = session.login("bogus", null);
     Assert.assertFalse(result);
-
-    UserDataPublic user = session.getUser();
   }
 
   /**

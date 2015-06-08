@@ -264,7 +264,8 @@
         $scope.client.query("/auction-session", "bidAuction", [id, price]);
       };
 
-      $scope.client = new Jamp.BaratineClient("ws://localhost:8085/s/web");
+      var url = "ws://localhost:8085/s/web";
+      $scope.client = new Jamp.BaratineClient(url);
 
       var listener = $scope.client.createListener();
 
@@ -283,6 +284,13 @@
         console.log("on-session:");
         $scope.client.query("/auction-session", "setListener", [listener]);
       };
+
+      if (url.search("http") === 0) {
+        console.log("set auction listener called");
+        $scope.client.query("/auction-session", "setListener", [listener]);
+      } else {
+        console.log("set auction listener not called");
+      }
     });
 
   </script>

@@ -120,9 +120,5 @@ public class AuctionReplayTest
     data = auction.getAuctionData();
     System.out.println("AuctionReplayTest.testAuctionBid " + data);
     Assert.assertEquals(data.getLastBid().getBid(), 20);
-/*
-    Assert.assertEquals(data.getLastBid().getUserId(),
-                        userKirk.getUserData().getId());
-*/
   }
 }

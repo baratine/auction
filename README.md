@@ -41,11 +41,11 @@ Java:
 
 ##### Running the Auction application
 
-* install Baratine™ version 0.8.8 or better
-* install maven plugins for baratine: https://github.com/baratine/maven-collection-baratine
-* set BARATINE_HOME to point to installation directory or create a link from ~/baratine
-* cd to auction directory and run src/main/bin/run-auction.sh script
-* navigate to src/main/web directory and open index.html file in a browser that supports WebSockets
+1. install maven baratine plugin: https://github.com/baratine/maven-collection-baratine
+  1. git clone git@github.com:baratine/maven-collection-baratine.git
+  2. change to maven-collection-baratine and run mnv install
+2. mvn -Dmaven.test.skip=true -P release package baratine:run
+3. open latest browser and navigate to http://localhost:8085
 
 For additional documentaton on Baratine™ visit [Baratine Home]
 [Baratine Home]: http://baratine.io

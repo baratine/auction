@@ -876,6 +876,7 @@ Jamp.HttpTransport.prototype.pull = function (client)
 Jamp.HttpTransport.prototype.initPushRequest = function ()
 {
   var httpRequest = new XMLHttpRequest();
+  httpRequest.withCredentials = true;
 
   httpRequest.open("POST", this.url, true);
   httpRequest.setRequestHeader("Content-Type", "x-application/jamp-push");
@@ -886,6 +887,7 @@ Jamp.HttpTransport.prototype.initPushRequest = function ()
 Jamp.HttpTransport.prototype.initPullRequest = function ()
 {
   var httpRequest = new XMLHttpRequest();
+  httpRequest.withCredentials = true;
 
   httpRequest.open("POST", this.url, true);
   httpRequest.setRequestHeader("Content-Type", "x-application/jamp-pull");

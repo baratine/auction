@@ -20,6 +20,8 @@ public interface AuctionSession
 
   void findAuction(String title, Result<String> result);
 
+  void search(String query, Result<String[]> result);
+
   void bidAuction(String id, int bid, Result<Boolean> result);
 
   void setListener(@Service ChannelListener listener,

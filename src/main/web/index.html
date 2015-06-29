@@ -237,22 +237,42 @@
         $scope.apply();
       };
 
-      $scope.onSearch = function (auctionId)
+      $scope.onSearch = function (auctionIds)
       {
-        console.log("onSearchComplete: " + auctionId);
+        console.log("onSearchComplete: " + JSON.stringify(auctionIds));
 
-        if (auctionId === undefined || auctionId === null) {
+        if (auctionIds === undefined || auctionIds === null) {
         }
-        else {
-          $scope.client.query("/auction-session",
-                              "getAuction", [auctionId], $scope.onSearchResult);
-          $scope.subscribeAuction(auctionId);
+        else if (Array.isArray(auctionIds)) {
+          console.log("onSearchComplete 1" )
+          for (var i in auctionIds) {
+            var auctionId = auctionIds[i];
+            $scope.onSearchAuction(auctionId);
+          }
+        } else {
+          console.log("onSearchComplete 2");
+          $scope.onSearchAuction(auctionIds);
         }
+      };
+
+      $scope.onSearchAuction = function(auctionId)
+      {
+        console.log("onSearchAuction: " + JSON.stringify(auctionId));
+
+        $scope.client.query("/auction-session",
+                            "getAuction", [auctionId], $scope.onSearchResult);
+        $scope.subscribeAuction(auctionId);
+      };
+
+      $scope.Xsearch = function (searchTitle)
+      {
+        $scope.client.query("/auction-session", "findAuction", [searchTitle],
+                            $scope.onSearch);
       };
 
       $scope.search = function (searchTitle)
       {
-        $scope.client.query("/auction-session", "findAuction", [searchTitle],
+        $scope.client.query("/auction-session", "search", [searchTitle],
                             $scope.onSearch);
       };
 
@@ -264,7 +284,7 @@
         $scope.client.query("/auction-session", "bidAuction", [id, price]);
       };
 
-      var url = "http://localhost:8085/s/web";
+      var url = "ws://localhost:8085/s/web";
       $scope.client = new Jamp.BaratineClient(url);
 
       var listener = $scope.client.createListener();

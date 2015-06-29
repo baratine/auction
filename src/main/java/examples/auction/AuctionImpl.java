@@ -59,6 +59,8 @@ public class AuctionImpl implements Auction
 
     _db.exec("insert into auction (id, title, value) values (?,?,?)",
              result.from(o -> _id), _id, title, auctionData);
+
+
   }
 
   @OnSave

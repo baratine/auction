@@ -8,6 +8,7 @@ import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -128,6 +129,15 @@ public class AuctionSessionImpl implements AuctionSession
     }
 
     _auctions.find(title, result);
+  }
+
+  @Override
+  public void search(String query, Result<String[]> result)
+  {
+    _auctions.search(query).collect(ArrayList<String>::new,
+                                    (l, e) -> l.add(e),
+                                    (a, b) -> a.addAll(b),
+                                    result.from(x -> x.toArray(new String[x.size()])));
   }
 
   /**

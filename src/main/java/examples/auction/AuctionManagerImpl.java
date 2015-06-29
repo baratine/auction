@@ -6,7 +6,7 @@ import io.baratine.core.Lookup;
 import io.baratine.core.OnInit;
 import io.baratine.core.OnLookup;
 import io.baratine.core.Result;
-import io.baratine.core.ResultSink;
+import io.baratine.core.ResultStream;
 import io.baratine.core.Service;
 import io.baratine.core.ServiceRef;
 import io.baratine.core.Services;
@@ -91,7 +91,16 @@ public class AuctionManagerImpl implements AuctionManager
   {
     Auction auction = _self.lookup("/" + id).as(Auction.class);
 
-    auction.create(ownerId, title, bid, auctionId);
+    auction.create(ownerId, title, bid, auctionId.from((x, r) -> {
+      index(x, title, r);
+    }));
+  }
+
+  private void index(String id, String title, Result<String> auctionId)
+  {
+    auctionId.complete(id);
+
+    _lucene.indexText("auction", id, title, Result.ignore());
   }
 
   public void find(String title, Result<String> result)
@@ -109,21 +118,19 @@ public class AuctionManagerImpl implements AuctionManager
     throw new AbstractMethodError();
   }
 
-  public void search(String query, ResultSink<String> results)
+  public void search(String query, ResultStream<String> results)
   {
     _lucene.search("auction", query, 255, results.from((x, r) -> {
       searchImp(x, r);
     }));
   }
 
-  public void searchImp(List<LuceneEntry> entries, Result<String> r)
+  public void searchImp(List<LuceneEntry> entries, ResultStream<String> stream)
   {
-    ResultSink<String> sink = (ResultSink<String>) r;
-
     for (LuceneEntry l : entries) {
-      sink.accept(l.getExternalId());
+      stream.accept(l.getExternalId());
     }
 
-    sink.end();
+    stream.complete();
   }
 }

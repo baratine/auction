@@ -1,16 +1,20 @@
 package examples.auction;
 
+import com.caucho.lucene.LuceneEntry;
 import io.baratine.core.Journal;
 import io.baratine.core.Lookup;
 import io.baratine.core.OnInit;
 import io.baratine.core.OnLookup;
 import io.baratine.core.Result;
+import io.baratine.core.ResultSink;
 import io.baratine.core.Service;
 import io.baratine.core.ServiceRef;
 import io.baratine.core.Services;
 import io.baratine.db.DatabaseService;
+import io.baratine.stream.StreamBuilder;
 
 import javax.inject.Inject;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,6 +35,9 @@ public class AuctionManagerImpl implements AuctionManager
 
   @Inject @Lookup("/identity-manager")
   private IdentityManager _identityManager;
+
+  @Inject @Lookup("pod://lucene/service")
+  private com.caucho.lucene.LuceneFacade _lucene;
 
   public AuctionManagerImpl()
   {
@@ -94,5 +101,29 @@ public class AuctionManagerImpl implements AuctionManager
     _db.findOne("select id from auction where title=?",
                 result.from(c -> c != null ? c.getString(1) : null),
                 title);
+  }
+
+  @Override
+  public StreamBuilder<String> search(String query)
+  {
+    throw new AbstractMethodError();
+  }
+
+  public void search(String query, ResultSink<String> results)
+  {
+    _lucene.search("auction", query, 255, results.from((x, r) -> {
+      searchImp(x, r);
+    }));
+  }
+
+  public void searchImp(List<LuceneEntry> entries, Result<String> r)
+  {
+    ResultSink<String> sink = (ResultSink<String>) r;
+
+    for (LuceneEntry l : entries) {
+      sink.accept(l.getExternalId());
+    }
+
+    sink.end();
   }
 }

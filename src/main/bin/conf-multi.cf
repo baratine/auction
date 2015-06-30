@@ -4,8 +4,8 @@ cluster {
 #  logger off "com.caucho.amp.proxy";
 #  logger off "com.caucho.kraken.table";
 
-  pod web {
-    server id="web" port="8085";
+  pod lucene {
+    server id="lucene" port="8088";
   }
 
   pod user {
@@ -14,6 +14,10 @@ cluster {
 
   pod auction {
     server id="auction" port="8087";
+  }
+
+  pod web {
+    server id="web" port="8085";
   }
 
   pod-default {

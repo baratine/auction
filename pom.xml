@@ -152,6 +152,10 @@
         <artifactId>baratine-plugin</artifactId>
         <version>1.0-SNAPSHOT</version>
         <extensions>true</extensions>
+        <configuration>
+          <!--verbose>true</verbose-->
+          <!--conf>src/main/bin/mvn-conf.cf</conf-->
+        </configuration>
       </plugin>
     </plugins>
   </build>

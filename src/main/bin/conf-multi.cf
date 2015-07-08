@@ -1,5 +1,5 @@
 cluster {
-#  logger finest;
+  logger finer;
 #  logger finer "examples";
 #  logger off "com.caucho.amp.proxy";
 #  logger off "com.caucho.kraken.table";

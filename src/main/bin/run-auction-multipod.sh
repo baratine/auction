@@ -24,10 +24,13 @@ cp  target/auction-*.bar auction.bar
 
 mvn dependency:copy -Dartifact=com.caucho:lucene-plugin-service:1.0-SNAPSHOT:bar -Dmdep.stripVersion=true -o -DoutputDirectory=$base
 
-$BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server lucene --deploy lucene-plugin-service.bar
-$BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server auction --deploy auction.bar
-$BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server user --deploy auction.bar
-$BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server web --deploy auction.bar
+$BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server lucene
+$BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server auction
+$BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server user
+$BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server web
+
+$BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS lucene-plugin-service.bar
+$BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar
 
 #echo "Create User ..."
 #$BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web /auction-session/foo createUser user pass

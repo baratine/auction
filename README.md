@@ -42,12 +42,12 @@ Java:
 ##### Running the Auction application
 
 1. install maven baratine plugin: https://github.com/baratine/maven-collection-baratine
-  1. git clone git@github.com:baratine/maven-collection-baratine.git
-  2. change to maven-collection-baratine and run mnv install
-2. mvn -Dmaven.test.skip=true -P release package baratine:run
-3. open latest browser and navigate to http://localhost:8085
+2. install lucene-plugin: https://github.com/baratine/lucene-plugin 
+3. execute mvn -Dmaven.test.skip=true -P release package baratine:run
+4. open latest browser and navigate to http://localhost:8085
 
 For additional documentaton on Baratine™ visit [Baratine Home]
 [Baratine Home]: http://baratine.io
 [Baratine Maven Collection]: https://github.com/baratine/maven-collection-baratine
+
 

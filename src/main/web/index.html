@@ -306,10 +306,7 @@
       };
 
       if (url.search("http") === 0) {
-        console.log("set auction listener called");
         $scope.client.query("/auction-session", "setListener", [listener]);
-      } else {
-        console.log("set auction listener not called");
       }
     });
 

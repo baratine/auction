@@ -2,10 +2,6 @@
 
 base=`pwd`
 
-if [ -z $BARATINE_HOME ]; then
-  BARATINE_HOME=~/baratine
-fi;
-
 if [ ! -f $BARATINE_HOME/lib/baratine.jar ]; then
   echo "BARATINE_HOME '$BARATINE_HOME' does not point to a baratine installation";
   exit 1;

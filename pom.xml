@@ -17,7 +17,7 @@
   </repositories>
 
   <properties>
-    <baratine-home>${user.home}/baratine</baratine-home>
+    <baratine-home>${pom.basedir}/../baratine</baratine-home>
     <maven.test.skip>true</maven.test.skip>
   </properties>
 
@@ -28,7 +28,7 @@
       <activation>
         <activeByDefault>false</activeByDefault>
         <file>
-          <exists>${user.home}/baratine</exists>
+          <exists>${baratine-home}</exists>
         </file>
       </activation>
 

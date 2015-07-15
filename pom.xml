@@ -18,11 +18,20 @@
 
   <properties>
     <baratine-home>${user.home}/baratine</baratine-home>
+    <maven.test.skip>true</maven.test.skip>
   </properties>
 
   <profiles>
     <profile>
       <id>local</id>
+
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <file>
+          <exists>${user.home}/baratine</exists>
+        </file>
+      </activation>
+
       <dependencies>
         <dependency>
           <groupId>io.baratine</groupId>
@@ -63,6 +72,11 @@
     </profile>
     <profile>
       <id>release</id>
+
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+
       <dependencies>
         <dependency>
           <groupId>io.baratine</groupId>
@@ -155,6 +169,7 @@
         <configuration>
           <!--verbose>true</verbose-->
           <!--conf>src/main/bin/mvn-conf.cf</conf-->
+          <external>true</external>
         </configuration>
       </plugin>
     </plugins>

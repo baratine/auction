@@ -43,7 +43,7 @@ Java:
 
 1. install maven baratine plugin: https://github.com/baratine/maven-collection-baratine
 2. install lucene-plugin: https://github.com/baratine/lucene-plugin 
-3. execute mvn -Dmaven.test.skip=true -P release package baratine:run
+3. execute mvn clean package baratine:run
 4. open latest browser and navigate to http://localhost:8085
 
 For additional documentaton on Baratine™ visit [Baratine Home]

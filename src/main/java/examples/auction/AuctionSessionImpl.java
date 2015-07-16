@@ -259,7 +259,7 @@ public class AuctionSessionImpl implements AuctionSession
 
     public void subscribe()
     {
-      _eventRef.subscribe(this);
+      _eventRef.subscribe(this, Result.ignore());
     }
 
     public void unsubscribe()

@@ -66,7 +66,7 @@ public class AuctionManagerImpl implements AuctionManager
 
     log.finer("lookup auction: " + id);
 
-    return new AuctionImpl(Services.getCurrentManager(), _db, id);
+    return new AuctionImpl(Services.getCurrentManager(), _self, _db, id);
   }
 
   @Override

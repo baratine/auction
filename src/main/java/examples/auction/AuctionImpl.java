@@ -5,6 +5,7 @@ import io.baratine.core.OnLoad;
 import io.baratine.core.OnSave;
 import io.baratine.core.Result;
 import io.baratine.core.ServiceManager;
+import io.baratine.core.ServiceRef;
 import io.baratine.core.Services;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
@@ -26,13 +27,19 @@ public class AuctionImpl implements Auction
 
   private AuctionEvents _events;
 
+  private ServiceRef _auctionManager;
+
   public AuctionImpl()
   {
   }
 
-  public AuctionImpl(ServiceManager manager, DatabaseService db, String id)
+  public AuctionImpl(ServiceManager manager,
+                     ServiceRef auctionManager,
+                     DatabaseService db,
+                     String id)
   {
     _manager = manager;
+    _auctionManager = auctionManager;
     _db = db;
     _id = id;
   }
@@ -59,7 +66,6 @@ public class AuctionImpl implements Auction
 
     _db.exec("insert into auction (id, title, value) values (?,?,?)",
              result.from(o -> _id), _id, title, auctionData);
-
 
   }
 
@@ -127,12 +133,11 @@ public class AuctionImpl implements Auction
     ServiceManager manager = Services.getCurrentManager();
     TimerService timer = manager.lookup(url).as(TimerService.class);
 
-    Auction service = manager.currentService()
-                             .lookup("/" + _id)
-                             .as(Auction.class);
+    Auction service = _auctionManager.lookup("/" + _id).as(Auction.class);
 
-    timer.runAt(() -> service.close(Result.ignore()),
-                _auctionData.getDateToClose().toInstant().toEpochMilli());
+    timer.runAt((x) -> service.close(Result.ignore()),
+                _auctionData.getDateToClose().toInstant().toEpochMilli(),
+                Result.ignore());
 
     log.finer("start timer for auction: " + _auctionData);
   }

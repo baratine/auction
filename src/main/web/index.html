@@ -284,7 +284,10 @@
         $scope.client.query("/auction-session", "bidAuction", [id, price]);
       };
 
-      var url = "ws://localhost:8085/s/web";
+
+      var host = window.location.host;
+
+      var url = "ws://" + host + "/s/web";
       $scope.client = new Jamp.BaratineClient(url);
 
       var listener = $scope.client.createListener();

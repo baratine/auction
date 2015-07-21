@@ -14,18 +14,23 @@ import javax.inject.Inject;
  * Unit test for user create() with journal replay
  */
 @RunWith(RunnerBaratine.class)
-@ConfigurationBaratine(services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
+@ConfigurationBaratine(
+  services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
   logLevel = "FINER",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "com.caucho.config", level = "WARNING"),
-          @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
+          @ConfigurationBaratine.Log(name = "com.caucho.config",
+                                     level = "WARNING"),
+          @ConfigurationBaratine.Log(name = "examples.auction",
+                                     level = "FINER")},
   port = 6810)
 public class UserReplayTest
 {
-  @Inject @Lookup("pod://user/user")
+  @Inject
+  @Lookup("pod://user/user")
   UserManagerSync _userManager;
 
-  @Inject @Lookup("pod://user/user")
+  @Inject
+  @Lookup("pod://user/user")
   ServiceRef _userManagerRef;
 
   @Inject

@@ -17,14 +17,12 @@ public class IdentityManagerImpl implements IdentityManager
 {
   private final static Logger log =
     Logger.getLogger(IdentityManagerImpl.class.getName());
-
-  @Inject @Lookup("store:///identity")
-  private Store _store;
-
-  private long _nextId;
-
   @Inject
   ServiceManager _manager;
+  @Inject
+  @Lookup("store:///identity")
+  private Store _store;
+  private long _nextId;
 
   @OnLoad
   public void load(Result<Boolean> result)

@@ -2,13 +2,11 @@ package examples.auction;
 
 import io.baratine.core.Journal;
 import io.baratine.core.Lookup;
-import io.baratine.core.Modify;
 import io.baratine.core.OnInit;
 import io.baratine.core.OnLookup;
 import io.baratine.core.Result;
 import io.baratine.core.Service;
 import io.baratine.core.ServiceRef;
-import io.baratine.core.Services;
 import io.baratine.db.DatabaseService;
 
 import javax.inject.Inject;
@@ -25,10 +23,12 @@ public class UserManagerImpl implements UserManager
   private final static Logger log
     = Logger.getLogger(UserManagerImpl.class.getName());
 
-  @Inject @Lookup("bardb:///")
+  @Inject
+  @Lookup("bardb:///")
   private DatabaseService _db;
 
-  @Inject @Lookup("/identity-manager")
+  @Inject
+  @Lookup("/identity-manager")
   private IdentityManager _identityManager;
 
   private ServiceRef _self;
@@ -40,7 +40,7 @@ public class UserManagerImpl implements UserManager
   @OnInit
   public void onInit(Result<Boolean> result)
   {
-    _self = Services.getCurrentService();
+    _self = ServiceRef.getCurrent();
 
     try {
       // for production add salt

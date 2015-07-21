@@ -8,8 +8,8 @@ import io.baratine.core.OnLookup;
 import io.baratine.core.Result;
 import io.baratine.core.ResultStream;
 import io.baratine.core.Service;
+import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
-import io.baratine.core.Services;
 import io.baratine.db.DatabaseService;
 import io.baratine.stream.StreamBuilder;
 
@@ -30,13 +30,16 @@ public class AuctionManagerImpl implements AuctionManager
 
   ServiceRef _self;
 
-  @Inject @Lookup("bardb:///")
+  @Inject
+  @Lookup("bardb:///")
   private DatabaseService _db;
 
-  @Inject @Lookup("/identity-manager")
+  @Inject
+  @Lookup("/identity-manager")
   private IdentityManager _identityManager;
 
-  @Inject @Lookup("pod://lucene/service")
+  @Inject
+  @Lookup("pod://lucene/service")
   private com.caucho.lucene.LuceneFacade _lucene;
 
   public AuctionManagerImpl()
@@ -46,7 +49,7 @@ public class AuctionManagerImpl implements AuctionManager
   @OnInit
   public void init(Result<Boolean> result)
   {
-    _self = Services.getCurrentService();
+    _self = ServiceRef.getCurrent();
 
     try {
       _db.exec(
@@ -66,7 +69,7 @@ public class AuctionManagerImpl implements AuctionManager
 
     log.finer("lookup auction: " + id);
 
-    return new AuctionImpl(Services.getCurrentManager(), _self, _db, id);
+    return new AuctionImpl(ServiceManager.getCurrent(), _self, _db, id);
   }
 
   @Override
@@ -100,7 +103,7 @@ public class AuctionManagerImpl implements AuctionManager
   {
     auctionId.complete(id);
 
-    _lucene.indexText("auction", id, title, Result.ignore());
+    //_lucene.indexText("auction", id, title, Result.ignore());
   }
 
   public void find(String title, Result<String> result)

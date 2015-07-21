@@ -16,19 +16,26 @@ import java.util.logging.Logger;
  *
  */
 @RunWith(RunnerBaratine.class)
-@ConfigurationBaratine(services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
+@ConfigurationBaratine(
+  services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
   logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "com.caucho.config", level = "WARNING"),
-          @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
+          @ConfigurationBaratine.Log(name = "com.caucho.config",
+                                     level = "WARNING"),
+          @ConfigurationBaratine.Log(name = "examples.auction",
+                                     level = "FINER")},
   port = 6811,
   testTime = 0)
 
-@ConfigurationBaratine(services = {IdentityManagerImpl.class, AuctionManagerImpl.class}, pod = "auction",
+@ConfigurationBaratine(
+  services = {IdentityManagerImpl.class, AuctionManagerImpl.class},
+  pod = "auction",
   logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "com.caucho.config", level = "WARNING"),
-          @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
+          @ConfigurationBaratine.Log(name = "com.caucho.config",
+                                     level = "WARNING"),
+          @ConfigurationBaratine.Log(name = "examples.auction",
+                                     level = "FINER")},
   port = 6810,
   testTime = 0)
 
@@ -37,22 +44,27 @@ public class AuctionReplayTest
   private static final Logger log
     = Logger.getLogger(AuctionReplayTest.class.getName());
 
-  @Inject @Lookup("pod://user/user")
+  @Inject
+  @Lookup("pod://user/user")
   UserManagerSync _users;
 
-  @Inject @Lookup("pod://user/user")
+  @Inject
+  @Lookup("pod://user/user")
   ServiceRef _usersRef;
 
-  @Inject @Lookup("pod://auction/auction")
+  @Inject
+  @Lookup("pod://auction/auction")
   AuctionManagerSync _auctions;
 
-  @Inject @Lookup("pod://auction/auction")
+  @Inject
+  @Lookup("pod://auction/auction")
   ServiceRef _auctionsRef;
 
   @Inject
   RunnerBaratine _testContext;
 
-  @Inject @Lookup("pod://auction/")
+  @Inject
+  @Lookup("pod://auction/")
   ServiceManager _auctionPod;
 
   UserSync createUser(String name, String password)

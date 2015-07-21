@@ -28,16 +28,20 @@ public class AuctionSessionImpl implements AuctionSession
   @Inject
   private ServiceManager _manager;
 
-  @Inject @Lookup("pod://user/user")
+  @Inject
+  @Lookup("pod://user/user")
   private UserManager _users;
 
-  @Inject @Lookup("pod://user/user")
+  @Inject
+  @Lookup("pod://user/user")
   private ServiceRef _usersServiceRef;
 
-  @Inject @Lookup("pod://auction/auction")
+  @Inject
+  @Lookup("pod://auction/auction")
   private AuctionManager _auctions;
 
-  @Inject @Lookup("pod://auction/auction")
+  @Inject
+  @Lookup("pod://auction/auction")
   private ServiceRef _auctionsServiceRef;
 
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
@@ -121,6 +125,14 @@ public class AuctionSessionImpl implements AuctionSession
     getAuctionService(id).getAuctionData(result);
   }
 
+  private Auction getAuctionService(String id)
+  {
+    Auction auction
+      = _auctionsServiceRef.lookup('/' + id).as(Auction.class);
+
+    return auction;
+  }
+
   public void findAuction(String title,
                           Result<String> result)
   {
@@ -157,14 +169,6 @@ public class AuctionSessionImpl implements AuctionSession
 
     getAuctionService(auctionId).bid(_userId, bid, result);
 
-  }
-
-  private Auction getAuctionService(String id)
-  {
-    Auction auction
-      = _auctionsServiceRef.lookup('/' + id).as(Auction.class);
-
-    return auction;
   }
 
   public void setListener(@Service ChannelListener listener,
@@ -220,14 +224,6 @@ public class AuctionSessionImpl implements AuctionSession
     result.complete(true);
   }
 
-  @OnDestroy
-  public void destroy()
-  {
-    log.finer("destroy auction channel: " + this);
-
-    unsubscribe();
-  }
-
   private void unsubscribe()
   {
     for (AuctionEventsImpl events : _listenerMap.values()) {
@@ -235,6 +231,14 @@ public class AuctionSessionImpl implements AuctionSession
     }
 
     _listenerMap.clear();
+  }
+
+  @OnDestroy
+  public void destroy()
+  {
+    log.finer("destroy auction channel: " + this);
+
+    unsubscribe();
   }
 
   @Override

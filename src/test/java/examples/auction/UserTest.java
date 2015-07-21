@@ -14,16 +14,20 @@ import javax.inject.Inject;
  * Unit test for simple App.
  */
 @RunWith(RunnerBaratine.class)
-@ConfigurationBaratine(services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
+@ConfigurationBaratine(
+  services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
   logLevel = "FINER",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")})
+          @ConfigurationBaratine.Log(name = "examples.auction",
+                                     level = "FINER")})
 public class UserTest
 {
-  @Inject @Lookup("pod://user/user")
+  @Inject
+  @Lookup("pod://user/user")
   UserManagerSync _userManager;
 
-  @Inject @Lookup("pod://user/user")
+  @Inject
+  @Lookup("pod://user/user")
   ServiceRef _userManagerRef;
 
   /**

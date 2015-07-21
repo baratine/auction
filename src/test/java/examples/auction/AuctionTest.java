@@ -3,6 +3,7 @@ package examples.auction;
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
 import io.baratine.core.Lookup;
+import io.baratine.core.Result;
 import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
 import org.junit.Assert;
@@ -19,16 +20,21 @@ import java.util.logging.Logger;
  * testTime is set to use artificial time to test auction timeouts.
  */
 @RunWith(RunnerBaratine.class)
-@ConfigurationBaratine(services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
+@ConfigurationBaratine(
+  services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
   logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
+          @ConfigurationBaratine.Log(name = "examples.auction",
+                                     level = "FINER")},
   testTime = 0)
 
-@ConfigurationBaratine(services = {IdentityManagerImpl.class, AuctionManagerImpl.class}, pod = "auction",
+@ConfigurationBaratine(
+  services = {IdentityManagerImpl.class, AuctionManagerImpl.class},
+  pod = "auction",
   logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
+          @ConfigurationBaratine.Log(name = "examples.auction",
+                                     level = "FINER")},
   testTime = 0)
 
 public class AuctionTest
@@ -36,22 +42,27 @@ public class AuctionTest
   private static final Logger log
     = Logger.getLogger(AuctionTest.class.getName());
 
-  @Inject @Lookup("pod://user/user")
+  @Inject
+  @Lookup("pod://user/user")
   UserManagerSync _users;
 
-  @Inject @Lookup("pod://user/user")
+  @Inject
+  @Lookup("pod://user/user")
   ServiceRef _usersRef;
 
-  @Inject @Lookup("pod://auction/auction")
+  @Inject
+  @Lookup("pod://auction/auction")
   AuctionManagerSync _auctions;
 
-  @Inject @Lookup("pod://auction/auction")
+  @Inject
+  @Lookup("pod://auction/auction")
   ServiceRef _auctionsRef;
 
   @Inject
   RunnerBaratine _testContext;
 
-  @Inject @Lookup("pod://auction/")
+  @Inject
+  @Lookup("pod://auction/")
   ServiceManager _auctionPod;
 
   /**
@@ -145,7 +156,7 @@ public class AuctionTest
 
       Assert.assertTrue(false);
     } catch (RuntimeException e) {
-      Assert.assertEquals(e.getClass(), IllegalStateException.class);
+      Assert.assertEquals(e.getCause().getClass(), IllegalStateException.class);
     }
   }
 
@@ -165,9 +176,8 @@ public class AuctionTest
       auction.close();
 
       Assert.assertTrue(false);
-    } catch (RuntimeException e) {
-      e.printStackTrace();
-      Assert.assertEquals(e.getClass(), IllegalStateException.class);
+    } catch (Throwable t) {
+      Assert.assertEquals(t.getCause().getClass(), IllegalStateException.class);
     }
   }
 
@@ -194,7 +204,7 @@ public class AuctionTest
 
       Assert.assertTrue(false);
     } catch (RuntimeException e) {
-      Assert.assertEquals(e.getClass(), IllegalStateException.class);
+      Assert.assertEquals(e.getCause().getClass(), IllegalStateException.class);
     }
   }
 
@@ -268,7 +278,7 @@ public class AuctionTest
 
     AuctionListenerImpl auctionCallback = new AuctionListenerImpl("book");
 
-    eventRef.subscribe(auctionCallback);
+    eventRef.subscribe(auctionCallback, Result.ignore());
 
     auction.bid(userKirk.getUserData().getId(), 17);
 
@@ -318,8 +328,9 @@ public class AuctionTest
     String url = "event://auction/auction/" + id;
     ServiceRef eventRef = _auctionPod.lookup(url);
     AuctionListenerImpl auctionCallback = new AuctionListenerImpl("book");
-    ServiceRef callbackRef = _auctionPod.service(auctionCallback);
-    eventRef.subscribe(callbackRef, 0);
+    ServiceRef callbackRef
+      = _auctionPod.newService().service(auctionCallback).build();
+    eventRef.subscribe(callbackRef, Result.ignore());
 
     // 25 seconds later auction is still open
     _testContext.addTime(15, TimeUnit.SECONDS);

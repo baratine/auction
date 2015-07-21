@@ -48,6 +48,28 @@ public class UserImpl implements User
              _user);
   }
 
+  public String digest(String password)
+  {
+    try {
+      if (_digest == null)
+        _digest = MessageDigest.getInstance("SHA-1");
+
+      _digest.reset();
+
+      if (password == null)
+        password = "";
+
+      //for production add salt
+      _digest.update(password.getBytes(StandardCharsets.UTF_8));
+
+      String digest = Base64.getEncoder().encodeToString(_digest.digest());
+
+      return digest;
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   @OnLoad
   public void load(Result<Boolean> result)
   {
@@ -95,28 +117,6 @@ public class UserImpl implements User
   public void getUserData(Result<UserDataPublic> user)
   {
     user.complete(_user);
-  }
-
-  public String digest(String password)
-  {
-    try {
-      if (_digest == null)
-        _digest = MessageDigest.getInstance("SHA-1");
-
-      _digest.reset();
-
-      if (password == null)
-        password = "";
-
-      //for production add salt
-      _digest.update(password.getBytes(StandardCharsets.UTF_8));
-
-      String digest = Base64.getEncoder().encodeToString(_digest.digest());
-
-      return digest;
-    } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
-    }
   }
 }
 

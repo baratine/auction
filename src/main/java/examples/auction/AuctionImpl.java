@@ -6,7 +6,6 @@ import io.baratine.core.OnSave;
 import io.baratine.core.Result;
 import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
-import io.baratine.core.Services;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 import io.baratine.timer.TimerService;
@@ -130,7 +129,7 @@ public class AuctionImpl implements Auction
   {
     String url = "timer:///";
 
-    ServiceManager manager = Services.getCurrentManager();
+    ServiceManager manager = ServiceManager.getCurrent();
     TimerService timer = manager.lookup(url).as(TimerService.class);
 
     Auction service = _auctionManager.lookup("/" + _id).as(Auction.class);
@@ -169,6 +168,17 @@ public class AuctionImpl implements Auction
     }
   }
 
+  private AuctionEvents getEvents()
+  {
+    if (_events == null) {
+      String url = "event://auction/auction/" + _auctionData.getId();
+
+      _events = _manager.lookup(url).as(AuctionEvents.class);
+    }
+
+    return _events;
+  }
+
   public void getAuctionData(Result<AuctionDataPublic> result)
   {
     log.finer("get auction data public @"
@@ -204,17 +214,6 @@ public class AuctionImpl implements Auction
                       _auctionData.getState()));
 
     }
-  }
-
-  private AuctionEvents getEvents()
-  {
-    if (_events == null) {
-      String url = "event://auction/auction/" + _auctionData.getId();
-
-      _events = _manager.lookup(url).as(AuctionEvents.class);
-    }
-
-    return _events;
   }
 }
 

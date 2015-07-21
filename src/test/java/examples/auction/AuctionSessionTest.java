@@ -18,28 +18,37 @@ import java.util.concurrent.TimeUnit;
  */
 @RunWith(RunnerBaratine.class)
 
-@ConfigurationBaratine(services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
+@ConfigurationBaratine(
+  services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
   logLevel = "FINER",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
+          @ConfigurationBaratine.Log(name = "examples.auction",
+                                     level = "FINER")},
   port = 8085,
   testTime = 0)
-@ConfigurationBaratine(services = {IdentityManagerImpl.class, AuctionManagerImpl.class}, pod = "auction",
+@ConfigurationBaratine(
+  services = {IdentityManagerImpl.class, AuctionManagerImpl.class},
+  pod = "auction",
   logLevel = "FINER",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
+          @ConfigurationBaratine.Log(name = "examples.auction",
+                                     level = "FINER")},
   testTime = 0)
 @ConfigurationBaratine(services = AuctionSessionImpl.class, pod = "web",
-  logLevel = "FINER",
-  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "examples.auction", level = "FINER")},
-  testTime = 0)
+                       logLevel = "FINER",
+                       logs = {@ConfigurationBaratine.Log(name = "com.caucho",
+                                                          level = "FINER"),
+                               @ConfigurationBaratine.Log(
+                                 name = "examples.auction", level = "FINER")},
+                       testTime = 0)
 public class AuctionSessionTest
 {
-  @Inject @Lookup("pod://web/")
+  @Inject
+  @Lookup("pod://web/")
   ServiceManager _auctionPod;
 
-  @Inject RunnerBaratine _testContext;
+  @Inject
+  RunnerBaratine _testContext;
 
   /**
    * User create correctly sets the user name.
@@ -303,7 +312,7 @@ public class AuctionSessionTest
 
     Assert.assertEquals("", listenerSpock.getAndClear());
 
-    _testContext.addTime(2, TimeUnit.SECONDS);
+    _testContext.addTime(5, TimeUnit.SECONDS);
     Thread.sleep(100);
 
     Assert.assertEquals("auction-close auction=book-close user="

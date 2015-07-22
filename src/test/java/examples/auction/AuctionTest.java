@@ -76,10 +76,10 @@ public class AuctionTest
     AuctionSync auction = createAuction(user, "book", 15);
     Assert.assertNotNull(auction);
 
-    AuctionDataPublic data = auction.getAuctionData();
+    AuctionDataPublic data = auction.get();
     Assert.assertNotNull(data);
     Assert.assertEquals(user.getUserData().getId(),
-                        auction.getAuctionData().getOwnerId());
+                        auction.get().getOwnerId());
     Assert.assertEquals(data.getTitle(), "book");
   }
 
@@ -120,19 +120,19 @@ public class AuctionTest
 
     Assert.assertNotNull(auction);
 
-    AuctionDataPublic data = auction.getAuctionData();
+    AuctionDataPublic data = auction.get();
     Assert.assertEquals(AuctionDataPublic.State.INIT, data.getState());
 
     boolean result = auction.open();
     Assert.assertTrue(result);
 
-    data = auction.getAuctionData();
+    data = auction.get();
     Assert.assertEquals(AuctionDataPublic.State.OPEN, data.getState());
 
     result = auction.close();
     Assert.assertTrue(result);
 
-    data = auction.getAuctionData();
+    data = auction.get();
     Assert.assertEquals(AuctionDataPublic.State.CLOSED, data.getState());
   }
 
@@ -229,7 +229,7 @@ public class AuctionTest
     // successful bid
     result = auction.bid(userKirk.getUserData().getId(), 20);
     Assert.assertTrue(result);
-    AuctionDataPublic data = auction.getAuctionData();
+    AuctionDataPublic data = auction.get();
     Assert.assertEquals(data.getLastBid().getBid(), 20);
     Assert.assertEquals(data.getLastBid().getUserId(),
                         userKirk.getUserData().getId());
@@ -237,7 +237,7 @@ public class AuctionTest
     // failed bid
     result = auction.bid(userUhura.getUserData().getId(), 17);
     Assert.assertFalse(result);
-    data = auction.getAuctionData();
+    data = auction.get();
     Assert.assertEquals(data.getLastBid().getBid(), 20);
     Assert.assertEquals(data.getLastBid().getUserId(),
                         userKirk.getUserData().getId());
@@ -245,7 +245,7 @@ public class AuctionTest
     result = auction.close();
     Assert.assertTrue(result);
 
-    data = auction.getAuctionData();
+    data = auction.get();
     Assert.assertEquals(data.getLastBid().getBid(), 20);
     Assert.assertEquals(data.getLastBid().getUserId(),
                         userKirk.getUserData().getId());
@@ -267,7 +267,7 @@ public class AuctionTest
 
     auction.open();
 
-    AuctionDataPublic data = auction.getAuctionData();
+    AuctionDataPublic data = auction.get();
     String id = data.getId();
 
     String url = "event://auction/auction/" + id;
@@ -323,7 +323,7 @@ public class AuctionTest
     result = auction.bid(userKirk.getUserData().getId(), 20);
     Assert.assertTrue(result);
 
-    String id = auction.getAuctionData().getId();
+    String id = auction.get().getId();
 
     String url = "event://auction/auction/" + id;
     ServiceRef eventRef = _auctionPod.lookup(url);
@@ -337,7 +337,7 @@ public class AuctionTest
 
     Thread.sleep(100);
 
-    AuctionDataPublic data = auction.getAuctionData();
+    AuctionDataPublic data = auction.get();
 
     Assert.assertEquals(AuctionDataPublic.State.OPEN, data.getState());
 
@@ -347,7 +347,7 @@ public class AuctionTest
     _testContext.addTime(16, TimeUnit.SECONDS);
     Thread.sleep(100);
 
-    data = auction.getAuctionData();
+    data = auction.get();
     Assert.assertEquals(AuctionDataPublic.State.CLOSED, data.getState());
     Assert.assertEquals("close book user=Kirk 20",
                         auctionCallback.getAndClear());

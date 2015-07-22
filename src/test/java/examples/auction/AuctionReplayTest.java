@@ -113,12 +113,12 @@ public class AuctionReplayTest
     boolean result = auction.open();
     Assert.assertTrue(result);
 
-    String auctionId = auction.getAuctionData().getId();
+    String auctionId = auction.get().getId();
 
     // successful bid
     result = auction.bid(userKirk.getUserData().getId(), 20);
     Assert.assertTrue(result);
-    AuctionDataPublic data = auction.getAuctionData();
+    AuctionDataPublic data = auction.get();
     Assert.assertEquals(data.getLastBid().getBid(), 20);
     Assert.assertEquals(data.getLastBid().getUserId(),
                         userKirk.getUserData().getId());
@@ -129,7 +129,7 @@ public class AuctionReplayTest
 
     auction = getAuction(auctionId);
 
-    data = auction.getAuctionData();
+    data = auction.get();
     System.out.println("AuctionReplayTest.testAuctionBid " + data);
     Assert.assertEquals(data.getLastBid().getBid(), 20);
   }

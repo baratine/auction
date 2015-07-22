@@ -122,7 +122,7 @@ public class AuctionSessionImpl implements AuctionSession
       throw new IllegalStateException("No user is logged in");
     }
 
-    getAuctionService(id).getAuctionData(result);
+    getAuctionService(id).get(result);
   }
 
   private Auction getAuctionService(String id)

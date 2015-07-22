@@ -44,7 +44,7 @@ public class AuctionImpl implements Auction
   }
 
   @Modify
-  public void create(String ownerId,
+  public void create(String userId,
                      String title,
                      int startingBid,
                      Result<String> result)
@@ -54,7 +54,7 @@ public class AuctionImpl implements Auction
     ZonedDateTime closingDate = date;
 
     AuctionDataPublic auctionData = new AuctionDataPublic(_id,
-                                                          ownerId,
+                                                          userId,
                                                           title,
                                                           startingBid,
                                                           closingDate);
@@ -65,7 +65,6 @@ public class AuctionImpl implements Auction
 
     _db.exec("insert into auction (id, title, value) values (?,?,?)",
              result.from(o -> _id), _id, title, auctionData);
-
   }
 
   @OnSave
@@ -179,7 +178,7 @@ public class AuctionImpl implements Auction
     return _events;
   }
 
-  public void getAuctionData(Result<AuctionDataPublic> result)
+  public void get(Result<AuctionDataPublic> result)
   {
     log.finer("get auction data public @"
               + System.identityHashCode(this)

@@ -11,7 +11,7 @@ import io.baratine.core.Service;
 import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
 import io.baratine.db.DatabaseService;
-import io.baratine.stream.StreamBuilder;
+import io.baratine.stream.ResultStreamBuilder;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.logging.Logger;
  *
  */
 @Service("pod://auction/auction")
-@Journal
+//@Journal
 public class AuctionManagerImpl implements AuctionManager
 {
   private final static Logger log
@@ -41,6 +41,10 @@ public class AuctionManagerImpl implements AuctionManager
   @Inject
   @Lookup("pod://lucene/service")
   private com.caucho.lucene.LuceneFacade _lucene;
+
+  @Inject
+  @Lookup("pod://audit/audit")
+  private AuditService _audit;
 
   public AuctionManagerImpl()
   {
@@ -73,37 +77,37 @@ public class AuctionManagerImpl implements AuctionManager
   }
 
   @Override
-  public void create(String ownerId,
-                     String title,
-                     int bid,
+  public void create(AuctionDataInit initData,
                      Result<String> auctionId)
   {
     _identityManager.nextId(auctionId.from((id, r)
                                              -> createWithId(id,
-                                                             ownerId,
-                                                             title,
-                                                             bid,
+                                                             initData,
                                                              r)));
   }
 
   private void createWithId(String id,
-                            String ownerId,
-                            String title,
-                            int bid,
+                            AuctionDataInit initData,
                             Result<String> auctionId)
   {
     Auction auction = _self.lookup("/" + id).as(Auction.class);
 
-    auction.create(ownerId, title, bid, auctionId.from((x, r) -> {
-      index(x, title, r);
+    auction.create(initData, auctionId.from((x, r) -> {
+      index(x, initData.getTitle(), r);
     }));
+
+    auction.get(x -> _audit.audit(AuditService.AuditEvent.CREATE,
+                                  x,
+                                  Result.<Void>ignore()));
   }
 
   private void index(String id, String title, Result<String> auctionId)
   {
     auctionId.complete(id);
 
-    //_lucene.indexText("auction", id, title, Result.ignore());
+    log.info(String.format("index %1$s %2$s", id, title));
+
+    _lucene.indexText("auction", id, title, Result.ignore());
   }
 
   public void find(String title, Result<String> result)
@@ -116,24 +120,31 @@ public class AuctionManagerImpl implements AuctionManager
   }
 
   @Override
-  public StreamBuilder<String> search(String query)
+  public ResultStreamBuilder<String> search(String query)
   {
     throw new AbstractMethodError();
   }
 
   public void search(String query, ResultStream<String> results)
   {
-    _lucene.search("auction", query, 255, results.from((x, r) -> {
-      searchImp(x, r);
+    _lucene.search("auction", query, 255, results.from((l, r) -> {
+      searchImp(l, r);
     }));
   }
 
   public void searchImp(List<LuceneEntry> entries, ResultStream<String> stream)
   {
-    for (LuceneEntry l : entries) {
-      stream.accept(l.getExternalId());
-    }
+    log.info(String.format("search %1$s", entries));
 
-    stream.complete();
+    try {
+      for (LuceneEntry l : entries) {
+        stream.accept(l.getExternalId());
+      }
+
+      stream.complete();
+      log.info(String.format("search complete"));
+    } catch (Throwable t) {
+      t.printStackTrace();
+    }
   }
 }

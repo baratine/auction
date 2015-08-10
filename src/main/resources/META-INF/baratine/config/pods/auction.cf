@@ -2,6 +2,10 @@ pod auction {
   archive "/usr/lib/pods/auction.bar";
 }
 
+pod audit {
+  archive "/usr/lib/pods/auction.bar";
+}
+
 pod user {
   archive "/usr/lib/pods/auction.bar";
 }

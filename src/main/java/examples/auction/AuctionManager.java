@@ -1,13 +1,13 @@
 package examples.auction;
 
 import io.baratine.core.Result;
-import io.baratine.stream.StreamBuilder;
+import io.baratine.stream.ResultStreamBuilder;
 
 public interface AuctionManager
 {
-  void create(String ownerId, String title, int bid, Result<String> auctionId);
+  void create(AuctionDataInit initData, Result<String> auctionId);
 
   void find(String title, Result<String> auctionId);
 
-  StreamBuilder<String> search(String query);
+  ResultStreamBuilder<String> search(String query);
 }

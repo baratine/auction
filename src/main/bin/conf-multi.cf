@@ -5,15 +5,19 @@ cluster {
 #  logger off "com.caucho.kraken.table";
 
   pod lucene {
-    server id="lucene" port="8088";
+    server id="lucene" port="8089";
   }
 
   pod user {
-    server id="user" port="8086";
+    server id="user" port="8088";
   }
 
   pod auction {
     server id="auction" port="8087";
+  }
+
+  pod audit {
+    server id="audit" port="8086";
   }
 
   pod web {

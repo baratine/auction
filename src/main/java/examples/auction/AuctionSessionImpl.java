@@ -1,5 +1,6 @@
 package examples.auction;
 
+import io.baratine.core.CancelHandle;
 import io.baratine.core.Lookup;
 import io.baratine.core.OnDestroy;
 import io.baratine.core.Result;
@@ -99,9 +100,8 @@ public class AuctionSessionImpl implements AuctionSession
       throw new IllegalStateException("No user is logged in");
     }
 
-    _auctions.create(_userId, title, bid,
-                     result.from((x, r) ->
-                                   afterCreateAuction(x, title, r)));
+    _auctions.create(new AuctionDataInit(_userId, title, bid),
+                     result.from((x, r) -> afterCreateAuction(x, title, r)));
   }
 
   private void afterCreateAuction(String id, String title,
@@ -146,10 +146,32 @@ public class AuctionSessionImpl implements AuctionSession
   @Override
   public void search(String query, Result<String[]> result)
   {
+    System.out.println("AuctionSessionImpl.search XXX");
+
+    Object obj = null;
+    try {
+      obj = _auctions.search(query).collect(ArrayList<String>::new,
+                                            (l, e) -> l.add(e),
+                                            (a, b) -> a.addAll(b)).result();
+    } catch (Throwable e) {
+      e.printStackTrace();
+    }
+
+    System.out.println("AuctionSessionImpl.search XXX " + obj);
+
     _auctions.search(query).collect(ArrayList<String>::new,
                                     (l, e) -> l.add(e),
-                                    (a, b) -> a.addAll(b),
-                                    result.from(x -> x.toArray(new String[x.size()])));
+                                    (a, b) -> a.addAll(b))
+             .result(l ->
+                       result.complete(l.toArray(new String[l.size()])));
+
+
+/*
+    _auctions.search(query).collect(ArrayList<String>::new,
+                                    (l, e) -> l.add(e),
+                                    (a, b) -> a.addAll(b))
+             .result(result.from(l -> l.toArray(new String[l.size()])));
+*/
   }
 
   /**
@@ -255,6 +277,7 @@ public class AuctionSessionImpl implements AuctionSession
   private class AuctionEventsImpl implements AuctionEvents
   {
     private final ServiceRef _eventRef;
+    private CancelHandle _cancelHandle;
 
     AuctionEventsImpl(ServiceRef eventRef)
     {
@@ -263,12 +286,12 @@ public class AuctionSessionImpl implements AuctionSession
 
     public void subscribe()
     {
-      _eventRef.subscribe(this, Result.ignore());
+      _cancelHandle = _eventRef.subscribe(this);
     }
 
     public void unsubscribe()
     {
-      _eventRef.unsubscribe(this);
+      _cancelHandle.cancel();
     }
 
     @Override

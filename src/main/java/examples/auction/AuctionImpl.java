@@ -28,6 +28,10 @@ public class AuctionImpl implements Auction
 
   private ServiceRef _auctionManager;
 
+  private AuditService _audit;
+
+  private State _state;
+
   public AuctionImpl()
   {
   }
@@ -41,35 +45,42 @@ public class AuctionImpl implements Auction
     _auctionManager = auctionManager;
     _db = db;
     _id = id;
+
+    _audit = manager.lookup("pod://audit/audit").as(AuditService.class);
+
+    _state = State.UNBOUND;
   }
 
   @Modify
-  public void create(String userId,
-                     String title,
-                     int startingBid,
+  public void create(AuctionDataInit initData,
                      Result<String> result)
   {
+    if (_state != State.UNBOUND)
+      throw new IllegalStateException();
+
     ZonedDateTime date = ZonedDateTime.now();
     date = date.plusSeconds(30);
     ZonedDateTime closingDate = date;
 
-    AuctionDataPublic auctionData = new AuctionDataPublic(_id,
-                                                          userId,
-                                                          title,
-                                                          startingBid,
-                                                          closingDate);
+    AuctionDataPublic auctionData
+      = new AuctionDataPublic(_id, initData, closingDate);
 
     log.finer("create auction: " + auctionData);
 
     _auctionData = auctionData;
 
     _db.exec("insert into auction (id, title, value) values (?,?,?)",
-             result.from(o -> _id), _id, title, auctionData);
+             result.from(o -> _id), _id, initData.getTitle(), auctionData);
+
+    _state = State.BOUND;
   }
 
   @OnSave
   public void save(Result<Boolean> result)
   {
+    if (_state == State.UNBOUND)
+      throw new IllegalStateException();
+
     log.finer("save auction @"
               + System.identityHashCode(this)
               + ": "
@@ -85,6 +96,9 @@ public class AuctionImpl implements Auction
   @OnLoad
   public void load(Result<Boolean> result)
   {
+    if (_state != State.UNBOUND)
+      throw new IllegalStateException();
+
     _db.findOne("select value from auction where id=?",
                 result.from(c -> loadComplete(c)),
                 _id);
@@ -104,13 +118,17 @@ public class AuctionImpl implements Auction
   @Modify
   public void open(Result<Boolean> result)
   {
-    if (_auctionData == null)
+    if (_state == State.UNBOUND)
       throw new IllegalStateException();
 
     if (_auctionData.getState() == AuctionDataPublic.State.INIT) {
       _auctionData.toOpen();
 
       log.finer("open auction: " + _auctionData);
+
+      _audit.audit(AuditService.AuditEvent.OPEN,
+                   _auctionData,
+                   Result.<Void>ignore());
 
       startTimer();
 
@@ -146,7 +164,7 @@ public class AuctionImpl implements Auction
                   Result<Boolean> result)
     throws IllegalStateException
   {
-    if (_auctionData == null)
+    if (_state == State.UNBOUND)
       throw new IllegalStateException();
 
     log.finer("bid auction: " + _auctionData);
@@ -154,15 +172,15 @@ public class AuctionImpl implements Auction
     boolean isSuccess = _auctionData.bid(userId, bid);
 
     if (isSuccess) {
-      log.finer("bid placed for auction: " + _auctionData);
-
       getEvents().onBid(_auctionData);
 
       result.complete(true);
+
+      _audit.audit(AuditService.AuditEvent.BID,
+                   _auctionData,
+                   Result.<Void>ignore());
     }
     else {
-      log.finer("bid rejected for auction: " + _auctionData);
-
       result.complete(false);
     }
   }
@@ -184,17 +202,14 @@ public class AuctionImpl implements Auction
               + System.identityHashCode(this)
               + " : "
               + _auctionData);
+
     result.complete(_auctionData);
   }
 
-  /**
-   * Administrator can close the auction. Additionally, method is called by
-   * a system timer ("timer:) see below
-   */
   @Modify
   public void close(Result<Boolean> result)
   {
-    if (_auctionData == null)
+    if (_state == State.UNBOUND)
       throw new IllegalStateException();
 
     if (_auctionData.getState() == AuctionDataPublic.State.OPEN) {
@@ -205,6 +220,10 @@ public class AuctionImpl implements Auction
       getEvents().onClose(_auctionData);
 
       result.complete(true);
+
+      _audit.audit(AuditService.AuditEvent.CLOSE,
+                   _auctionData,
+                   Result.<Void>ignore());
     }
     else {
       throw new IllegalStateException(
@@ -213,6 +232,12 @@ public class AuctionImpl implements Auction
                       _auctionData.getState()));
 
     }
+  }
+
+  enum State
+  {
+    UNBOUND,
+    BOUND
   }
 }
 

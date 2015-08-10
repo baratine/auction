@@ -4,9 +4,7 @@ import io.baratine.core.Result;
 
 public interface Auction
 {
-  void create(String userId,
-              String title,
-              int startingBid,
+  void create(AuctionDataInit initData,
               Result<String> result);
 
   void open(Result<Boolean> result);

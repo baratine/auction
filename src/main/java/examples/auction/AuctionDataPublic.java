@@ -28,15 +28,13 @@ public class AuctionDataPublic implements Serializable
   }
 
   public AuctionDataPublic(String id,
-                           String ownerId,
-                           String title,
-                           int startingBid,
+                           AuctionDataInit initData,
                            ZonedDateTime closingDate)
   {
     _id = id;
-    _ownerId = ownerId;
-    _title = title;
-    _startingBid = startingBid;
+    _ownerId = initData.getUserId();
+    _title = initData.getTitle();
+    _startingBid = initData.getStartingBid();
     _dateToClose = closingDate;
   }
 

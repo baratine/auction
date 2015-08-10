@@ -2,7 +2,7 @@ package examples.auction;
 
 public interface AuctionSync extends Auction
 {
-  String create(String userId, String title, int startingBid);
+  String create(AuctionDataInit initData);
 
   boolean open();
 

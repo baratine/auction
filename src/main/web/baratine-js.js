@@ -1070,7 +1070,6 @@ Jamp.WsConnection.prototype.reconnect = function (conn)
   console.log("reconnecting in "
               + (this.reconnectIntervalMs / 1000)
               + " seconds");
-  console.trace();
 
   setTimeout(conn.init(conn), this.reconnectIntervalMs);
 

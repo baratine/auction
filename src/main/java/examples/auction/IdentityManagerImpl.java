@@ -17,6 +17,7 @@ public class IdentityManagerImpl implements IdentityManager
 {
   private final static Logger log =
     Logger.getLogger(IdentityManagerImpl.class.getName());
+
   @Inject
   ServiceManager _manager;
   @Inject

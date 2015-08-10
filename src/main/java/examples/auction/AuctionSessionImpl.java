@@ -146,32 +146,11 @@ public class AuctionSessionImpl implements AuctionSession
   @Override
   public void search(String query, Result<String[]> result)
   {
-    System.out.println("AuctionSessionImpl.search XXX");
-
-    Object obj = null;
-    try {
-      obj = _auctions.search(query).collect(ArrayList<String>::new,
-                                            (l, e) -> l.add(e),
-                                            (a, b) -> a.addAll(b)).result();
-    } catch (Throwable e) {
-      e.printStackTrace();
-    }
-
-    System.out.println("AuctionSessionImpl.search XXX " + obj);
-
     _auctions.search(query).collect(ArrayList<String>::new,
                                     (l, e) -> l.add(e),
                                     (a, b) -> a.addAll(b))
              .result(l ->
                        result.complete(l.toArray(new String[l.size()])));
-
-
-/*
-    _auctions.search(query).collect(ArrayList<String>::new,
-                                    (l, e) -> l.add(e),
-                                    (a, b) -> a.addAll(b))
-             .result(result.from(l -> l.toArray(new String[l.size()])));
-*/
   }
 
   /**
@@ -190,7 +169,6 @@ public class AuctionSessionImpl implements AuctionSession
     }
 
     getAuctionService(auctionId).bid(_userId, bid, result);
-
   }
 
   public void setListener(@Service ChannelListener listener,

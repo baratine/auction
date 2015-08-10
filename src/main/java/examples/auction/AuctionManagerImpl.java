@@ -1,7 +1,6 @@
 package examples.auction;
 
 import com.caucho.lucene.LuceneEntry;
-import io.baratine.core.Journal;
 import io.baratine.core.Lookup;
 import io.baratine.core.OnInit;
 import io.baratine.core.OnLookup;
@@ -127,24 +126,16 @@ public class AuctionManagerImpl implements AuctionManager
 
   public void search(String query, ResultStream<String> results)
   {
-    _lucene.search("auction", query, 255, results.from((l, r) -> {
-      searchImp(l, r);
-    }));
+    _lucene.search("auction", query, 255,
+                   results.from((l, r) -> searchImp(l, r)));
   }
 
   public void searchImp(List<LuceneEntry> entries, ResultStream<String> stream)
   {
-    log.info(String.format("search %1$s", entries));
-
-    try {
-      for (LuceneEntry l : entries) {
-        stream.accept(l.getExternalId());
-      }
-
-      stream.complete();
-      log.info(String.format("search complete"));
-    } catch (Throwable t) {
-      t.printStackTrace();
+    for (LuceneEntry l : entries) {
+      stream.accept(l.getExternalId());
     }
+
+    stream.complete();
   }
 }

@@ -21,6 +21,7 @@ cp  target/auction-*.bar auction.bar
 mvn dependency:copy -Dartifact=com.caucho:lucene-plugin-service:1.0-SNAPSHOT:bar -Dmdep.stripVersion=true -o -DoutputDirectory=$base
 
 $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server lucene
+$BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server audit
 $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server auction
 $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server user
 $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server web

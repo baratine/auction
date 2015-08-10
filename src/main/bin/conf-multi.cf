@@ -4,27 +4,27 @@ cluster {
 #  logger off "com.caucho.amp.proxy";
 #  logger off "com.caucho.kraken.table";
 
-  pod-default {
-    pod-deploy path="${server.data}/pods";
-  }
-
   pod lucene {
-    server id="lucene" port="8089";
+    server id="lucene" port="8089" watchdog-port="6820";
   }
 
   pod audit {
-    server id="audit" port="8088";
+    server id="audit" port="8088" watchdog-port="6820";
   }
 
   pod user {
-    server id="user" port="8087";
+    server id="user" port="8087" watchdog-port="6820";
   }
 
   pod auction {
-    server id="auction" port="8086";
+    server id="auction" port="8086" watchdog-port="6820";
   }
 
   pod web {
-    server id="web" port="8085";
+    server id="web" port="8085" watchdog-port="6820";
+  }
+
+  pod-default {
+    pod-deploy path="${server.data}/pods";
   }
 }

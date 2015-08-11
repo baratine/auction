@@ -168,7 +168,7 @@
         <configuration>
           <!--verbose>true</verbose-->
           <!--conf>src/main/bin/mvn-conf.cf</conf-->
-          <external>true</external>
+          <external>false</external>
         </configuration>
       </plugin>
     </plugins>

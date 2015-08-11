@@ -1,6 +1,7 @@
 package examples.auction;
 
 import com.caucho.lucene.LuceneEntry;
+import io.baratine.core.Journal;
 import io.baratine.core.Lookup;
 import io.baratine.core.OnInit;
 import io.baratine.core.OnLookup;
@@ -21,7 +22,7 @@ import java.util.logging.Logger;
  *
  */
 @Service("pod://auction/auction")
-//@Journal
+@Journal
 public class AuctionManagerImpl implements AuctionManager
 {
   private final static Logger log

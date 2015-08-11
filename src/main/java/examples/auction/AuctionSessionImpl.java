@@ -149,8 +149,7 @@ public class AuctionSessionImpl implements AuctionSession
     _auctions.search(query).collect(ArrayList<String>::new,
                                     (l, e) -> l.add(e),
                                     (a, b) -> a.addAll(b))
-             .result(l ->
-                       result.complete(l.toArray(new String[l.size()])));
+             .result(l -> result.complete(l.toArray(new String[l.size()])));
   }
 
   /**

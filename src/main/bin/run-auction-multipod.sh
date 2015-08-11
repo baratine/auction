@@ -30,12 +30,12 @@ $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server web
 
 $BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS lucene-plugin-service.bar --port 8089
 $BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar --port 8085
-$BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar --port 8086
-$BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar --port 8087
-$BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar --port 8088
+#$BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar --port 8086
+#$BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar --port 8087
+#$BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar --port 8088
 
 #echo "Create User ..."
-#sleep 1
+sleep 1
 
 $BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web /auction-session/foo createUser user pass
 

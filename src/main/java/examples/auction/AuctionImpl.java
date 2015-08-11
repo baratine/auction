@@ -69,10 +69,14 @@ public class AuctionImpl implements Auction
 
     _auctionData = auctionData;
 
+/*
     _db.exec("insert into auction (id, title, value) values (?,?,?)",
              result.from(o -> _id), _id, initData.getTitle(), auctionData);
+*/
 
     _state = State.BOUND;
+
+    result.complete(_id);
   }
 
   @OnSave
@@ -86,11 +90,19 @@ public class AuctionImpl implements Auction
               + ": "
               + _auctionData);
 
+    _db.exec("insert into auction (id, title, value) values (?,?,?)",
+             result.from(o -> o != null),
+             _id,
+             _auctionData.getTitle(),
+             _auctionData);
+
+/*
     _db.exec("update auction set title=?, value=? where id=?",
              result.from(o -> o != null),
              _auctionData.getTitle(),
              _auctionData,
              _auctionData.getId());
+*/
   }
 
   @OnLoad

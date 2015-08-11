@@ -169,6 +169,7 @@
           <!--verbose>true</verbose-->
           <!--conf>src/main/bin/mvn-conf.cf</conf-->
           <external>false</external>
+          <buildExecutable>false</buildExecutable>
         </configuration>
       </plugin>
     </plugins>

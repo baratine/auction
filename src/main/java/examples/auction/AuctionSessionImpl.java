@@ -167,7 +167,7 @@ public class AuctionSessionImpl implements AuctionSession
       throw new IllegalStateException("No user is logged in");
     }
 
-    getAuctionService(auctionId).bid(_userId, bid, result);
+    getAuctionService(auctionId).bid(new Bid(_userId, bid), result);
   }
 
   public void setListener(@Service ChannelListener listener,

@@ -95,10 +95,6 @@ public class AuctionManagerImpl implements AuctionManager
     auction.create(initData, auctionId.from((x, r) -> {
       index(x, initData.getTitle(), r);
     }));
-
-    auction.get(x -> _audit.audit(AuditService.AuditEvent.CREATE,
-                                  x,
-                                  Result.<Void>ignore()));
   }
 
   private void index(String id, String title, Result<String> auctionId)

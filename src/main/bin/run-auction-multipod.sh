@@ -18,6 +18,14 @@ $BARATINE_HOME/bin/baratine shutdown $BARATINE_ARGS
 rm -rf $BARATINE_DATA_DIR
 sync
 mvn -Dmaven.test.skip=true -P local clean package
+
+exit_code=$?
+
+if [ $exit_code -ne 0 ]; then
+  echo "mvn package failed"
+  exit $exit_code
+fi
+
 cp  target/auction-*.bar auction.bar
 
 mvn dependency:copy -Dartifact=com.caucho:lucene-plugin-service:1.0-SNAPSHOT:bar -Dmdep.stripVersion=true -o -DoutputDirectory=$base

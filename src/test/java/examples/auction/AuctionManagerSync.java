@@ -2,7 +2,7 @@ package examples.auction;
 
 public interface AuctionManagerSync extends AuctionManager
 {
-  String create(String ownerId, String title, int bid);
+  String create(AuctionDataInit initData);
 
   String find(String title);
 }

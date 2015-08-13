@@ -10,6 +10,7 @@ import io.baratine.core.ResultStream;
 import io.baratine.core.Service;
 import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
+import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 import io.baratine.stream.ResultStreamBuilder;
 
@@ -111,8 +112,15 @@ public class AuctionManagerImpl implements AuctionManager
     _self.save();
 
     _db.findOne("select id from auction where title=?",
-                result.from(c -> c != null ? c.getString(1) : null),
+                result.from(c -> toAuctionId(c)),
                 title);
+  }
+
+  private String toAuctionId(Cursor c)
+  {
+    log.finer(String.format("select cursor %1$s into auction id", c));
+
+    return c != null ? c.getString(1) : null;
   }
 
   @Override

@@ -83,10 +83,12 @@ public class AuctionImpl implements Auction
     _audit.auctionSave(_auctionData, Result.<Void>ignore());
 
     _db.exec("insert into auction (id, title, value) values (?,?,?)",
-             result.from(o -> o != null),
+             result.from(o -> resultFromSave(o)),
              _id,
              _auctionData.getTitle(),
              _auctionData);
+
+    log.finer(String.format("async-saved auction %1$s to db", _auctionData));
 
 /*
     _db.exec("update auction set title=?, value=? where id=?",
@@ -95,6 +97,13 @@ public class AuctionImpl implements Auction
              _auctionData,
              _auctionData.getId());
 */
+  }
+
+  private boolean resultFromSave(Object obj)
+  {
+    log.finer(String.format("executed save auction to db with result %1$s", obj));
+
+    return obj != null;
   }
 
   @OnLoad

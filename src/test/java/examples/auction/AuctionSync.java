@@ -1,5 +1,7 @@
 package examples.auction;
 
+import io.baratine.core.Result;
+
 public interface AuctionSync extends Auction
 {
   String create(AuctionDataInit initData);
@@ -10,5 +12,5 @@ public interface AuctionSync extends Auction
 
   AuctionDataPublic get();
 
-  boolean bid(String userId, int bid);
+  boolean bid(Bid bid);
 }

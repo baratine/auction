@@ -33,4 +33,10 @@ public class AuctionDataInit implements Serializable
   {
     return _startingBid;
   }
+
+  @Override
+  public String toString()
+  {
+    return "AuctionDataInit[" + _title + ", " + _startingBid + ']';
+  }
 }

@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
           @ConfigurationBaratine.Log(name = "examples.auction",
                                      level = "FINER")},
-  port = 8085,
+  port = 9085,
   testTime = 0)
 @ConfigurationBaratine(
   services = {IdentityManagerImpl.class, AuctionManagerImpl.class},
@@ -41,6 +41,25 @@ import java.util.concurrent.TimeUnit;
                                @ConfigurationBaratine.Log(
                                  name = "examples.auction", level = "FINER")},
                        testTime = 0)
+
+@ConfigurationBaratine(
+  services = {AuditServiceImpl.class},
+  pod = "audit",
+  logLevel = "finer",
+  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
+          @ConfigurationBaratine.Log(name = "examples.auction",
+                                     level = "FINER")},
+  testTime = 0)
+
+@ConfigurationBaratine(
+  services = {MockLuceneServiceImpl.class},
+  pod = "lucene",
+  logLevel = "finer",
+  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
+          @ConfigurationBaratine.Log(name = "examples.auction",
+                                     level = "FINER")},
+  testTime = 0)
+
 public class AuctionSessionTest
 {
   @Inject
@@ -153,14 +172,14 @@ public class AuctionSessionTest
     boolean result = sessionSpok.createUser("Spock", "passwd");
     Assert.assertTrue(result);
 
+    result = sessionSpok.login("Spock", "passwd");
+    Assert.assertTrue(result);
+
     String id = sessionSpok.createAuction("book", 15);
     Assert.assertNotNull(id);
 
     // find the auction by User Kirk
-    AuctionSessionSync channelKirk = getSession();
-
-    result = channelKirk.createUser("Kirk", "passwd");
-    Assert.assertTrue(result);
+    AuctionSessionSync channelKirk = createUser("Kirk", "passwd");
 
     String idFind = channelKirk.findAuction("book");
     Assert.assertNotNull(idFind);

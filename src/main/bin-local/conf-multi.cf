@@ -1,0 +1,30 @@
+cluster {
+   logger finest;
+#  logger finer "examples";
+#  logger off "com.caucho.amp.proxy";
+#  logger off "com.caucho.kraken.table";
+
+  pod lucene {
+    server id="lucene" port="8089";
+  }
+
+  pod audit {
+    server id="audit" port="8088";
+  }
+
+  pod user {
+    server id="user" port="8087";
+  }
+
+  pod auction {
+    server id="auction" port="8086";
+  }
+
+  pod web {
+    server id="web" port="8085";
+  }
+
+  pod-default {
+    pod-deploy path="${server.data}/pods";
+  }
+}

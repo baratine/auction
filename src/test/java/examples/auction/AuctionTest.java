@@ -3,7 +3,6 @@ package examples.auction;
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
 import io.baratine.core.Lookup;
-import io.baratine.core.Result;
 import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
 import org.junit.Assert;
@@ -37,6 +36,23 @@ import java.util.logging.Logger;
                                      level = "FINER")},
   testTime = 0)
 
+@ConfigurationBaratine(
+  services = {AuditServiceImpl.class},
+  pod = "audit",
+  logLevel = "finer",
+  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
+          @ConfigurationBaratine.Log(name = "examples.auction",
+                                     level = "FINER")},
+  testTime = 0)
+
+@ConfigurationBaratine(
+  services = {MockLuceneServiceImpl.class},
+  pod = "lucene",
+  logLevel = "finer",
+  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
+          @ConfigurationBaratine.Log(name = "examples.auction",
+                                     level = "FINER")},
+  testTime = 0)
 public class AuctionTest
 {
   private static final Logger log
@@ -97,7 +113,10 @@ public class AuctionTest
 
   AuctionSync createAuction(UserSync user, String title, int bid)
   {
-    String id = _auctions.create(user.getUserData().getId(), title, bid);
+    String id
+      = _auctions.create(new AuctionDataInit(user.getUserData().getId(),
+                                             title,
+                                             bid));
 
     return getAuction(id);
   }
@@ -227,7 +246,7 @@ public class AuctionTest
     Assert.assertTrue(result);
 
     // successful bid
-    result = auction.bid(userKirk.getUserData().getId(), 20);
+    result = auction.bid(new Bid(userKirk.getUserData().getId(), 20));
     Assert.assertTrue(result);
     AuctionDataPublic data = auction.get();
     Assert.assertEquals(data.getLastBid().getBid(), 20);
@@ -235,7 +254,7 @@ public class AuctionTest
                         userKirk.getUserData().getId());
 
     // failed bid
-    result = auction.bid(userUhura.getUserData().getId(), 17);
+    result = auction.bid(new Bid(userUhura.getUserData().getId(), 17));
     Assert.assertFalse(result);
     data = auction.get();
     Assert.assertEquals(data.getLastBid().getBid(), 20);
@@ -278,9 +297,12 @@ public class AuctionTest
 
     AuctionListenerImpl auctionCallback = new AuctionListenerImpl("book");
 
-    eventRef.subscribe(auctionCallback, Result.ignore());
+    ServiceRef callabackRef
+      = _auctionPod.newService().service(auctionCallback).build();
 
-    auction.bid(userKirk.getUserData().getId(), 17);
+    eventRef.subscribe(callabackRef);
+
+    auction.bid(new Bid(userKirk.getUserData().getId(), 17));
 
     // wait for events
     Thread.sleep(100);
@@ -320,7 +342,7 @@ public class AuctionTest
     boolean result = auction.open();
     Assert.assertTrue(result);
 
-    result = auction.bid(userKirk.getUserData().getId(), 20);
+    result = auction.bid(new Bid(userKirk.getUserData().getId(), 20));
     Assert.assertTrue(result);
 
     String id = auction.get().getId();
@@ -330,10 +352,10 @@ public class AuctionTest
     AuctionListenerImpl auctionCallback = new AuctionListenerImpl("book");
     ServiceRef callbackRef
       = _auctionPod.newService().service(auctionCallback).build();
-    eventRef.subscribe(callbackRef, Result.ignore());
+    eventRef.subscribe(callbackRef);
 
-    // 25 seconds later auction is still open
-    _testContext.addTime(15, TimeUnit.SECONDS);
+    // 1 seconds later auction is still open
+    _testContext.addTime(1, TimeUnit.SECONDS);
 
     Thread.sleep(100);
 
@@ -343,8 +365,8 @@ public class AuctionTest
 
     Assert.assertEquals("", auctionCallback.getAndClear());
 
-    // 2 hours after that, auction is closed
-    _testContext.addTime(16, TimeUnit.SECONDS);
+    // 30 seconds after that, auction is closed
+    _testContext.addTime(30, TimeUnit.SECONDS);
     Thread.sleep(100);
 
     data = auction.get();

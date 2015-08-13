@@ -147,7 +147,8 @@ public class AuctionDataPublic implements Serializable
       .append(
         "[");
     sb.append(_id);
-    sb.append(",bid=").append(_lastBid);
+    sb.append(", ").append(_title);
+    sb.append(", bid=").append(_lastBid);
     sb.append("]");
 
     return sb.toString();

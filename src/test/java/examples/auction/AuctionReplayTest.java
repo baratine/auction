@@ -81,7 +81,9 @@ public class AuctionReplayTest
 
   AuctionSync createAuction(UserSync user, String title, int bid)
   {
-    String id = _auctions.create(user.getUserData().getId(), title, bid);
+    String id = _auctions.create(new AuctionDataInit(user.getUserData().getId(),
+                                                     title,
+                                                     bid));
 
     return getAuction(id);
   }
@@ -116,7 +118,7 @@ public class AuctionReplayTest
     String auctionId = auction.get().getId();
 
     // successful bid
-    result = auction.bid(userKirk.getUserData().getId(), 20);
+    result = auction.bid(new Bid(userKirk.getUserData().getId(), 20));
     Assert.assertTrue(result);
     AuctionDataPublic data = auction.get();
     Assert.assertEquals(data.getLastBid().getBid(), 20);

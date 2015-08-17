@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  *
  */
 @Service("pod://user/user")
-@Journal(count = 1)
+@Journal()
 public class UserManagerImpl implements UserManager
 {
   private final static Logger log
@@ -91,7 +91,7 @@ public class UserManagerImpl implements UserManager
   @Override
   public void find(String name, Result<String> userId)
   {
-    _self.save();
+    _self.save(Result.ignore());
 
     _db.findOne("select id from users where name=?",
                 userId.from(c -> c != null ? c.getString(1) : null), name);

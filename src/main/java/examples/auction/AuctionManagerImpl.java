@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  *
  */
 @Service("pod://auction/auction")
-@Journal
+@Journal()
 public class AuctionManagerImpl implements AuctionManager
 {
   private final static Logger log
@@ -109,7 +109,7 @@ public class AuctionManagerImpl implements AuctionManager
 
   public void find(String title, Result<String> result)
   {
-    _self.save();
+    _self.save(Result.ignore());
 
     _db.findOne("select id from auction where title=?",
                 result.from(c -> toAuctionId(c)),

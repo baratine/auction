@@ -37,7 +37,7 @@ Java:
 
 ##### Building the Auction application
 
-* install Baratine Maven Collection [Baratine Maven Collection] 
+* install Baratine Maven Plugin [Baratine Maven Plugin] 
 
 ##### Running the Auction application
 
@@ -48,6 +48,6 @@ Java:
 
 For additional documentaton on Baratine™ visit [Baratine Home]
 [Baratine Home]: http://baratine.io
-[Baratine Maven Collection]: https://github.com/baratine/maven-collection-baratine
+[Baratine Maven Plugin]: https://github.com/baratine/baratine-maven-plugin
 
 

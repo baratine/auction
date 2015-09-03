@@ -27,5 +27,5 @@ cluster {
   pod-default {
   }
 
-  pod-deploy path="#{server.data}/pods";
+  pod-deploy path="${server.data}/pods";
 }

@@ -5,26 +5,27 @@ cluster {
 #  logger off "com.caucho.kraken.table";
 
   pod lucene {
-    server id="lucene" port="8089";
+    server id="lucene" address="192.168.5.2" port="8089";
   }
 
   pod audit {
-    server id="audit" port="8088";
+    server id="audit" address="192.168.5.2" port="8088";
   }
 
   pod user {
-    server id="user" port="8087";
+    server id="user" address="192.168.5.68" port="8087";
   }
 
   pod auction {
-    server id="auction" port="8086";
+    server id="auction" address="192.168.5.68" port="8086";
   }
 
   pod web {
-    server id="web" port="8085";
+    server id="web" address="192.168.5.68" port="8085";
   }
 
   pod-default {
-    pod-deploy path="${server.data}/pods";
   }
+
+  pod-deploy path="pods";
 }

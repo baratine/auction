@@ -326,12 +326,12 @@ public class AuctionSessionTest
                         + " bid=17",
                         listenerSpock.getAndClear());
 
-    _testContext.addTime(10, TimeUnit.SECONDS);
+    _testContext.addTime(5, TimeUnit.SECONDS);
     Thread.sleep(100);
 
     Assert.assertEquals("", listenerSpock.getAndClear());
 
-    _testContext.addTime(5, TimeUnit.SECONDS);
+    _testContext.addTime(30, TimeUnit.SECONDS);
     Thread.sleep(100);
 
     Assert.assertEquals("auction-close auction=book-close user="

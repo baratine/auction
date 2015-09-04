@@ -37,7 +37,8 @@ import java.util.logging.Logger;
           @ConfigurationBaratine.Log(name = "examples.auction",
                                      level = "FINER")},
   port = 6810,
-  testTime = 0)
+  testTime = 0,
+  journalDelay=120000)
 
 @ConfigurationBaratine(
   services = {AuditServiceImpl.class},

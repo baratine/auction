@@ -50,6 +50,18 @@ import java.util.logging.Logger;
                                      level = "FINER")},
   port = 6812,
   testTime = 0)
+
+@ConfigurationBaratine(
+  services = {MockLuceneServiceImpl.class},
+  pod = "lucene",
+  logLevel = "finer",
+  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
+          @ConfigurationBaratine.Log(name = "com.caucho.config",
+                                     level = "WARNING"),
+          @ConfigurationBaratine.Log(name = "examples.auction",
+                                     level = "FINER")},
+  port = 6813,
+  testTime = 0)
 public class AuctionReplayTest
 {
   private static final Logger log

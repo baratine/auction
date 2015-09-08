@@ -30,14 +30,14 @@ fi
 
 cp  target/auction-*.bar auction.bar
 
-if [ 'osx' -eq "$target" ]; then
+if [ "osx"="$target" ]; then
   $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server auction
   $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server user
   $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server web
   sleep 1;
   $BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar --port 8085
 else
-  if [ 'deb' -eq "$target" ]; then
+  if [ "deb"="$target" ]; then
     $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server lucene
     $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server audit
     sleep 1;

@@ -32,14 +32,14 @@ cp  target/auction-*.bar auction.bar
 
 echo "starting target $target"
 
-if [ "osx"="$target" ]; then
+if [ "osx" = "$target" ]; then
   $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server auction
   $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server user
   $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server web
   sleep 1;
   $BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar --port 8085
 else
-  if [ "deb"="$target" ]; then
+  if [ "deb" = "$target" ]; then
     $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server lucene
     $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server audit
     sleep 1;
@@ -47,7 +47,7 @@ else
   else
     echo "specify target 'osx' or 'deb'"
     exit 1;
-  fi
+  fi;
 fi;
 
 #echo "Create User ..."

@@ -42,10 +42,10 @@ $BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar --port 8085
 #$BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar --port 8087
 #$BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar --port 8088
 
-sleep 1
+sleep 2
 
 echo "Create User ..."
-$BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web /auction-session/foo createUser user pass
+$BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web --port 8085 /auction-session/foo createUser user pass
 
 #echo "Authenticate User ..."
 #$BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web /auction-session/foo login user pass

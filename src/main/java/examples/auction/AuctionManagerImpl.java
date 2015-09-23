@@ -54,7 +54,7 @@ public class AuctionManagerImpl implements AuctionManager
   @OnInit
   public void init(Result<Boolean> result)
   {
-    _self = ServiceRef.getCurrent();
+    _self = ServiceRef.current();
 
     try {
       _db.exec(
@@ -74,7 +74,7 @@ public class AuctionManagerImpl implements AuctionManager
 
     log.finer("lookup auction: " + id);
 
-    return new AuctionImpl(ServiceManager.getCurrent(), _self, _db, id);
+    return new AuctionImpl(ServiceManager.current(), _self, _db, id);
   }
 
   @Override

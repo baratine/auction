@@ -40,7 +40,7 @@ public class UserManagerImpl implements UserManager
   @OnInit
   public void onInit(Result<Boolean> result)
   {
-    _self = ServiceRef.getCurrent();
+    _self = ServiceRef.current();
 
     try {
       // for production add salt

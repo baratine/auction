@@ -101,7 +101,8 @@ public class AuctionImpl implements Auction
 
   private boolean resultFromSave(Object obj)
   {
-    log.finer(String.format("executed save auction to db with result %1$s", obj));
+    log.finer(String.format("executed save auction to db with result %1$s",
+                            obj));
 
     return obj != null;
   }
@@ -155,7 +156,7 @@ public class AuctionImpl implements Auction
   {
     String url = "timer:///";
 
-    ServiceManager manager = ServiceManager.getCurrent();
+    ServiceManager manager = ServiceManager.current();
     TimerService timer = manager.lookup(url).as(TimerService.class);
 
     Auction service = _auctionManager.lookup("/" + _id).as(Auction.class);

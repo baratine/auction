@@ -9,13 +9,6 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>bar</packaging>
 
-  <repositories>
-    <repository>
-      <id>Caucho</id>
-      <url>http://caucho.com/m2</url>
-    </repository>
-  </repositories>
-
   <properties>
     <maven.test.skip>true</maven.test.skip>
   </properties>
@@ -23,14 +16,6 @@
   <profiles>
     <profile>
       <id>local</id>
-
-      <activation>
-        <activeByDefault>false</activeByDefault>
-        <file>
-          <exists>${env.BARATINE_HOME}</exists>
-        </file>
-      </activation>
-
       <dependencies>
         <dependency>
           <groupId>io.baratine</groupId>
@@ -79,13 +64,8 @@
       <dependencies>
         <dependency>
           <groupId>io.baratine</groupId>
-          <artifactId>baratine-api</artifactId>
-          <version>[0.8,)</version>
-        </dependency>
-        <dependency>
-          <groupId>io.baratine</groupId>
           <artifactId>baratine</artifactId>
-          <version>[0.8,)</version>
+          <version>0.10.1</version>
         </dependency>
       </dependencies>
     </profile>

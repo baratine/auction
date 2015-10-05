@@ -109,7 +109,7 @@ public class AuctionManagerImpl implements AuctionManager
 
   public void find(String title, Result<String> result)
   {
-    _self.save(Result.ignore());
+    _self.save(Result.<Boolean>ignore());
 
     _db.findOne("select id from auction where title=?",
                 result.from(c -> toAuctionId(c)),

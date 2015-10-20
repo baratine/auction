@@ -48,33 +48,7 @@ public class AuctionImpl implements Auction
 
     ServiceRef auditRef = manager.lookup("pod://audit/audit");
 
-    try {
-      _audit = auditRef.as(AuditService.class);
-    } catch (Throwable t) {
-      t.printStackTrace();
-      log.finer(String.format("this: %1$s", this));
-      log.finer(String.format("this.getClass().getClassLoader(): %1$s",
-                              this.getClass().getClassLoader()));
-      log.finer(String.format("this._manager: %1$s", this._manager));
-      log.finer(String.format("Thread.contextClassLoader(): %1$s",
-                              Thread.currentThread().getContextClassLoader()));
-      log.finer(String.format("AuditService.class.getClassLoader(): %1$s",
-                              AuditService.class.getClassLoader()));
-
-      log.finer(String.format("auditRef.getManager(): %1$s",
-                              auditRef.getManager()));
-
-      log.finer(String.format("auditRef: %1$s", auditRef));
-
-      log.finer(String.format("auditRef.getClass().getClassLoader(): %1$s",
-                              auditRef.getClass().getClassLoader()));
-
-      for (Class c : auditRef.getClass().getInterfaces()) {
-        log.finer(String.format("auditRef.interface : %1$s : %2$s", c,
-                                getClass().getClassLoader()));
-
-      }
-    }
+    _audit = auditRef.as(AuditService.class);
 
     _state = State.UNBOUND;
   }
@@ -161,7 +135,7 @@ public class AuctionImpl implements Auction
   public void open(Result<Boolean> result)
   {
     if (_state == State.UNBOUND)
-      throw new IllegalStateException();
+      throw new IllegalStateException("can't open auction %1$s in state ");
 
     if (_auctionData.getState() == AuctionDataPublic.State.INIT) {
       _audit.auctionToOpen(_auctionData, Result.<Void>ignore());
@@ -264,6 +238,12 @@ public class AuctionImpl implements Auction
                       _auctionData.getState()));
 
     }
+  }
+
+  @Override
+  public String toString()
+  {
+    return AuctionImpl.class.getSimpleName() + "[" + _id + ", " + _state + "]";
   }
 
   enum State

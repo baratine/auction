@@ -8,7 +8,7 @@ if [ ! -f $BARATINE_HOME/lib/baratine.jar ]; then
 fi;
 
 BARATINE_DATA_DIR=/tmp/baratine
-BARATINE_CONF=src/main/bin-auction-cluster/conf.cf
+BARATINE_CONF=src/main/bin-auction-pair/conf.cf
 BARATINE_ARGS="--data-dir $BARATINE_DATA_DIR --conf $BARATINE_CONF"
 
 killall -9 java
@@ -35,26 +35,18 @@ $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server user
 
 $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server auction-0
 $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server auction-1
-$BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server auction-2
-$BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server auction-3
 
 #$BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server auction-0
 
 $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server audit
 $BARATINE_HOME/bin/baratine start $BARATINE_ARGS --server lucene
+$BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS lucene-plugin-service.bar --port 8085
 $BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar --port 8080
-$BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS lucene-plugin-service.bar --port 8087
 
-sleep 30
+sleep 5
 
 echo "Create User ..."
 $BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web --port 8080 /auction-session/foo createUser user pass
-
-for i in 0 1 2 3 4 5 6 7; do
-  echo `date` > /tmp/kraken-debug-808$i.log;
-
-  $BARATINE_HOME/bin/baratine cat /proc/kraken/debug --port 808$i >>/tmp/kraken-debug-808$i.log;
-done;
 
 #echo "Authenticate User ..."
 #$BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web /auction-session/foo login user pass

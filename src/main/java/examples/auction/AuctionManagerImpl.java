@@ -131,6 +131,8 @@ public class AuctionManagerImpl implements AuctionManager
 
   public void search(String query, ResultStream<String> results)
   {
+    log.info(String.format("search %1$s", query));
+
     _lucene.search("auction", query, 255,
                    results.from((l, r) -> searchImp(l, r)));
   }

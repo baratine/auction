@@ -12,19 +12,18 @@ cluster {
     server id="user" port="8081";
   }
 
-  pod auction cluster {
+  pod auction triad {
     server id="auction-0" port="8082";
     server id="auction-1" port="8083";
     server id="auction-2" port="8084";
-    server id="auction-3" port="8085";
   }
 
   pod audit {
-    server id="audit" port="8086";
+    server id="audit" port="8085";
   }
 
   pod lucene {
-    server id="lucene" port="8087";
+    server id="lucene" port="8086";
   }
 
   pod-default {

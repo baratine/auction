@@ -146,6 +146,8 @@ public class AuctionSessionImpl implements AuctionSession
   @Override
   public void search(String query, Result<String[]> result)
   {
+    log.info(String.format("search %1$s", query));
+
     _auctions.search(query).collect(ArrayList<String>::new,
                                     (l, e) -> l.add(e),
                                     (a, b) -> a.addAll(b))

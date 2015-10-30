@@ -9,4 +9,8 @@ public interface User
   void authenticate(String password, Result<Boolean> result);
 
   void getUserData(Result<UserDataPublic> user);
+
+  void getCreditCard(Result<CreditCard> creditCard);
+
+  void addWonAuction(String auction, Result<Void> result);
 }

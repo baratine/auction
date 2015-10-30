@@ -12,6 +12,8 @@ public interface Auction
   void bid(Bid bid, Result<Boolean> result)
     throws IllegalStateException;
 
+  void setAuctionWinner(String user, Result<Void> result);
+
   void get(Result<AuctionDataPublic> result);
 
   void close(Result<Boolean> result);

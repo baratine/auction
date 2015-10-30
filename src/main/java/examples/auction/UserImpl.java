@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class UserImpl implements User
@@ -22,6 +23,8 @@ public class UserImpl implements User
 
   private String _id;
   private UserDataPublic _user;
+  private CreditCard _creditCard;
+  private List<String> _wonAuctions;
 
   public UserImpl()
   {
@@ -118,5 +121,23 @@ public class UserImpl implements User
   {
     user.complete(_user);
   }
-}
 
+  @Override
+  public void getCreditCard(Result<CreditCard> creditCard)
+  {
+    CreditCard cc = _creditCard;
+    if (cc == null)
+      cc = new CreditCard("visa", "XXX", "222", 10, 2020);
+
+    creditCard.complete(cc);
+  }
+
+  @Override
+  @Modify
+  public void addWonAuction(String auctionId, Result<Void> result)
+  {
+    _wonAuctions.add(auctionId);
+
+    result.complete(null);
+  }
+}

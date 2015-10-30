@@ -23,6 +23,9 @@ public class AuctionDataPublic implements Serializable
 
   private State _state = State.INIT;
 
+  //user id
+  private String _winner;
+
   public AuctionDataPublic()
   {
   }
@@ -103,6 +106,9 @@ public class AuctionDataPublic implements Serializable
 
   public String getWinner()
   {
+    if (_winner != null)
+      return _winner;
+
     Bid lastBid = getLastBid();
 
     if (lastBid != null) {
@@ -111,6 +117,11 @@ public class AuctionDataPublic implements Serializable
     else {
       return null;
     }
+  }
+
+  public void setWinner(String winner)
+  {
+    _winner = winner;
   }
 
   public State getState()

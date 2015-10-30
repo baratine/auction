@@ -195,6 +195,16 @@ public class AuctionImpl implements Auction
     }
   }
 
+  @Override
+  @Modify
+  public void setAuctionWinner(String user, Result<Void> result)
+  {
+    if (_state != State.BOUND)
+      throw new IllegalStateException();
+
+    _auctionData.setWinner(user);
+  }
+
   private AuctionEvents getEvents()
   {
     if (_events == null) {

@@ -105,7 +105,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
     if (payment.getStatus() == Payment.PayPalResult.approved) {
       _db.exec("replace auction_payments (auction_id, payment) values (?,?)",
-               Result.make(o -> deleteAuctionSettlementRequest(auctionId),
+               Result.from(o -> deleteAuctionSettlementRequest(auctionId),
                            e -> log.log(Level.FINER, e.getMessage(), e)),
                auctionId,
                payment);
@@ -134,6 +134,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
                                    String auctionId,
                                    Result<Void> result)
   {
+    log.log(Level.FINER, String.format("auction close persist %1$s", c));
+
     if (c != null) {
       result.complete(null);
     }
@@ -149,8 +151,10 @@ public class AuctionSettlementImpl implements AuctionSettlement
     }
   }
 
-  private void settleAuctions(CancelHandle event)
+  public void settleAuctions(CancelHandle event)
   {
+    log.log(Level.FINER, "settle auctions timer");
+
     ResultStreamBuilder<Cursor> auctions
       = _db.find("select auction_id, idempotency_key from auction_settlement");
 
@@ -164,10 +168,12 @@ public class AuctionSettlementImpl implements AuctionSettlement
     if (_idepmpotencyKeys.contains(idempotencyKey))
       return;
 
+    log.log(Level.FINER, String.format("settle auction %1$s", auctionId));
+
     _idepmpotencyKeys.add(idempotencyKey);
 
     Auction auction = _auctions.lookup("/" + auctionId).as(Auction.class);
-    auction.get(Result.make(d -> settle(d, idempotencyKey),
+    auction.get(Result.from(d -> settle(d, idempotencyKey),
                             e -> log.log(Level.FINER,
                                          e.getMessage(),
                                          e)));
@@ -179,7 +185,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
     User user = _users.lookup("/" + userId).as(User.class);
 
-    user.getCreditCard(Result.make(cc -> settle(auction,
+    user.getCreditCard(Result.from(cc -> settle(auction,
                                                 cc,
                                                 userId,
                                                 idempotencyKey),
@@ -198,7 +204,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
                    creditCard,
                    userId,
                    idempotencyKey,
-                   Result.make(p ->
+                   Result.from(p ->
                                  _self.processPaymentComplete(auction.getId(),
                                                               userId,
                                                               idempotencyKey,

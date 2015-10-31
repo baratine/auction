@@ -1,0 +1,29 @@
+{
+  "intent": "sale",
+  "payer": {
+    "payment_method": "credit_card",
+    "funding_instruments": [
+      {
+        "credit_card": {
+          "number": "%1$s",
+          "type": "%2$s",
+          "expire_month": %3$d,
+          "expire_year": %4$d,
+          "cvv2": %5$s,
+          "first_name": "%6$s",
+          "last_name": "%7$s"
+        }
+      }
+    ]
+  },
+  "transactions": [
+    {
+      "amount": {
+        "total": "%8$s",
+        "currency": "%9$s"
+      },
+      "description": "%10$s"
+    }
+  ]
+}
+

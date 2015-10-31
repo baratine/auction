@@ -32,6 +32,8 @@ public class AuctionImpl implements Auction
 
   private State _state;
 
+  private AuctionSettlement _settlement;
+
   public AuctionImpl()
   {
   }
@@ -49,6 +51,9 @@ public class AuctionImpl implements Auction
     ServiceRef auditRef = manager.lookup("pod://audit/audit");
 
     _audit = auditRef.as(AuditService.class);
+
+    _settlement
+      = manager.lookup("pod://auction/settlement").as(AuctionSettlement.class);
 
     _state = State.UNBOUND;
   }
@@ -238,6 +243,8 @@ public class AuctionImpl implements Auction
       _auctionData.toClose();
 
       getEvents().onClose(_auctionData);
+
+      _settlement.auctionClosed(_id, Result.ignore());
 
       result.complete(true);
     }

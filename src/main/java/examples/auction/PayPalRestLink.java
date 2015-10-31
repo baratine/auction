@@ -1,8 +1,9 @@
 package examples.auction;
 
 import javax.inject.Singleton;
-import javax.json.JsonObject;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,10 +14,15 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Singleton
 public class PayPalRestLink
 {
+  private static final Logger log
+    = Logger.getLogger(PayPalRestLink.class.getName());
+
   private String _app;
   private String _account;
   private String _clientId;
@@ -25,8 +31,21 @@ public class PayPalRestLink
 
   public PayPalRestLink() throws IOException
   {
-    try (InputStream in
-           = PayPalRestLink.class.getResourceAsStream("/paypal.properties")) {
+    InputStream in = null;
+
+    try {
+      in = PayPalRestLink.class.getResourceAsStream("/paypal.properties");
+    } catch (Throwable t) {
+      log.log(Level.WARNING, t.getMessage(), t);
+    }
+
+    if (in == null) {
+      in = new FileInputStream(System.getProperty("user.home")
+                               + File.separator
+                               + ".paypal.properties");
+    }
+
+    try {
       Properties p = new Properties();
 
       p.load(in);
@@ -35,6 +54,8 @@ public class PayPalRestLink
       _clientId = p.getProperty("client-id").trim();
       _secret = p.getProperty("secret").trim();
       _endpoint = p.getProperty("endpoint");
+    } finally {
+      in.close();
     }
   }
 
@@ -124,17 +145,17 @@ public class PayPalRestLink
    * @throws IOException
    */
   public Payment pay(String securityToken,
-                    String idempotencyKey,
-                    String ccNumber,
-                    String ccType,
-                    int ccExpireM,
-                    int ccExpireY,
-                    String ccv2,
-                    String firstName,
-                    String lastName,
-                    String total,
-                    String currency,
-                    String description
+                     String idempotencyKey,
+                     String ccNumber,
+                     String ccType,
+                     int ccExpireM,
+                     int ccExpireY,
+                     String ccv2,
+                     String firstName,
+                     String lastName,
+                     String total,
+                     String currency,
+                     String description
   ) throws IOException
   {
 
@@ -170,7 +191,7 @@ public class PayPalRestLink
     headers.put("PayPal-Request-Id", idempotencyKey);
 
     String response = send("/v1/payments/payment", "POST", headers,
-                payment.getBytes("UTF-8"));
+                           payment.getBytes("UTF-8"));
 
     return new Payment(response);
   }

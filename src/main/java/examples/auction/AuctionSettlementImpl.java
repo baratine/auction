@@ -14,6 +14,8 @@ import io.baratine.timer.TimerScheduler;
 import io.baratine.timer.TimerService;
 
 import javax.inject.Inject;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,6 +52,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
   PayPal _payPal;
 
   AuctionSettlement _self;
+
+  Set<String> _idepmpotencyKeys = new HashSet<>();
 
   @OnInit
   public void init(Result<Boolean> result)
@@ -97,6 +101,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
                                      Payment payment,
                                      Result<Void> result)
   {
+    _idepmpotencyKeys.remove(idempotencyKey);
+
     if (payment.getStatus() == Payment.PayPalResult.approved) {
       _db.exec("replace auction_payments (auction_id, payment) values (?,?)",
                Result.make(o -> deleteAuctionSettlementRequest(auctionId),
@@ -155,8 +161,13 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private void settle(String auctionId, String idempotencyKey)
   {
+    if (_idepmpotencyKeys.contains(idempotencyKey))
+      return;
+
+    _idepmpotencyKeys.add(idempotencyKey);
+
     Auction auction = _auctions.lookup("/" + auctionId).as(Auction.class);
-    auction.get(Result.make(d -> {settle(d, idempotencyKey);},
+    auction.get(Result.make(d -> settle(d, idempotencyKey),
                             e -> log.log(Level.FINER,
                                          e.getMessage(),
                                          e)));

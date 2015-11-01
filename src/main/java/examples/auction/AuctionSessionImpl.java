@@ -151,7 +151,7 @@ public class AuctionSessionImpl implements AuctionSession
     _auctions.search(query).collect(ArrayList<String>::new,
                                     (l, e) -> l.add(e),
                                     (a, b) -> a.addAll(b))
-      .result(result.from(l -> l.toArray(new String[l.size()])));
+             .result(result.from(l -> l.toArray(new String[l.size()])));
   }
 
   /**
@@ -293,6 +293,13 @@ public class AuctionSessionImpl implements AuctionSession
 
       if (_listener != null)
         _listener.onAuctionClose(auctionData);
+    }
+
+    @Override
+    public void onSettled(AuctionDataPublic auctionData)
+    {
+      if (_listener != null)
+        _listener.onAuctionUpdate(auctionData);
     }
   }
 }

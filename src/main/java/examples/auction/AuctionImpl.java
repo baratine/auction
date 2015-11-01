@@ -208,6 +208,10 @@ public class AuctionImpl implements Auction
       throw new IllegalStateException();
 
     _auctionData.setWinner(user);
+
+    _auctionData.toSettled();
+
+    getEvents().onSettled(_auctionData);
   }
 
   private AuctionEvents getEvents()

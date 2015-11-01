@@ -165,11 +165,17 @@ public class AuctionDataPublic implements Serializable
     return sb.toString();
   }
 
+  public void toSettled()
+  {
+    _state = State.SETTLED;
+  }
+
   static enum State
   {
     INIT,
     OPEN,
-    CLOSED
+    CLOSED,
+    SETTLED
   }
 
   static interface Bid

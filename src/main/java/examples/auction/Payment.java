@@ -23,8 +23,7 @@ public class Payment
     JsonObject jsonObject
       = javax.json.Json.createReader(new StringReader(payment)).readObject();
 
-    String state
-      = jsonObject.getJsonArray("payments").getJsonObject(0).getString("state");
+    String state = jsonObject.getString("state");
 
     _status = Enum.valueOf(PayPalResult.class, state);
   }
@@ -32,6 +31,12 @@ public class Payment
   public PayPalResult getStatus()
   {
     return _status;
+  }
+
+  @Override
+  public String toString()
+  {
+    return Payment.class.getSimpleName() + "[" + _payment + "]";
   }
 
   public enum PayPalResult

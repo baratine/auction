@@ -161,8 +161,8 @@ public class PayPalRestLink
 
     final String payment;
 
-    try (InputStream in = PayPalRestLink.class.getResourceAsStream(
-      "/payment.template.json")) {
+    try (InputStream in
+           = PayPalRestLink.class.getResourceAsStream("/payment.template.json")) {
       ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
       byte[] bytes = new byte[512];
@@ -183,6 +183,8 @@ public class PayPalRestLink
                               total,
                               currency,
                               description);
+
+      System.out.println(payment);
     }
 
     Map<String,String> headers = new HashMap<>();

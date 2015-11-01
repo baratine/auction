@@ -127,7 +127,7 @@ public class UserImpl implements User
   {
     CreditCard cc = _creditCard;
     if (cc == null)
-      cc = new CreditCard("visa", "XXX", "222", 10, 2020);
+      cc = new CreditCard("visa", "4214020540356393", "222", 10, 2020);
 
     creditCard.complete(cc);
   }

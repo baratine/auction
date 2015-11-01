@@ -36,6 +36,8 @@ public class PayPalImpl implements PayPal
 
       PayPalAuth auth = _rest.auth();
 
+      String amount = String.format("%1$d.00", auction.getLastBid().getBid());
+
       Payment payment = _rest.pay(auth.getToken(),
                                   idempotencyKey,
                                   creditCard.getNum(),
@@ -43,12 +45,16 @@ public class PayPalImpl implements PayPal
                                   creditCard.getExpMonth(),
                                   creditCard.getExpYear(),
                                   creditCard.getCvv(),
-                                  "first-name",
-                                  "last-name",
-                                  Integer.toString(auction.getLastBid()
-                                                          .getBid()),
+                                  "John",
+                                  "Doe",
+                                  amount,
                                   "USD",
                                   auction.getTitle());
+
+      log.log(Level.FINER, String.format(
+        "payment recieved for auction %1$s -> %2$s ",
+        auction.getId(),
+        payment));
 
       result.complete(payment);
     } catch (Throwable t) {

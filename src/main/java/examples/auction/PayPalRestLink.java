@@ -140,12 +140,12 @@ public class PayPalRestLink
   }
 
   /**
-   * @param idempotencyKey
+   * @param idempotenceKey
    * @return
    * @throws IOException
    */
   public Payment pay(String securityToken,
-                     String idempotencyKey,
+                     String idempotenceKey,
                      String ccNumber,
                      String ccType,
                      int ccExpireM,
@@ -190,7 +190,7 @@ public class PayPalRestLink
     Map<String,String> headers = new HashMap<>();
     headers.put("Content-Type", "application/json");
     headers.put("Authorization", "Bearer " + securityToken);
-    headers.put("PayPal-Request-Id", idempotencyKey);
+    headers.put("PayPal-Request-Id", idempotenceKey);
 
     String response = send("/v1/payments/payment", "POST", headers,
                            payment.getBytes("UTF-8"));

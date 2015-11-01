@@ -23,11 +23,16 @@ public class PayPalImpl implements PayPal
   @Lookup("pod://auction/settlement")
   AuctionSettlement _settlement;
 
+  @Inject
+  @Lookup("pod://audit/audit")
+  AuditService _audit;
+
   @Override
   public void settle(AuctionDataPublic auction,
+                     AuctionDataPublic.Bid bid,
                      CreditCard creditCard,
                      String userId,
-                     String idempotencyKey,
+                     String idempotenceKey,
                      Result<Payment> result)
   {
     try {
@@ -36,10 +41,16 @@ public class PayPalImpl implements PayPal
 
       PayPalAuth auth = _rest.auth();
 
-      String amount = String.format("%1$d.00", auction.getLastBid().getBid());
+      String amount = String.format("%1$d.00", bid.getBid());
+
+      _audit.payPalSendPaymentRequest(idempotenceKey,
+                                      auction,
+                                      bid,
+                                      userId,
+                                      Result.ignore());
 
       Payment payment = _rest.pay(auth.getToken(),
-                                  idempotencyKey,
+                                  idempotenceKey,
                                   creditCard.getNum(),
                                   creditCard.getType(),
                                   creditCard.getExpMonth(),
@@ -50,6 +61,11 @@ public class PayPalImpl implements PayPal
                                   amount,
                                   "USD",
                                   auction.getTitle());
+
+      _audit.payPalReceivePaymentResponse(idempotenceKey,
+                                          auction,
+                                          payment,
+                                          Result.ignore());
 
       log.log(Level.FINER, String.format(
         "payment recieved for auction %1$s -> %2$s ",

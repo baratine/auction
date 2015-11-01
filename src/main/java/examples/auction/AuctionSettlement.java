@@ -4,11 +4,11 @@ import io.baratine.core.Result;
 
 public interface AuctionSettlement
 {
-  void auctionClosed(String auctionId, Result<Void> result);
+  void settleAuction(String auctionId, Result<Void> result);
 
   void processPaymentComplete(String auctionId,
                               String userId,
-                              String idempotencyKey,
+                              String idempotenceKey,
                               Payment payment,
                               Result<Void> result);
 }

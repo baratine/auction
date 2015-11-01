@@ -21,4 +21,31 @@ public interface AuditService
   void auctionBidAccept(Bid bid, Result<Void> ignore);
 
   void auctionBidReject(Bid bid, Result<Void> ignore);
+
+  void settlementRequestAccepted(String auctionId, Result<Void> ignore);
+
+  void settlementRequestPersisted(String idempotenceKey,
+                                  String auctionId,
+                                  Result<Void> ignore);
+
+  void settlementAuctionWillSettle(String idempotenceKey,
+                                   AuctionDataPublic auction,
+                                   AuctionDataPublic.Bid bid,
+                                   Result<Void> ignore);
+
+  void settlementCompletingWithPayment(String idempotenceKey,
+                                       String auctionId,
+                                       Payment payment,
+                                       Result<Void> ignore);
+
+  void payPalReceivePaymentResponse(String idempotenceKey,
+                                    AuctionDataPublic auction,
+                                    Payment payment,
+                                    Result<Void> ignore);
+
+  void payPalSendPaymentRequest(String idempotenceKey,
+                                AuctionDataPublic auction,
+                                AuctionDataPublic.Bid bid,
+                                String userId,
+                                Result<Void> ignore);
 }

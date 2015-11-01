@@ -244,7 +244,7 @@ public class AuctionImpl implements Auction
 
       getEvents().onClose(_auctionData);
 
-      _settlement.auctionClosed(_id, Result.ignore());
+      _settlement.settleAuction(_id, Result.ignore());
 
       result.complete(true);
     }

@@ -51,6 +51,10 @@ public class AuctionSettlementImpl implements AuctionSettlement
   @Lookup("pod://auction/paypal")
   PayPal _payPal;
 
+  @Inject
+  @Lookup("pod://audit/audit")
+  AuditService _audit;
+
   AuctionSettlement _self;
 
   Set<String> _idepmpotencyKeys = new HashSet<>();
@@ -61,7 +65,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
     _self = ServiceRef.current().as(AuctionSettlement.class);
     try {
       _db.exec(
-        "create table auction_settlement (auction_id varchar primary key, idempotency_key varchar)",
+        "create table auction_settlement (auction_id varchar primary key, idempotence_key varchar)",
         result.from(o -> o != null));
 
     } catch (Throwable t) {
@@ -86,22 +90,130 @@ public class AuctionSettlementImpl implements AuctionSettlement
                     Result.ignore());
   }
 
-  public void auctionClosed(String auctionId, Result<Void> result)
+  public void settleAuctions(CancelHandle event)
   {
+    log.log(Level.FINER, "settle auctions timer");
+
+    ResultStreamBuilder<Cursor> auctions
+      = _db.find("select auction_id, idempotence_key from auction_settlement");
+
+    auctions.local()
+            .forEach(a -> settle(a.getString(1), a.getString(2)))
+            .exec();
+  }
+
+  private void settle(String auctionId, String idempotenceKey)
+  {
+    if (_idepmpotencyKeys.contains(idempotenceKey))
+      return;
+
+    _idepmpotencyKeys.add(idempotenceKey);
+
+    Auction auction = _auctions.lookup("/" + auctionId).as(Auction.class);
+    auction.get(Result.from(d -> settle(d, idempotenceKey),
+                            e -> log.log(Level.FINER,
+                                         e.getMessage(),
+                                         e)));
+  }
+
+  private void settle(AuctionDataPublic auction, String idempotenceKey)
+  {
+    AuctionDataPublic.Bid lastBid = auction.getLastBid();
+
+    String userId = lastBid.getUserId();
+
+    User user = _users.lookup("/" + userId).as(User.class);
+
+    user.getCreditCard(Result.from(cc -> settle(auction,
+                                                lastBid,
+                                                cc,
+                                                userId,
+                                                idempotenceKey),
+                                   e -> log.log(Level.FINER,
+                                                e.getMessage(),
+                                                e)
+    ));
+  }
+
+  private void settle(AuctionDataPublic auction,
+                      AuctionDataPublic.Bid bid,
+                      CreditCard creditCard,
+                      String userId,
+                      String idempotenceKey)
+  {
+    _audit.settlementAuctionWillSettle(idempotenceKey,
+                                       auction,
+                                       bid,
+                                       Result.ignore());
+
+    _payPal.settle(auction,
+                   bid,
+                   creditCard,
+                   userId,
+                   idempotenceKey,
+                   Result.from(p ->
+                                 _self.processPaymentComplete(auction.getId(),
+                                                              userId,
+                                                              idempotenceKey,
+                                                              p,
+                                                              Result.ignore())
+                     , e -> log.finer(e.toString())));
+
+  }
+
+  public void settleAuction(String auctionId, Result<Void> result)
+  {
+    _audit.settlementRequestAccepted(auctionId, Result.ignore());
+
     _db.findOne(
-      "select idempotency_key from auction_settlement where auction_id = ?",
+      "select idempotence_key from auction_settlement where auction_id = ?",
       c -> auctionClosePersist(c, auctionId, result),
       auctionId);
+  }
+
+  private void auctionClosePersist(Cursor c,
+                                   String auctionId,
+                                   Result<Void> result)
+  {
+    log.log(Level.FINER, String.format("auction close persist %1$s", c));
+
+    if (c != null) {
+      result.complete(null);
+    }
+    else {
+      String idempotenceKey = generateIdempotencyKey();
+      _db.exec(
+        "insert into auction_settlement (auction_id, idempotence_key) values (?, ?)",
+        Result.ignore(),
+        auctionId,
+        idempotenceKey);
+
+      _dbServiceRef.save(result.from(x -> null));
+
+      _audit.settlementRequestPersisted(auctionId,
+                                        idempotenceKey,
+                                        Result.ignore());
+    }
+  }
+
+  private String generateIdempotencyKey()
+  {
+    return UUID.randomUUID().toString();
   }
 
   @Override
   public void processPaymentComplete(String auctionId,
                                      String userId,
-                                     String idempotencyKey,
+                                     String idempotenceKey,
                                      Payment payment,
                                      Result<Void> result)
   {
-    _idepmpotencyKeys.remove(idempotencyKey);
+    _idepmpotencyKeys.remove(idempotenceKey);
+
+    _audit.settlementCompletingWithPayment(idempotenceKey,
+                                           auctionId,
+                                           payment,
+                                           Result.ignore());
 
     if (payment.getStatus() == Payment.PayPalResult.approved) {
       _db.exec("replace auction_payments (auction_id, payment) values (?,?)",
@@ -128,95 +240,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
     _db.exec("delete from auction_settlement where auction_id = ?",
              Result.ignore(),
              auctionId);
-  }
-
-  private void auctionClosePersist(Cursor c,
-                                   String auctionId,
-                                   Result<Void> result)
-  {
-    log.log(Level.FINER, String.format("auction close persist %1$s", c));
-
-    if (c != null) {
-      result.complete(null);
-    }
-    else {
-      String invNum = generateIdempotencyKey();
-      _db.exec(
-        "insert into auction_settlement (auction_id, idempotency_key) values (?, ?)",
-        Result.ignore(),
-        auctionId,
-        invNum);
-
-      _dbServiceRef.save(result.from(x -> null));
-    }
-  }
-
-  public void settleAuctions(CancelHandle event)
-  {
-    log.log(Level.FINER, "settle auctions timer");
-
-    ResultStreamBuilder<Cursor> auctions
-      = _db.find("select auction_id, idempotency_key from auction_settlement");
-
-    auctions.local()
-            .forEach(a -> settle(a.getString(1), a.getString(2)))
-            .exec();
-  }
-
-  private void settle(String auctionId, String idempotencyKey)
-  {
-    if (_idepmpotencyKeys.contains(idempotencyKey))
-      return;
-
-    log.log(Level.FINER, String.format("settle auction %1$s", auctionId));
-
-    _idepmpotencyKeys.add(idempotencyKey);
-
-    Auction auction = _auctions.lookup("/" + auctionId).as(Auction.class);
-    auction.get(Result.from(d -> settle(d, idempotencyKey),
-                            e -> log.log(Level.FINER,
-                                         e.getMessage(),
-                                         e)));
-  }
-
-  private void settle(AuctionDataPublic auction, String idempotencyKey)
-  {
-    String userId = auction.getLastBid().getUserId();
-
-    User user = _users.lookup("/" + userId).as(User.class);
-
-    user.getCreditCard(Result.from(cc -> settle(auction,
-                                                cc,
-                                                userId,
-                                                idempotencyKey),
-                                   e -> log.log(Level.FINER,
-                                                e.getMessage(),
-                                                e)
-    ));
-  }
-
-  private void settle(AuctionDataPublic auction,
-                      CreditCard creditCard,
-                      String userId,
-                      String idempotencyKey)
-  {
-    _payPal.settle(auction,
-                   creditCard,
-                   userId,
-                   idempotencyKey,
-                   Result.from(p ->
-                                 _self.processPaymentComplete(auction.getId(),
-                                                              userId,
-                                                              idempotencyKey,
-                                                              p,
-                                                              Result.ignore())
-                     , e -> log.finer(e.toString())));
-
-  }
-
-  private String generateIdempotencyKey()
-  {
-    return UUID.randomUUID().toString();
   }
 }
 

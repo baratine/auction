@@ -125,7 +125,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private void deleteAuctionSettlementRequest(String auctionId)
   {
-    _db.exec("delete auction_settlement where auction_id = ?",
+    _db.exec("delete from auction_settlement where auction_id = ?",
              Result.ignore(),
              auctionId);
   }

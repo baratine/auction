@@ -8,7 +8,9 @@ public interface AuctionSettlement
 
   void processPaymentComplete(String auctionId,
                               String userId,
-                              String idempotenceKey,
+                              String settlementId,
                               Payment payment,
                               Result<Void> result);
+
+  void settle(String auctionId, String settlementId, Result<Boolean> result);
 }

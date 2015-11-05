@@ -8,6 +8,6 @@ public interface PayPal
               AuctionDataPublic.Bid bid,
               CreditCard creditCard,
               String userId,
-              String idempotenceKey,
+              String settlementId,
               Result<Payment> result);
 }

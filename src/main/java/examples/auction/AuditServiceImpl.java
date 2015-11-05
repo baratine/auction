@@ -97,15 +97,14 @@ public class AuditServiceImpl implements AuditService
   }
 
   @Override
-  public void settlementRequestPersisted(String auctionId,
-                                         String idempotenceKey,
+  public void settlementRequestPersisted(String settlementId,
+                                         String auctionId,
                                          Result<Void> ignore)
   {
     String message
       = String.format(
-      "settlement request for auction %1$s persisted with idempotence key %2$s",
-      auctionId,
-      idempotenceKey);
+      "settlement request for auction %2$s persisted with settlement id %1$s",
+      settlementId);
 
     log.info(message);
 
@@ -114,14 +113,14 @@ public class AuditServiceImpl implements AuditService
   }
 
   @Override
-  public void settlementAuctionWillSettle(String idempotenceKey,
+  public void settlementAuctionWillSettle(String settlementId,
                                           AuctionDataPublic auction,
                                           AuctionDataPublic.Bid bid,
                                           Result<Void> ignore)
   {
     String message
       = String.format("%1$s: auction %2$s will settle with bid %3$s",
-                      idempotenceKey,
+                      settlementId,
                       auction,
                       bid);
 
@@ -131,7 +130,7 @@ public class AuditServiceImpl implements AuditService
   }
 
   @Override
-  public void settlementCompletingWithPayment(String idempotenceKey,
+  public void settlementCompletingWithPayment(String settlementId,
                                               String auctionId,
                                               Payment payment,
                                               Result<Void> ignore)
@@ -139,7 +138,7 @@ public class AuditServiceImpl implements AuditService
     String message
       = String.format(
       "%1$s: settlement for auction %2$s completing with payment %3$s",
-      idempotenceKey,
+      settlementId,
       auctionId,
       payment);
 
@@ -149,7 +148,7 @@ public class AuditServiceImpl implements AuditService
   }
 
   @Override
-  public void payPalReceivePaymentResponse(String idempotenceKey,
+  public void payPalReceivePaymentResponse(String settlementId,
                                            AuctionDataPublic auction,
                                            Payment payment,
                                            Result<Void> ignore)
@@ -157,7 +156,7 @@ public class AuditServiceImpl implements AuditService
     String message
       = String.format(
       "%1$s: pay pal payment response %2$s received for auction %3$s",
-      idempotenceKey,
+      settlementId,
       payment,
       auction);
 
@@ -168,7 +167,7 @@ public class AuditServiceImpl implements AuditService
   }
 
   @Override
-  public void payPalSendPaymentRequest(String idempotenceKey,
+  public void payPalSendPaymentRequest(String settlementId,
                                        AuctionDataPublic auction,
                                        AuctionDataPublic.Bid bid,
                                        String userId,
@@ -177,7 +176,7 @@ public class AuditServiceImpl implements AuditService
     String message
       = String.format(
       "%1$s: pay pal send payment request for auction %2$s, bid %3$s, user %4$s",
-      idempotenceKey,
+      settlementId,
       auction,
       bid,
       userId);

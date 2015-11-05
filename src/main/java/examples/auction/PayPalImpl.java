@@ -32,7 +32,7 @@ public class PayPalImpl implements PayPal
                      AuctionDataPublic.Bid bid,
                      CreditCard creditCard,
                      String userId,
-                     String idempotenceKey,
+                     String settlementId,
                      Result<Payment> result)
   {
     try {
@@ -43,14 +43,14 @@ public class PayPalImpl implements PayPal
 
       String amount = String.format("%1$d.00", bid.getBid());
 
-      _audit.payPalSendPaymentRequest(idempotenceKey,
+      _audit.payPalSendPaymentRequest(settlementId,
                                       auction,
                                       bid,
                                       userId,
                                       Result.ignore());
 
       Payment payment = _rest.pay(auth.getToken(),
-                                  idempotenceKey,
+                                  settlementId,
                                   creditCard.getNum(),
                                   creditCard.getType(),
                                   creditCard.getExpMonth(),
@@ -62,7 +62,7 @@ public class PayPalImpl implements PayPal
                                   "USD",
                                   auction.getTitle());
 
-      _audit.payPalReceivePaymentResponse(idempotenceKey,
+      _audit.payPalReceivePaymentResponse(settlementId,
                                           auction,
                                           payment,
                                           Result.ignore());

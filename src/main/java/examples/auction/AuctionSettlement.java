@@ -12,5 +12,5 @@ public interface AuctionSettlement
                               Payment payment,
                               Result<Void> result);
 
-  void settle(String auctionId, String settlementId, Result<Boolean> result);
+  void settle(String auctionId, String settlementId, Result<Void> result);
 }

@@ -11,6 +11,8 @@ import io.baratine.db.DatabaseService;
 import io.baratine.timer.TimerService;
 
 import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,6 +53,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   AuctionSettlement _self;
 
+  Map<String,String> _settlements = new HashMap<>();
+
   @OnInit
   public void init(Result<Boolean> result)
   {
@@ -88,22 +92,25 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private void load(Iterable<Cursor> settlements)
   {
     for (Cursor settlement : settlements) {
-      _self.settle(settlement.getString(1),
-                   settlement.getString(2),
-                   Result.ignore());
+      String auctionId = settlement.getString(1);
+      String settlementId = settlement.getString(2);
+
+      _settlements.put(auctionId, settlementId);
+
+      _self.settle(auctionId, settlementId, Result.ignore());
     }
   }
 
   @Override
   public void settle(String auctionId,
                      String settlementId,
-                     Result<Boolean> result)
+                     Result<Void> result)
   {
     Auction auction = _auctions.lookup("/" + auctionId).as(Auction.class);
 
     auction.get(d -> settle(d, settlementId));
 
-    result.complete(true);
+    result.complete(null);
   }
 
   private void settle(AuctionDataPublic auction, String settlementId)
@@ -148,39 +155,28 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   public void settleAuction(String auctionId, Result<Void> result)
   {
+    if (_settlements.containsKey(auctionId))
+      return;
+
     _audit.settlementRequestAccepted(auctionId, Result.ignore());
 
-    _db.findOne(
-      "select settlement_id from auction_settlement where auction_id = ?",
-      c -> auctionClosePersist(c, auctionId, result),
-      auctionId);
-  }
+    String settlementId = settlementId();
 
-  private void auctionClosePersist(Cursor c,
-                                   String auctionId,
-                                   Result<Void> result)
-  {
-    log.log(Level.FINER, String.format("auction close persist %1$s", c));
+    _settlements.put(auctionId, settlementId);
 
-    if (c != null) {
-      result.complete(null);
-    }
-    else {
-      String settlementId = settlementId();
-      _db.exec(
-        "insert into auction_settlement (auction_id, settlement_id) values (?, ?)",
-        Result.ignore(),
-        auctionId,
-        settlementId);
+    _db.exec(
+      "insert into auction_settlement (auction_id, settlement_id) values (?, ?)",
+      Result.ignore(),
+      auctionId,
+      settlementId);
 
 //      _dbServiceRef.save(result.from(x -> null));
 
-      _audit.settlementRequestPersisted(auctionId,
-                                        settlementId,
-                                        Result.ignore());
+    _audit.settlementRequestPersisted(auctionId,
+                                      settlementId,
+                                      Result.ignore());
 
-      _self.settle(auctionId, settlementId, Result.ignore());
-    }
+    _self.settle(auctionId, settlementId, result);
   }
 
   private String settlementId()
@@ -195,6 +191,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
                                      Payment payment,
                                      Result<Void> result)
   {
+    _settlements.remove(auctionId);
+
     _audit.settlementCompletingWithPayment(settlementId,
                                            auctionId,
                                            payment,

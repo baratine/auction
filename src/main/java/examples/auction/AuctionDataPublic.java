@@ -178,7 +178,7 @@ public class AuctionDataPublic implements Serializable
     SETTLED
   }
 
-  static interface Bid
+  public interface Bid
   {
     String getUserId();
 

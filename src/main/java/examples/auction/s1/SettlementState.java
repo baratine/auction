@@ -1,12 +1,10 @@
 package examples.auction.s1;
 
-import java.util.LinkedList;
+import java.util.Stack;
 
 public class SettlementState
 {
-  private LinkedList<ActionEntry> _actions;
-
-  private ActionEntry _current;
+  private Stack<ActionEntry> _actions = new Stack<>();
 
   public SettlementState()
   {
@@ -14,10 +12,10 @@ public class SettlementState
 
   public SettlementState(Action action)
   {
-    _current = new ActionEntry(action);
+    _actions.push(new ActionEntry(action));
   }
 
-  public void toCancel(CancelReason reason)
+  public void toCancel(ActionReason reason)
   {
     if (_current.getAction() == Action.CANCEL) {
     }
@@ -35,7 +33,7 @@ public class SettlementState
   {
     private Action _action;
     private ActionStatus _actionStatus;
-    private CancelReason _cancelReason;
+    private ActionReason _actionReason;
 
     public ActionEntry()
     {
@@ -56,14 +54,14 @@ public class SettlementState
       _actionStatus = actionStatus;
     }
 
-    public CancelReason getCancelReason()
+    public ActionReason getActionReason()
     {
-      return _cancelReason;
+      return _actionReason;
     }
 
-    public void setCancelReason(CancelReason cancelReason)
+    public void setActionReason(ActionReason actionReason)
     {
-      _cancelReason = cancelReason;
+      _actionReason = actionReason;
     }
 
     public Action getAction()
@@ -85,7 +83,7 @@ public class SettlementState
     CANCELLED
   }
 
-  public enum CancelReason
+  public enum ActionReason
   {
     REJECTED_PAYMENT,
     REJECTED_USER,

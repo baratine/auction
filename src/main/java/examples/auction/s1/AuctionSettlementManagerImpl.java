@@ -25,7 +25,7 @@ public class AuctionSettlementManagerImpl
   {
     _selfRef = ServiceRef.current();
 
-    Result<Boolean>[] results = result.fork(3);
+    Result<Boolean>[] results = result.fork(2);
 
     _db.exec(
       "create table settlement(id varchar primary key, auction_id varchar, user_id varchar, bid object) with hash '/settlements/$id'",
@@ -33,12 +33,7 @@ public class AuctionSettlementManagerImpl
     );
 
     _db.exec(
-      "create table settlement_intent(id varchar primary key, intent object) with hash '/settlements/$id'",
-      results[1].from(o -> true, (e, r) -> {r.complete(true);})
-    );
-
-    _db.exec(
-      "create table settlement_status(id varchar primary key, status object) with hash '/settlements/$id'",
+      "create table settlement_state(id varchar primary key, state object) with hash '/settlements/$id'",
       results[1].from(o -> true, (e, r) -> {r.complete(true);})
     );
   }

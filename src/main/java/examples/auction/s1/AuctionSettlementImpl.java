@@ -26,8 +26,7 @@ public class AuctionSettlementImpl
   private String _auctionId;
   private String _userId;
   private AuctionDataPublic.Bid _bid;
-  private SettlementState.Status _status;
-  private SettlementState.Intent _intent;
+  private SettlementState _state;
 
   private AuctionSettlementInternal _self;
 
@@ -40,23 +39,22 @@ public class AuctionSettlementImpl
   @OnLoad
   public void load()
   {
+    if (_boundState != BoundState.UNBOUND)
+      throw new IllegalStateException();
+
     //xxx: refactor to async when Result.fork() is reworked.
     Cursor settelment = ((ResultStreamBuilderSync<Cursor>) (_db.findLocal(
       "select auction_id, user_id, bid from settlement where id = ?",
       _id).first())).result();
 
-    Cursor intent = ((ResultStreamBuilderSync<Cursor>) (_db.findLocal(
-      "select intent from settlement_intent where id = ?",
+    Cursor state = ((ResultStreamBuilderSync<Cursor>) (_db.findLocal(
+      "select state from settlement_state where id = ?",
       _id).first())).result();
 
-    Cursor status = ((ResultStreamBuilderSync<Cursor>) (_db.findLocal(
-      "select status from settlement_status where id = ?",
-      _id).first())).result();
-
-    load(settelment, intent, status);
+    load(settelment, state);
   }
 
-  public void load(Cursor settlement, Cursor intent, Cursor status)
+  public void load(Cursor settlement, Cursor state)
   {
     if (settlement == null)
       return;
@@ -67,11 +65,8 @@ public class AuctionSettlementImpl
 
     _bid = (AuctionDataPublic.Bid) settlement.getObject(3);
 
-    if (intent != null)
-      _intent = (SettlementState.Intent) intent.getObject(1);
-
-    if (status != null)
-      _status = (SettlementState.Status) status.getObject(1);
+    if (state != null)
+      _state = (SettlementState) state.getObject(1);
 
     _boundState = BoundState.BOUND;
   }
@@ -89,39 +84,51 @@ public class AuctionSettlementImpl
     _auctionId = auctionId;
     _userId = userId;
     _bid = bid;
-    _status = null;
 
     _boundState = BoundState.NEW;
   }
 
   @Override
   @Modify
-  public void settle(Result<SettlementState.Status> status)
+  public void settle(Result<SettlementState.ActionStatus> status)
   {
-    if (_intent != null)
-      _intent.verifyIntent(SettlementState.Intent.SETTLE);
+    if (_boundState == BoundState.UNBOUND)
+      throw new IllegalStateException();
 
-    if (_status != null)
-      _status.verifyIntent(SettlementState.Intent.SETTLE);
+    if (_state == null) {
+      _state = new SettlementState(SettlementState.Action.SETTLE);
+    } else if (_state.isSettled()) {
 
-    if (_status != null && _status.isFinite()) {
-      status.complete(_status);
+    }
+    else if (_state.toSettle()) {
+
+    }
+
+
+
+    if (_action != null)
+      _action.verifyIntent(SettlementState.Action.SETTLE);
+
+    if (_actionStatus != null)
+      _actionStatus.verifyIntent(SettlementState.Action.SETTLE);
+
+    if (_actionStatus != null && _actionStatus.isFinite()) {
+      status.complete(_actionStatus);
 
       return;
     }
 
-    if (_intent == null) {
-      _intent = SettlementState.Intent.SETTLE;
+    if (_action == null) {
+      _action = SettlementState.Action.SETTLE;
 
       _self.settleImpl(status);
     }
   }
 
   @Override
-  public void settleImpl(Result<SettlementState.Status> status)
+  public void settleImpl(Result<SettlementState.ActionStatus> status)
   {
-    _status = SettlementState.Status.PENDING;
-
+    _actionStatus = SettlementState.ActionStatus.PENDING;
 
   }
 
@@ -142,11 +149,11 @@ public class AuctionSettlementImpl
     _db.exec("insert into settlement_intent (id, intent) values (?, ?)",
              x -> {},
              _id,
-             _intent);
+             _action);
     _db.exec("insert into settlement_status (id, status) values (?, ?)",
              x -> {},
              _id,
-             _status);
+             _actionStatus);
   }
 
   enum BoundState
@@ -159,5 +166,5 @@ public class AuctionSettlementImpl
 
 interface AuctionSettlementInternal extends AuctionSettlement
 {
-  void settleImpl(Result<SettlementState.Status> status);
+  void settleImpl(Result<SettlementState.ActionStatus> status);
 }

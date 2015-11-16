@@ -26,8 +26,8 @@ public class AuctionSettlementImpl
   private String _auctionId;
   private String _userId;
   private AuctionDataPublic.Bid _bid;
-  private SettlementStatus _status;
-  private SettlementIntent _intent;
+  private SettlementState.Status _status;
+  private SettlementState.Intent _intent;
 
   private AuctionSettlementInternal _self;
 
@@ -68,10 +68,10 @@ public class AuctionSettlementImpl
     _bid = (AuctionDataPublic.Bid) settlement.getObject(3);
 
     if (intent != null)
-      _intent = (SettlementIntent) intent.getObject(1);
+      _intent = (SettlementState.Intent) intent.getObject(1);
 
     if (status != null)
-      _status = (SettlementStatus) status.getObject(1);
+      _status = (SettlementState.Status) status.getObject(1);
 
     _boundState = BoundState.BOUND;
   }
@@ -96,13 +96,13 @@ public class AuctionSettlementImpl
 
   @Override
   @Modify
-  public void settle(Result<SettlementStatus> status)
+  public void settle(Result<SettlementState.Status> status)
   {
     if (_intent != null)
-      _intent.verifyIntent(SettlementIntent.SETTLE);
+      _intent.verifyIntent(SettlementState.Intent.SETTLE);
 
     if (_status != null)
-      _status.verifyIntent(SettlementIntent.SETTLE);
+      _status.verifyIntent(SettlementState.Intent.SETTLE);
 
     if (_status != null && _status.isFinite()) {
       status.complete(_status);
@@ -111,16 +111,16 @@ public class AuctionSettlementImpl
     }
 
     if (_intent == null) {
-      _intent = SettlementIntent.SETTLE;
+      _intent = SettlementState.Intent.SETTLE;
 
       _self.settleImpl(status);
     }
   }
 
   @Override
-  public void settleImpl(Result<SettlementStatus> status)
+  public void settleImpl(Result<SettlementState.Status> status)
   {
-    _status = SettlementStatus.PENDING;
+    _status = SettlementState.Status.PENDING;
 
 
   }
@@ -159,5 +159,5 @@ public class AuctionSettlementImpl
 
 interface AuctionSettlementInternal extends AuctionSettlement
 {
-  void settleImpl(Result<SettlementStatus> status);
+  void settleImpl(Result<SettlementState.Status> status);
 }

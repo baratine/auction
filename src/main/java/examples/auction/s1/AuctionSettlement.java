@@ -10,9 +10,9 @@ public interface AuctionSettlement
               AuctionDataPublic.Bid bid,
               Result<Boolean> result);
 
-  void settle(Result<SettlementStatus> status);
+  void settle(Result<SettlementState.Status> status);
 
-  void cancel(Result<SettlementStatus> status);
+  void cancel(Result<SettlementState.Status> status);
 
-  void status(Result<SettlementStatus> status);
+  void status(Result<SettlementState.Status> status);
 }

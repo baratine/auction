@@ -1,4 +1,4 @@
-package examples.auction.c1;
+package examples.auction.s1;
 
 import io.baratine.core.Result;
 

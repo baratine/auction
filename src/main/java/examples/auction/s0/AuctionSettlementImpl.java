@@ -1,5 +1,12 @@
-package examples.auction;
+package examples.auction.s0;
 
+import examples.auction.Auction;
+import examples.auction.AuctionDataPublic;
+import examples.auction.AuditService;
+import examples.auction.CreditCard;
+import examples.auction.PayPal;
+import examples.auction.Payment;
+import examples.auction.User;
 import io.baratine.core.Lookup;
 import io.baratine.core.OnInit;
 import io.baratine.core.OnLoad;

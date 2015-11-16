@@ -1,5 +1,6 @@
 package examples.auction;
 
+import examples.auction.s0.AuctionSettlement;
 import io.baratine.core.Modify;
 import io.baratine.core.OnLoad;
 import io.baratine.core.OnSave;

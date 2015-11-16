@@ -1,5 +1,6 @@
-package examples.auction;
+package examples.auction.s0;
 
+import examples.auction.Payment;
 import io.baratine.core.Result;
 
 public interface AuctionSettlement

@@ -1,7 +1,5 @@
-package examples.auction.c1;
+package examples.auction.s1;
 
-import examples.auction.User;
-import examples.auction.UserManager;
 import io.baratine.core.Lookup;
 import io.baratine.core.Result;
 import io.baratine.core.ServiceRef;

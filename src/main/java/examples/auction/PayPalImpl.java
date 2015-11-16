@@ -1,5 +1,6 @@
 package examples.auction;
 
+import examples.auction.s0.AuctionSettlement;
 import io.baratine.core.Lookup;
 import io.baratine.core.Result;
 import io.baratine.core.Service;

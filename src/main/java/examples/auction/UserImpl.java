@@ -135,10 +135,10 @@ public class UserImpl implements User
 
   @Override
   @Modify
-  public void addWonAuction(String auctionId, Result<Void> result)
+  public void addWonAuction(String auctionId, Result<Boolean> result)
   {
     _wonAuctions.add(auctionId);
 
-    result.complete(null);
+    result.complete(true);
   }
 }

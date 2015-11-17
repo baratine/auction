@@ -12,5 +12,5 @@ public interface User
 
   void getCreditCard(Result<CreditCard> creditCard);
 
-  void addWonAuction(String auction, Result<Void> result);
+  void addWonAuction(String auction, Result<Boolean> result);
 }

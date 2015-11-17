@@ -10,9 +10,17 @@ public interface AuctionSettlement
               AuctionDataPublic.Bid bid,
               Result<Boolean> result);
 
-  void settle(Result<SettlementState.ActionStatus> status);
+  void commit(Result<Status> status);
 
-  void cancel(Result<SettlementState.ActionStatus> status);
+  void rollback(Result<Status> status);
 
-  void status(Result<SettlementState.ActionStatus> status);
+  void status(Result<Status> status);
+}
+
+enum Status
+{
+  COMMITTED,
+  PENDING,
+  ROLLING_BACK,
+  ROLLED_BACK
 }

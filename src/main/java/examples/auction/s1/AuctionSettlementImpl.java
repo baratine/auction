@@ -1,8 +1,8 @@
 package examples.auction.s1;
 
 import examples.auction.AuctionDataPublic;
+import examples.auction.PayPal;
 import io.baratine.core.Journal;
-import io.baratine.core.Lookup;
 import io.baratine.core.Modify;
 import io.baratine.core.OnLoad;
 import io.baratine.core.OnSave;
@@ -11,22 +11,19 @@ import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 import io.baratine.stream.ResultStreamBuilderSync;
 
-import javax.inject.Inject;
-
 @Journal()
 public class AuctionSettlementImpl
   implements AuctionSettlement, AuctionSettlementInternal
 {
-  @Inject
-  @Lookup("bardb:///")
-  DatabaseService _db;
+  private DatabaseService _db;
+  private PayPal _payPal;
 
   private BoundState _boundState = BoundState.UNBOUND;
   private String _id;
   private String _auctionId;
   private String _userId;
   private AuctionDataPublic.Bid _bid;
-  private SettlementState _state;
+  private TransactionState _state;
 
   private AuctionSettlementInternal _self;
 
@@ -66,7 +63,7 @@ public class AuctionSettlementImpl
     _bid = (AuctionDataPublic.Bid) settlement.getObject(3);
 
     if (state != null)
-      _state = (SettlementState) state.getObject(1);
+      _state = (TransactionState) state.getObject(1);
 
     _boundState = BoundState.BOUND;
   }
@@ -90,18 +87,56 @@ public class AuctionSettlementImpl
 
   @Override
   @Modify
-  public void settle(Result<SettlementState.ActionStatus> status)
+  public void commit(Result<Status> status)
   {
     if (_boundState == BoundState.UNBOUND)
       throw new IllegalStateException();
 
-    _self.settleImpl(status);
+    if (_state == null)
+      _state = new TransactionState();
+
+    _self.commitImpl(status);
   }
 
   @Override
-  public void settleImpl(Result<SettlementState.ActionStatus> status)
+  public void commitImpl(Result<Status> status)
   {
+    TransactionState.CommitState commitState = _state.getCommitState();
+    TransactionState.RollbackState rollbackState = _state.getRollbackState();
 
+    if (rollbackState != null)
+      throw new IllegalStateException();
+
+    switch (commitState) {
+    case COMPLETED: {
+      status.complete(Status.COMMITTED);
+      break;
+    }
+    case PENDING: {
+      commitPending(status);
+      break;
+    }
+    case REJECTED_PAYMENT: {
+      status.complete(Status.ROLLING_BACK);
+      break;
+    }
+    case REJECTED_USER: {
+      status.complete(Status.ROLLING_BACK);
+      break;
+    }
+    case REJECTED_AUCTION: {
+      status.complete(Status.ROLLING_BACK);
+      break;
+    }
+    default: {
+      break;
+    }
+    }
+  }
+
+  public void commitPending(Result<Status> status)
+  {
+    _payPal.settle();
   }
 
   @OnSave
@@ -118,16 +153,11 @@ public class AuctionSettlementImpl
         _bid);
     }
 
-    _db.exec("insert into settlement_intent (id, intent) values (?, ?)",
+    _db.exec("insert into settlement_state (id, state) values (?, ?)",
              x -> {
              },
              _id,
-             _action);
-    _db.exec("insert into settlement_status (id, status) values (?, ?)",
-             x -> {
-             },
-             _id,
-             _actionStatus);
+             _state);
   }
 
   enum BoundState
@@ -140,5 +170,5 @@ public class AuctionSettlementImpl
 
 interface AuctionSettlementInternal extends AuctionSettlement
 {
-  void settleImpl(Result<SettlementState.ActionStatus> status);
+  void commitImpl(Result<Status> status);
 }

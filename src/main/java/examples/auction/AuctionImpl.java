@@ -203,7 +203,7 @@ public class AuctionImpl implements Auction
 
   @Override
   @Modify
-  public void setAuctionWinner(String user, Result<Void> result)
+  public void setAuctionWinner(String user, Result<Boolean> result)
   {
     if (_state != State.BOUND)
       throw new IllegalStateException();
@@ -213,6 +213,8 @@ public class AuctionImpl implements Auction
     _auctionData.toSettled();
 
     getEvents().onSettled(_auctionData);
+
+    result.complete(true);
   }
 
   private AuctionEvents getEvents()

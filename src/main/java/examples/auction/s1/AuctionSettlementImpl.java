@@ -95,40 +95,12 @@ public class AuctionSettlementImpl
     if (_boundState == BoundState.UNBOUND)
       throw new IllegalStateException();
 
-    if (_state == null) {
-      _state = new SettlementState(SettlementState.Action.SETTLE);
-    } else if (_state.isSettled()) {
-
-    }
-    else if (_state.toSettle()) {
-
-    }
-
-
-
-    if (_action != null)
-      _action.verifyIntent(SettlementState.Action.SETTLE);
-
-    if (_actionStatus != null)
-      _actionStatus.verifyIntent(SettlementState.Action.SETTLE);
-
-    if (_actionStatus != null && _actionStatus.isFinite()) {
-      status.complete(_actionStatus);
-
-      return;
-    }
-
-    if (_action == null) {
-      _action = SettlementState.Action.SETTLE;
-
-      _self.settleImpl(status);
-    }
+    _self.settleImpl(status);
   }
 
   @Override
   public void settleImpl(Result<SettlementState.ActionStatus> status)
   {
-    _actionStatus = SettlementState.ActionStatus.PENDING;
 
   }
 
@@ -147,11 +119,13 @@ public class AuctionSettlementImpl
     }
 
     _db.exec("insert into settlement_intent (id, intent) values (?, ?)",
-             x -> {},
+             x -> {
+             },
              _id,
              _action);
     _db.exec("insert into settlement_status (id, status) values (?, ?)",
-             x -> {},
+             x -> {
+             },
              _id,
              _actionStatus);
   }

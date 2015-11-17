@@ -1,47 +1,56 @@
 package examples.auction.s1;
 
-import java.util.Stack;
-
 public class SettlementState
 {
-  private Stack<ActionEntry> _actions = new Stack<>();
+  private Action _settleAction;
+  private Action _cancelAction;
 
   public SettlementState()
   {
   }
 
-  public SettlementState(Action action)
+  public void toSettle()
   {
-    _actions.push(new ActionEntry(action));
+    if (_cancelAction != null)
+      throw new IllegalStateException();
+
+    if (_settleAction != null)
+      throw new IllegalStateException();
+
+    _settleAction = new Action(ActionIntent.SETTLE);
   }
 
-  public void toCancel(ActionReason reason)
+  public ActionIntent getIntent()
   {
-    if (_current.getAction() == Action.CANCEL) {
-    }
-    else {
-
-    }
+    if (_cancelAction != null)
+      return ActionIntent.CANCEL;
+    else if (_settleAction != null)
+      return ActionIntent.SETTLE;
+    else
+      return ActionIntent.NULL;
   }
 
-  public boolean toSettle()
+  public void toCancel(ActionCause reason)
   {
-    if (_current.getAction())
+    if (_cancelAction != null)
+      throw new IllegalStateException();
+
+    _cancelAction = new Action(ActionIntent.CANCEL);
   }
 
-  class ActionEntry
+  class Action
   {
-    private Action _action;
+    private ActionIntent _actionIntent;
     private ActionStatus _actionStatus;
-    private ActionReason _actionReason;
+    private ActionCause _actionCause;
 
-    public ActionEntry()
+    public Action()
     {
     }
 
-    public ActionEntry(Action action)
+    public Action(ActionIntent actionIntent)
     {
-      _action = action;
+      _actionIntent = actionIntent;
     }
 
     public ActionStatus getActionStatus()
@@ -54,26 +63,27 @@ public class SettlementState
       _actionStatus = actionStatus;
     }
 
-    public ActionReason getActionReason()
+    public ActionCause getActionCause()
     {
-      return _actionReason;
+      return _actionCause;
     }
 
-    public void setActionReason(ActionReason actionReason)
+    public void setActionCause(ActionCause actionCause)
     {
-      _actionReason = actionReason;
+      _actionCause = actionCause;
     }
 
-    public Action getAction()
+    public ActionIntent getActionIntent()
     {
-      return _action;
+      return _actionIntent;
     }
   }
 
-  public enum Action
+  public enum ActionIntent
   {
     SETTLE,
-    CANCEL
+    CANCEL,
+    NULL
   }
 
   public enum ActionStatus
@@ -83,12 +93,11 @@ public class SettlementState
     CANCELLED
   }
 
-  public enum ActionReason
+  public enum ActionCause
   {
     REJECTED_PAYMENT,
     REJECTED_USER,
     REJECTED_AUCTION,
-    USER_CANCEL
+    REFUND
   }
-
 }

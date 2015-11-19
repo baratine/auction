@@ -4,6 +4,7 @@ import examples.auction.Auction;
 import examples.auction.AuctionDataPublic;
 import examples.auction.CreditCard;
 import examples.auction.PayPal;
+import examples.auction.Payment;
 import examples.auction.User;
 import io.baratine.core.Journal;
 import io.baratine.core.Modify;
@@ -17,6 +18,7 @@ import io.baratine.core.ServiceRef;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 
+import static examples.auction.Payment.PayPalResult;
 import static examples.auction.s1.TransactionState.CommitState;
 
 @Journal()
@@ -196,28 +198,44 @@ public class AuctionSettlementImpl
     User user = getUser();
     Auction auction = getAuction();
 
-    ResultFuture<Boolean> data = new ResultFuture<>();
-    Result<Boolean>[] forked = data.fork(2, (x, r) -> r.complete(true));
+    ResultFuture<Boolean> fork = new ResultFuture<>();
+    Result<Boolean>[] forked
+      = fork.fork(2, (x, r) -> r.complete(x.get(0) && x.get(1)));
 
-    final AuctionDataPublic[] auctionData = new AuctionDataPublic[1];
+    final ValueRef<AuctionDataPublic> auctionData = new ValueRef();
 
     auction.get(forked[0].from(d -> {
-      auctionData[0] = d;
+      auctionData.set(d);
       return d != null;
     }));
 
-    final CreditCard[] creditCard = new CreditCard[1];
+    final ValueRef<CreditCard> creditCard = new ValueRef();
+
     user.getCreditCard(forked[1].from(c -> {
-      creditCard[0] = c;
+      creditCard.set(c);
       return c != null;
     }));
 
-    _payPal.settle(auctionData[0],
+    boolean forkResult = fork.get();
+
+    //TODO: check fork result
+
+    _payPal.settle(auctionData.get(),
                    _bid,
-                   creditCard[0],
+                   creditCard.get(),
                    _userId,
                    _id,
-                   Result.ignore());
+                   status.from(x -> processPayment(x)));
+  }
+
+  private CommitState processPayment(Payment payment)
+  {
+    if (payment.getStatus().equals(PayPalResult.approved)) {
+      return CommitState.COMPLETED;
+    }
+    else {
+      return CommitState.REJECTED_PAYMENT;
+    }
   }
 
   private User getUser()
@@ -266,4 +284,21 @@ public class AuctionSettlementImpl
 interface AuctionSettlementInternal extends AuctionSettlement
 {
   void commitImpl(Result<Status> status);
+}
+
+class ValueRef<T>
+{
+  T _t;
+
+  T get()
+  {
+    return _t;
+  }
+
+  T set(T t)
+  {
+    _t = t;
+
+    return t;
+  }
 }

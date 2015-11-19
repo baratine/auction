@@ -127,6 +127,7 @@ public class AuctionSettlementImpl
   }
 
   @Override
+  @Modify
   public void commitImpl(Result<Status> status)
   {
     TransactionState.CommitState commitState = _state.getCommitState();
@@ -141,7 +142,7 @@ public class AuctionSettlementImpl
       break;
     }
     case PENDING: {
-      commitPending(status);
+      commitPending(status.from(x -> processCommit(x)));
       break;
     }
     case REJECTED_PAYMENT: {
@@ -158,6 +159,28 @@ public class AuctionSettlementImpl
     }
     default: {
       break;
+    }
+    }
+  }
+
+  private Status processCommit(CommitState commitState)
+  {
+    _state.setCommitState(commitState);
+
+    switch (commitState) {
+    case COMPLETED: {
+      return Status.COMMITTED;
+    }
+    case PENDING: {
+      return Status.PENDING;
+    }
+    case REJECTED_AUCTION:
+    case REJECTED_PAYMENT:
+    case REJECTED_USER: {
+      return Status.ROLLING_BACK;
+    }
+    default: {
+      throw new IllegalStateException();
     }
     }
   }
@@ -288,7 +311,7 @@ interface AuctionSettlementInternal extends AuctionSettlement
 
 class ValueRef<T>
 {
-  T _t;
+  private T _t;
 
   T get()
   {

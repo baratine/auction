@@ -1,15 +1,23 @@
 package examples.auction.s1;
 
+import examples.auction.Auction;
 import examples.auction.AuctionDataPublic;
+import examples.auction.CreditCard;
 import examples.auction.PayPal;
+import examples.auction.User;
 import io.baratine.core.Journal;
 import io.baratine.core.Modify;
+import io.baratine.core.OnInit;
 import io.baratine.core.OnLoad;
 import io.baratine.core.OnSave;
 import io.baratine.core.Result;
+import io.baratine.core.ResultFuture;
+import io.baratine.core.ServiceManager;
+import io.baratine.core.ServiceRef;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
-import io.baratine.stream.ResultStreamBuilderSync;
+
+import static examples.auction.s1.TransactionState.CommitState;
 
 @Journal()
 public class AuctionSettlementImpl
@@ -17,6 +25,8 @@ public class AuctionSettlementImpl
 {
   private DatabaseService _db;
   private PayPal _payPal;
+  private ServiceRef _userManager;
+  private ServiceRef _auctionManager;
 
   private BoundState _boundState = BoundState.UNBOUND;
   private String _id;
@@ -34,38 +44,54 @@ public class AuctionSettlementImpl
 
   //id, auction_id, user_id, bid
   @OnLoad
-  public void load()
+  public void load(Result<Boolean> result)
   {
     if (_boundState != BoundState.UNBOUND)
       throw new IllegalStateException();
 
-    //xxx: refactor to async when Result.fork() is reworked.
-    Cursor settelment = ((ResultStreamBuilderSync<Cursor>) (_db.findLocal(
+    Result<Boolean>[] results = result.fork(2, (x -> true));
+
+    _db.findLocal(
       "select auction_id, user_id, bid from settlement where id = ?",
-      _id).first())).result();
+      _id).first().result(results[0].from(c -> loadSettlement(c)));
 
-    Cursor state = ((ResultStreamBuilderSync<Cursor>) (_db.findLocal(
-      "select state from settlement_state where id = ?",
-      _id).first())).result();
-
-    load(settelment, state);
+    _db.findLocal("select state from settlement_state where id = ?",
+                  _id).first().result(results[1].from(c -> loadState(c)));
   }
 
-  public void load(Cursor settlement, Cursor state)
+  public boolean loadSettlement(Cursor settlement)
   {
-    if (settlement == null)
-      return;
+    if (settlement != null) {
+      _auctionId = settlement.getString(1);
 
-    _auctionId = settlement.getString(1);
+      _userId = settlement.getString(2);
 
-    _userId = settlement.getString(2);
+      _bid = (AuctionDataPublic.Bid) settlement.getObject(3);
 
-    _bid = (AuctionDataPublic.Bid) settlement.getObject(3);
+      _boundState = BoundState.BOUND;
+    }
 
+    return true;
+  }
+
+  public boolean loadState(Cursor state)
+  {
     if (state != null)
       _state = (TransactionState) state.getObject(1);
 
-    _boundState = BoundState.BOUND;
+    return true;
+  }
+
+  @OnInit
+  public boolean init()
+  {
+    ServiceManager manager = ServiceManager.current();
+
+    _payPal = manager.lookup("pod://auction/paypal").as(PayPal.class);
+    _userManager = manager.lookup("pod://user/user");
+    _auctionManager = manager.lookup("pod://auction/auction");
+
+    return true;
   }
 
   @Modify
@@ -134,9 +160,78 @@ public class AuctionSettlementImpl
     }
   }
 
-  public void commitPending(Result<Status> status)
+  public void commitPending(Result<TransactionState.CommitState> status)
   {
-    _payPal.settle();
+    Result<TransactionState.CommitState>[] children
+      = status.fork(3, (s, r) -> r.complete(
+      TransactionState.CommitState.COMPLETED),
+                    (s, e, r) -> {});
+
+    updateUser(children[0]);
+    updateAuction(children[1]);
+    chargeUser(children[2]);
+  }
+
+  public void updateUser(Result<TransactionState.CommitState> status)
+  {
+    User user = getUser();
+
+    user.addWonAuction(_auctionId,
+                       status.from(x -> x ?
+                         CommitState.COMPLETED :
+                         CommitState.REJECTED_USER));
+  }
+
+  public void updateAuction(Result<CommitState> status)
+  {
+    Auction auction = getAuction();
+
+    auction.setAuctionWinner(_userId, status.from(x -> x ?
+      CommitState.COMPLETED :
+      CommitState.REJECTED_AUCTION));
+  }
+
+  public void chargeUser(Result<CommitState> status)
+  {
+    User user = getUser();
+    Auction auction = getAuction();
+
+    ResultFuture<Boolean> data = new ResultFuture<>();
+    Result<Boolean>[] forked = data.fork(2, (x, r) -> r.complete(true));
+
+    final AuctionDataPublic[] auctionData = new AuctionDataPublic[1];
+
+    auction.get(forked[0].from(d -> {
+      auctionData[0] = d;
+      return d != null;
+    }));
+
+    final CreditCard[] creditCard = new CreditCard[1];
+    user.getCreditCard(forked[1].from(c -> {
+      creditCard[0] = c;
+      return c != null;
+    }));
+
+    _payPal.settle(auctionData[0],
+                   _bid,
+                   creditCard[0],
+                   _userId,
+                   _id,
+                   Result.ignore());
+  }
+
+  private User getUser()
+  {
+    User user = _userManager.lookup('/' + _userId).as(User.class);
+
+    return user;
+  }
+
+  private Auction getAuction()
+  {
+    Auction auction = _userManager.lookup('/' + _auctionId).as(Auction.class);
+
+    return auction;
   }
 
   @OnSave

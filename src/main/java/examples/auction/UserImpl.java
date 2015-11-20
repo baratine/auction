@@ -141,4 +141,12 @@ public class UserImpl implements User
 
     result.complete(true);
   }
+
+  @Override
+  public void removeWonAuction(String auction, Result<Boolean> result)
+  {
+    _wonAuctions.remove(auction);
+
+    result.complete(true);
+  }
 }

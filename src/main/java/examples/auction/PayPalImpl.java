@@ -80,4 +80,16 @@ public class PayPalImpl implements PayPal
       result.fail(t);
     }
   }
+
+  @Override
+  public void refund(String salesId, Result<Refund> result)
+  {
+    try {
+      PayPalAuth auth = _rest.auth();
+      Refund refund = _rest.refund(auth.getToken(), salesId);
+      result.complete(refund);
+    } catch (Throwable e) {
+      result.fail(e);
+    }
+  }
 }

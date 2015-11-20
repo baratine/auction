@@ -10,4 +10,6 @@ public interface PayPal
               String userId,
               String settlementId,
               Result<Payment> result);
+
+  void refund(String sale, Result<Refund> refund);
 }

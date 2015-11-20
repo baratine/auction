@@ -11,6 +11,7 @@ public class Payment
   private String _payment;
 
   private PayPalResult _status;
+  private String _saleId;
 
   public Payment()
   {
@@ -26,6 +27,10 @@ public class Payment
     String state = jsonObject.getString("state");
 
     _status = Enum.valueOf(PayPalResult.class, state);
+
+    _saleId = jsonObject.getJsonArray("transactions").getJsonObject(0)
+                        .getJsonArray("related_resources").getJsonObject(0)
+                        .getJsonObject("sale").getString("id");
   }
 
   public PayPalResult getStatus()

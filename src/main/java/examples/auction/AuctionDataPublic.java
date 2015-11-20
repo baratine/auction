@@ -147,6 +147,15 @@ public class AuctionDataPublic implements Serializable
     _state = State.CLOSED;
   }
 
+  public void toSettleCancelled()
+  {
+    if (_state != State.SETTLED) {
+      throw new IllegalStateException("Auction cannot be closed in " + _state);
+    }
+
+    _state = State.SETTLED_CANCEL;
+  }
+
   @Override
   public String toString()
   {
@@ -175,7 +184,8 @@ public class AuctionDataPublic implements Serializable
     INIT,
     OPEN,
     CLOSED,
-    SETTLED
+    SETTLED,
+    SETTLED_CANCEL
   }
 
   public interface Bid

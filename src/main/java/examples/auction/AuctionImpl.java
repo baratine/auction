@@ -212,7 +212,19 @@ public class AuctionImpl implements Auction
 
     _auctionData.toSettled();
 
+    //TODO:
     getEvents().onSettled(_auctionData);
+
+    result.complete(true);
+  }
+
+  @Override
+  @Modify
+  public void resetAuctionWinner(String user, Result<Boolean> result)
+  {
+    _auctionData.setWinner(null);
+
+    _auctionData.toSettleCancelled();
 
     result.complete(true);
   }

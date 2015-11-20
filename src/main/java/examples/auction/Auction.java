@@ -14,6 +14,8 @@ public interface Auction
 
   void setAuctionWinner(String user, Result<Boolean> result);
 
+  void resetAuctionWinner(String user, Result<Boolean> result);
+
   void get(Result<AuctionDataPublic> result);
 
   void close(Result<Boolean> result);

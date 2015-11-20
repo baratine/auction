@@ -20,6 +20,7 @@ import io.baratine.db.DatabaseService;
 
 import static examples.auction.Payment.PayPalResult;
 import static examples.auction.s1.TransactionState.CommitState;
+import static examples.auction.s1.TransactionState.RollbackState;
 
 @Journal()
 public class AuctionSettlementImpl
@@ -51,7 +52,7 @@ public class AuctionSettlementImpl
     if (_boundState != BoundState.UNBOUND)
       throw new IllegalStateException();
 
-    Result<Boolean>[] results = result.fork(2, (x -> true));
+    Result<Boolean>[] results = result.fork(2, (x -> x.get(0)));
 
     _db.findLocal(
       "select auction_id, user_id, bid from settlement where id = ?",
@@ -128,10 +129,26 @@ public class AuctionSettlementImpl
 
   @Override
   @Modify
+  public void rollback(Result<Status> status)
+  {
+    if (_boundState == BoundState.UNBOUND)
+      throw new IllegalStateException();
+
+    if (_state == null)
+      throw new IllegalStateException();
+
+    if (_state.getRollbackState() == null)
+      _state.setRollbackState(RollbackState.PENDING);
+
+    _self.rollbackImpl(status);
+  }
+
+  @Override
+  @Modify
   public void commitImpl(Result<Status> status)
   {
-    TransactionState.CommitState commitState = _state.getCommitState();
-    TransactionState.RollbackState rollbackState = _state.getRollbackState();
+    CommitState commitState = _state.getCommitState();
+    RollbackState rollbackState = _state.getRollbackState();
 
     if (rollbackState != null)
       throw new IllegalStateException();
@@ -159,28 +176,6 @@ public class AuctionSettlementImpl
     }
     default: {
       break;
-    }
-    }
-  }
-
-  private Status processCommit(CommitState commitState)
-  {
-    _state.setCommitState(commitState);
-
-    switch (commitState) {
-    case COMPLETED: {
-      return Status.COMMITTED;
-    }
-    case PENDING: {
-      return Status.PENDING;
-    }
-    case REJECTED_AUCTION:
-    case REJECTED_PAYMENT:
-    case REJECTED_USER: {
-      return Status.ROLLING_BACK;
-    }
-    default: {
-      throw new IllegalStateException();
     }
     }
   }
@@ -253,12 +248,104 @@ public class AuctionSettlementImpl
 
   private CommitState processPayment(Payment payment)
   {
+    _state.setPayment(payment);
+
     if (payment.getStatus().equals(PayPalResult.approved)) {
       return CommitState.COMPLETED;
     }
     else {
       return CommitState.REJECTED_PAYMENT;
     }
+  }
+
+  private Status processCommit(CommitState commitState)
+  {
+    _state.setCommitState(commitState);
+
+    switch (commitState) {
+    case COMPLETED: {
+      return Status.COMMITTED;
+    }
+    case PENDING: {
+      return Status.PENDING;
+    }
+    case REJECTED_AUCTION:
+    case REJECTED_PAYMENT:
+    case REJECTED_USER: {
+      return Status.ROLLING_BACK;
+    }
+    default: {
+      throw new IllegalStateException();
+    }
+    }
+  }
+
+  @Override
+  public void rollbackImpl(Result<Status> status)
+  {
+    RollbackState rollbackState = _state.getRollbackState();
+
+    switch (rollbackState) {
+    case COMPLETED: {
+      status.complete(Status.ROLLED_BACK);
+      break;
+    }
+    case PENDING: {
+      rollbackPending(status.from(x -> processRollback(x)));
+      break;
+    }
+    case FAILED: {
+      //TODO:
+      break;
+    }
+    default: {
+      throw new IllegalStateException();
+    }
+    }
+  }
+
+  private Status processRollback(RollbackState state)
+  {
+    switch (state) {
+    case COMPLETED:
+      return Status.ROLLED_BACK;
+    case PENDING:
+      return Status.ROLLING_BACK;
+    default: {
+      throw new IllegalStateException();
+    }
+    }
+  }
+
+  public void rollbackPending(Result<TransactionState.RollbackState> status)
+  {
+    Result<TransactionState.RollbackState>[] children
+      = status.fork(3, (s, r) -> r.complete(
+      TransactionState.RollbackState.COMPLETED),
+                    (s, e, r) -> {});
+
+    resetUser(children[0]);
+    resetAuction(children[1]);
+    refundUser(children[2]);
+  }
+
+  private void resetUser(Result<RollbackState> child)
+  {
+    User user = getUser();
+    user.removeWonAuction(_auctionId, child.from(x -> RollbackState.COMPLETED));
+  }
+
+  private void resetAuction(Result<RollbackState> child)
+  {
+    Auction auction = getAuction();
+
+    auction.resetAuctionWinner(_userId,
+                               child.from(x -> RollbackState.COMPLETED));
+  }
+
+  private void refundUser(Result<RollbackState> child)
+  {
+    _payPal.refund();
   }
 
   private User getUser()
@@ -307,6 +394,8 @@ public class AuctionSettlementImpl
 interface AuctionSettlementInternal extends AuctionSettlement
 {
   void commitImpl(Result<Status> status);
+
+  void rollbackImpl(Result<Status> status);
 }
 
 class ValueRef<T>

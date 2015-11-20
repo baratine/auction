@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -205,6 +206,21 @@ public class PayPalRestLink
     headers.put("Authorization", "Bearer " + token);
 
     return send("/v1/payments/payment?count=20", "GET", headers, null);
+  }
+
+  public Refund refund(String securityToken, String saleId)
+    throws IOException
+  {
+    Map<String,String> headers = new HashMap<>();
+    headers.put("Content-Type", "application/json");
+    headers.put("Authorization", "Bearer " + securityToken);
+    //headers.put("PayPal-Request-Id", );
+    String response = send("/v1/payments/sale/" + saleId + "/refund",
+                           "POST",
+                           headers,
+                           "{}".getBytes(StandardCharsets.UTF_8));
+
+    return new Refund(response);
   }
 
   @Override

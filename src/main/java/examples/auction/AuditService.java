@@ -48,4 +48,13 @@ public interface AuditService
                                 AuctionDataPublic.Bid bid,
                                 String userId,
                                 Result<Void> ignore);
+
+  void payPalSendRefund(String settlementId,
+                        String saleId,
+                        Result<Void> ignore);
+
+  void payPalReceiveRefundResponse(String settlementId,
+                                   String saleId,
+                                   Refund refund,
+                                   Result<Void> ignore);
 }

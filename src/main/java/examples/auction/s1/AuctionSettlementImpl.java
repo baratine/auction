@@ -5,6 +5,7 @@ import examples.auction.AuctionDataPublic;
 import examples.auction.CreditCard;
 import examples.auction.PayPal;
 import examples.auction.Payment;
+import examples.auction.Refund;
 import examples.auction.User;
 import io.baratine.core.Journal;
 import io.baratine.core.Modify;
@@ -184,7 +185,7 @@ public class AuctionSettlementImpl
   {
     Result<TransactionState.CommitState>[] children
       = status.fork(3, (s, r) -> r.complete(
-      TransactionState.CommitState.COMPLETED),
+                      TransactionState.CommitState.COMPLETED),
                     (s, e, r) -> {});
 
     updateUser(children[0]);
@@ -319,33 +320,49 @@ public class AuctionSettlementImpl
 
   public void rollbackPending(Result<TransactionState.RollbackState> status)
   {
-    Result<TransactionState.RollbackState>[] children
+    Result<TransactionState.RollbackState>[] forked
       = status.fork(3, (s, r) -> r.complete(
-      TransactionState.RollbackState.COMPLETED),
+                      TransactionState.RollbackState.COMPLETED),
                     (s, e, r) -> {});
 
-    resetUser(children[0]);
-    resetAuction(children[1]);
-    refundUser(children[2]);
+    resetUser(forked[0]);
+    resetAuction(forked[1]);
+    refundUser(forked[2]);
   }
 
-  private void resetUser(Result<RollbackState> child)
+  private void resetUser(Result<RollbackState> forkedState)
   {
     User user = getUser();
-    user.removeWonAuction(_auctionId, child.from(x -> RollbackState.COMPLETED));
+    user.removeWonAuction(_auctionId,
+                          forkedState.from(x -> RollbackState.COMPLETED));
   }
 
-  private void resetAuction(Result<RollbackState> child)
+  private void resetAuction(Result<RollbackState> forkedState)
   {
     Auction auction = getAuction();
 
     auction.resetAuctionWinner(_userId,
-                               child.from(x -> RollbackState.COMPLETED));
+                               forkedState.from(x -> RollbackState.COMPLETED));
   }
 
-  private void refundUser(Result<RollbackState> child)
+  private void refundUser(Result<RollbackState> forkedState)
   {
-    _payPal.refund();
+    Payment payment = _state.getPayment();
+    if (payment == null) {
+      forkedState.complete(RollbackState.COMPLETED);
+    }
+    else {
+      _payPal.refund(_id,
+                     payment.getSaleId(),
+                     forkedState.from(r -> processRefund(r)));
+    }
+  }
+
+  private RollbackState processRefund(Refund refund)
+  {
+    _state.setRefund(refund);
+
+    return RollbackState.COMPLETED;
   }
 
   private User getUser()
@@ -381,6 +398,47 @@ public class AuctionSettlementImpl
              },
              _id,
              _state);
+  }
+
+  @Override
+  public void status(Result<Status> status)
+  {
+    CommitState commitState = _state.getCommitState();
+    RollbackState rollbackState = _state.getRollbackState();
+
+    if (rollbackState == null) {
+      switch (commitState) {
+      case COMPLETED: {
+        status.complete(Status.COMMITTED);
+        break;
+      }
+      case PENDING: {
+        status.complete(Status.PENDING);
+        break;
+      }
+      case REJECTED_AUCTION:
+      case REJECTED_PAYMENT:
+      case REJECTED_USER: {
+        status.complete(Status.ROLLING_BACK);
+        break;
+      }
+      default: {
+        throw new IllegalStateException();
+      }
+      }
+    }
+    else {
+      switch (rollbackState) {
+      case COMPLETED: {
+        status.complete(Status.ROLLED_BACK);
+        break;
+      }
+      case PENDING: {
+        status.complete(Status.ROLLING_BACK);
+        break;
+      }
+      }
+    }
   }
 
   enum BoundState

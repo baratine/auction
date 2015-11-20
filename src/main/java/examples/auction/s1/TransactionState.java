@@ -1,12 +1,14 @@
 package examples.auction.s1;
 
 import examples.auction.Payment;
+import examples.auction.Refund;
 
 public class TransactionState
 {
   private CommitState _commitState;
   private RollbackState _rollbackState;
   private Payment _payment;
+  private Refund _refund;
 
   public TransactionState()
   {
@@ -41,6 +43,16 @@ public class TransactionState
   public void setPayment(Payment payment)
   {
     _payment = payment;
+  }
+
+  public void setRefund(Refund refund)
+  {
+    _refund = refund;
+  }
+
+  public Refund getRefund()
+  {
+    return _refund;
   }
 
   enum CommitState

@@ -11,5 +11,5 @@ public interface PayPal
               String settlementId,
               Result<Payment> result);
 
-  void refund(String sale, Result<Refund> refund);
+  void refund(String settlementId, String sale, Result<Refund> refund);
 }

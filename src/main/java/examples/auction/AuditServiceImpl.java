@@ -185,4 +185,36 @@ public class AuditServiceImpl implements AuditService
 
     ignore.complete(null);
   }
+
+  @Override
+  public void payPalSendRefund(String settlementId,
+                               String saleId,
+                               Result<Void> ignore)
+  {
+    String message = String.format(
+      "%1$s: pay pal send refund request for saleId %2$s",
+      settlementId,
+      saleId);
+
+    log.info(message);
+
+    ignore.complete(null);
+  }
+
+  @Override
+  public void payPalReceiveRefundResponse(String settlementId,
+                                          String saleId,
+                                          Refund refund,
+                                          Result<Void> ignore)
+  {
+    String message = String.format(
+      "%1$s: pay pal refund response %2$s for saleId %3$s",
+      settlementId,
+      refund,
+      saleId);
+
+    log.info(message);
+
+    ignore.complete(null);
+  }
 }

@@ -82,12 +82,19 @@ public class PayPalImpl implements PayPal
   }
 
   @Override
-  public void refund(String salesId, Result<Refund> result)
+  public void refund(String settlementId, String salesId, Result<Refund> result)
   {
     try {
+      _audit.payPalSendRefund(settlementId, salesId, Result.ignore());
       PayPalAuth auth = _rest.auth();
       Refund refund = _rest.refund(auth.getToken(), salesId);
+
       result.complete(refund);
+
+      _audit.payPalReceiveRefundResponse(settlementId,
+                                         salesId,
+                                         refund,
+                                         Result.ignore());
     } catch (Throwable e) {
       result.fail(e);
     }

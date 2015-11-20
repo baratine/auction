@@ -38,6 +38,11 @@ public class Payment
     return _status;
   }
 
+  public String getSaleId()
+  {
+    return _saleId;
+  }
+
   @Override
   public String toString()
   {

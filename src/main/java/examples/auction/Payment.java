@@ -10,7 +10,7 @@ public class Payment
 {
   private String _payment;
 
-  private PayPalResult _status;
+  private PaymentState _state;
   private String _saleId;
 
   public Payment()
@@ -26,16 +26,16 @@ public class Payment
 
     String state = jsonObject.getString("state");
 
-    _status = Enum.valueOf(PayPalResult.class, state);
+    _state = Enum.valueOf(PaymentState.class, state);
 
     _saleId = jsonObject.getJsonArray("transactions").getJsonObject(0)
                         .getJsonArray("related_resources").getJsonObject(0)
                         .getJsonObject("sale").getString("id");
   }
 
-  public PayPalResult getStatus()
+  public PaymentState getState()
   {
-    return _status;
+    return _state;
   }
 
   public String getSaleId()
@@ -49,7 +49,7 @@ public class Payment
     return Payment.class.getSimpleName() + "[" + _payment + "]";
   }
 
-  public enum PayPalResult
+  public enum PaymentState
   {
     created, approved, failed, canceled, expired, pending;
   }

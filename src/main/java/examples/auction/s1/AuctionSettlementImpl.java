@@ -251,7 +251,7 @@ public class AuctionSettlementImpl
   {
     _state.setPayment(payment);
 
-    if (payment.getStatus().equals(PayPalResult.approved)) {
+    if (payment.getState().equals(PayPalResult.approved)) {
       return CommitState.COMPLETED;
     }
     else {

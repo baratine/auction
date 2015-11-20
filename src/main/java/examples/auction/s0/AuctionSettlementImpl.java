@@ -205,7 +205,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
                                            payment,
                                            Result.ignore());
 
-    if (payment.getStatus() == Payment.PayPalResult.approved) {
+    if (payment.getState() == Payment.PayPalResult.approved) {
       _db.exec("replace auction_payments (auction_id, payment) values (?,?)",
                o -> deleteAuctionSettlementRequest(auctionId),
                auctionId,

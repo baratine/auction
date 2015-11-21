@@ -8,8 +8,11 @@ public interface PayPal
               AuctionDataPublic.Bid bid,
               CreditCard creditCard,
               String userId,
-              String settlementId,
+              String payPalRequestId,
               Result<Payment> result);
 
-  void refund(String settlementId, String sale, Result<Refund> refund);
+  void refund(String settlementId,
+              String payPalRequestId,
+              String sale,
+              Result<Refund> refund);
 }

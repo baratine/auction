@@ -68,6 +68,6 @@ public class TransactionState
   {
     COMPLETED,
     PENDING,
-    FAILED
+    REFUND_FAILED
   }
 }

@@ -33,7 +33,7 @@ public class PayPalImpl implements PayPal
                      AuctionDataPublic.Bid bid,
                      CreditCard creditCard,
                      String userId,
-                     String settlementId,
+                     String payPalRequestId,
                      Result<Payment> result)
   {
     try {
@@ -44,14 +44,14 @@ public class PayPalImpl implements PayPal
 
       String amount = String.format("%1$d.00", bid.getBid());
 
-      _audit.payPalSendPaymentRequest(settlementId,
+      _audit.payPalSendPaymentRequest(payPalRequestId,
                                       auction,
                                       bid,
                                       userId,
                                       Result.ignore());
 
       Payment payment = _rest.pay(auth.getToken(),
-                                  settlementId,
+                                  payPalRequestId,
                                   creditCard.getNum(),
                                   creditCard.getType(),
                                   creditCard.getExpMonth(),
@@ -63,7 +63,7 @@ public class PayPalImpl implements PayPal
                                   "USD",
                                   auction.getTitle());
 
-      _audit.payPalReceivePaymentResponse(settlementId,
+      _audit.payPalReceivePaymentResponse(payPalRequestId,
                                           auction,
                                           payment,
                                           Result.ignore());
@@ -82,12 +82,15 @@ public class PayPalImpl implements PayPal
   }
 
   @Override
-  public void refund(String settlementId, String salesId, Result<Refund> result)
+  public void refund(String settlementId,
+                     String payPalRequestId,
+                     String salesId,
+                     Result<Refund> result)
   {
     try {
       _audit.payPalSendRefund(settlementId, salesId, Result.ignore());
       PayPalAuth auth = _rest.auth();
-      Refund refund = _rest.refund(auth.getToken(), salesId);
+      Refund refund = _rest.refund(auth.getToken(), payPalRequestId, salesId);
 
       result.complete(refund);
 

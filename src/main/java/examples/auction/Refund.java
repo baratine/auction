@@ -51,6 +51,11 @@ public class Refund
     _status = Enum.valueOf(RefundState.class, state);
   }
 
+  public RefundState getStatus()
+  {
+    return _status;
+  }
+
   public enum RefundState
   {
     pending, completed, failed

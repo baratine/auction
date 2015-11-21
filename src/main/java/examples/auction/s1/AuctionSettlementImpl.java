@@ -19,7 +19,7 @@ import io.baratine.core.ServiceRef;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 
-import static examples.auction.Payment.PayPalResult;
+import static examples.auction.Payment.PaymentState;
 import static examples.auction.s1.TransactionState.CommitState;
 import static examples.auction.s1.TransactionState.RollbackState;
 
@@ -251,7 +251,7 @@ public class AuctionSettlementImpl
   {
     _state.setPayment(payment);
 
-    if (payment.getState().equals(PayPalResult.approved)) {
+    if (payment.getState().equals(PaymentState.approved)) {
       return CommitState.COMPLETED;
     }
     else {
@@ -295,7 +295,7 @@ public class AuctionSettlementImpl
       rollbackPending(status.from(x -> processRollback(x)));
       break;
     }
-    case FAILED: {
+    case REFUND_FAILED: {
       //TODO:
       break;
     }
@@ -352,7 +352,7 @@ public class AuctionSettlementImpl
       forkedState.complete(RollbackState.COMPLETED);
     }
     else {
-      _payPal.refund(_id,
+      _payPal.refund(_id, payment.getSaleId(),
                      payment.getSaleId(),
                      forkedState.from(r -> processRefund(r)));
     }
@@ -361,6 +361,18 @@ public class AuctionSettlementImpl
   private RollbackState processRefund(Refund refund)
   {
     _state.setRefund(refund);
+
+    switch (refund.getStatus()) {
+    case completed: {
+      break;
+    }
+    case failed: {
+      break;
+    }
+    case pending: {
+      break;
+    }
+    }
 
     return RollbackState.COMPLETED;
   }

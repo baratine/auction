@@ -141,12 +141,12 @@ public class PayPalRestLink
   }
 
   /**
-   * @param settlementId
+   * @param payPalRequestId
    * @return
    * @throws IOException
    */
   public Payment pay(String securityToken,
-                     String settlementId,
+                     String payPalRequestId,
                      String ccNumber,
                      String ccType,
                      int ccExpireM,
@@ -191,7 +191,7 @@ public class PayPalRestLink
     Map<String,String> headers = new HashMap<>();
     headers.put("Content-Type", "application/json");
     headers.put("Authorization", "Bearer " + securityToken);
-    headers.put("PayPal-Request-Id", settlementId);
+    headers.put("PayPal-Request-Id", payPalRequestId);
 
     String response = send("/v1/payments/payment", "POST", headers,
                            payment.getBytes("UTF-8"));
@@ -208,13 +208,15 @@ public class PayPalRestLink
     return send("/v1/payments/payment?count=20", "GET", headers, null);
   }
 
-  public Refund refund(String securityToken, String saleId)
+  public Refund refund(String securityToken,
+                       String payPalRequestId,
+                       String saleId)
     throws IOException
   {
     Map<String,String> headers = new HashMap<>();
     headers.put("Content-Type", "application/json");
     headers.put("Authorization", "Bearer " + securityToken);
-    //headers.put("PayPal-Request-Id", );
+    headers.put("PayPal-Request-Id", payPalRequestId);
     String response = send("/v1/payments/sale/" + saleId + "/refund",
                            "POST",
                            headers,

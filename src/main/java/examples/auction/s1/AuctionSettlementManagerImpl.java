@@ -10,7 +10,7 @@ import io.baratine.db.DatabaseService;
 
 import javax.inject.Inject;
 
-@Service("pod://settlement/settlements")
+@Service("pod://settlement/settlement")
 public class AuctionSettlementManagerImpl
   implements AuctionSettlementManager
 {
@@ -25,7 +25,8 @@ public class AuctionSettlementManagerImpl
   {
     _selfRef = ServiceRef.current();
 
-    Result<Boolean>[] results = result.fork(2);
+    Result<Boolean>[] results
+      = result.fork(2, (l, r) -> r.complete(l.get(0) && l.get(1)));
 
     _db.exec(
       "create table settlement(id varchar primary key, auction_id varchar, user_id varchar, bid object) with hash '/settlements/$id'",

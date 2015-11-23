@@ -104,6 +104,8 @@ public class AuctionManagerImpl implements AuctionManager
 
     log.info(String.format("index %1$s %2$s", id, title));
 
+    log.warning(String.format("lucene: " + _lucene));
+
     _lucene.indexText("auction", id, title, Result.ignore());
   }
 

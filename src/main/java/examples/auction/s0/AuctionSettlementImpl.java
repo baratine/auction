@@ -67,7 +67,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
   {
     _self = ServiceRef.current().as(AuctionSettlement.class);
 
-    Result<Boolean>[] results = result.fork(2, (x, y) -> true, a -> true);
+    Result<Boolean>[] results = result.fork(2, (x, r) -> {r.complete(true);});
 
     try {
       _db.exec(
@@ -205,7 +205,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
                                            payment,
                                            Result.ignore());
 
-    if (payment.getState() == Payment.PayPalResult.approved) {
+    if (payment.getState() == Payment.PaymentState.approved) {
       _db.exec("replace auction_payments (auction_id, payment) values (?,?)",
                o -> deleteAuctionSettlementRequest(auctionId),
                auctionId,

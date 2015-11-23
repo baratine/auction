@@ -1,6 +1,6 @@
 package examples.auction;
 
-import examples.auction.s0.AuctionSettlement;
+import examples.auction.s1.AuctionSettlement;
 import io.baratine.core.Modify;
 import io.baratine.core.OnLoad;
 import io.baratine.core.OnSave;
@@ -33,7 +33,7 @@ public class AuctionImpl implements Auction
 
   private State _state;
 
-  private AuctionSettlement _settlement;
+  private ServiceRef _settlement;
 
   public AuctionImpl()
   {
@@ -53,8 +53,7 @@ public class AuctionImpl implements Auction
 
     _audit = auditRef.as(AuditService.class);
 
-    _settlement
-      = manager.lookup("pod://auction/settlement").as(AuctionSettlement.class);
+    _settlement = manager.lookup("pod://settlement/settlement");
 
     _state = State.UNBOUND;
   }
@@ -263,7 +262,10 @@ public class AuctionImpl implements Auction
 
       getEvents().onClose(_auctionData);
 
-      _settlement.settleAuction(_id, Result.ignore());
+      AuctionSettlement settlement
+        = _settlement.lookup("/" + _id).as(AuctionSettlement.class);
+
+      settlement.commit(Result.ignore());
 
       result.complete(true);
     }

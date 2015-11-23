@@ -13,7 +13,6 @@ import io.baratine.core.OnInit;
 import io.baratine.core.OnLoad;
 import io.baratine.core.OnSave;
 import io.baratine.core.Result;
-import io.baratine.core.ResultFuture;
 import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
 import io.baratine.db.Cursor;
@@ -33,10 +32,12 @@ public class AuctionSettlementImpl
   private ServiceRef _auctionManager;
 
   private BoundState _boundState = BoundState.UNBOUND;
+
   private String _id;
   private String _auctionId;
   private String _userId;
   private AuctionDataPublic.Bid _bid;
+
   private TransactionState _state;
 
   private AuctionSettlementInternal _self;
@@ -87,15 +88,17 @@ public class AuctionSettlementImpl
   }
 
   @OnInit
-  public boolean init()
+  public void init(Result<Boolean> result)
   {
     ServiceManager manager = ServiceManager.current();
+
+    _db = manager.lookup("bardb:///").as(DatabaseService.class);
 
     _payPal = manager.lookup("pod://auction/paypal").as(PayPal.class);
     _userManager = manager.lookup("pod://user/user");
     _auctionManager = manager.lookup("pod://auction/auction");
 
-    return true;
+    result.complete(true);
   }
 
   @Modify
@@ -217,34 +220,41 @@ public class AuctionSettlementImpl
     User user = getUser();
     Auction auction = getAuction();
 
-    ResultFuture<Boolean> fork = new ResultFuture<>();
+    final ValueRef<AuctionDataPublic> auctionData = new ValueRef();
+    final ValueRef<CreditCard> creditCard = new ValueRef();
+
+    Result<Boolean> fork = Result.from(x ->
+                                         chargeUser(auctionData.get(),
+                                                    creditCard.get(),
+                                                    status),
+                                       e -> status.complete(CommitState.REJECTED_USER)
+    );
+
     Result<Boolean>[] forked
       = fork.fork(2, (x, r) -> r.complete(x.get(0) && x.get(1)));
-
-    final ValueRef<AuctionDataPublic> auctionData = new ValueRef();
 
     auction.get(forked[0].from(d -> {
       auctionData.set(d);
       return d != null;
     }));
 
-    final ValueRef<CreditCard> creditCard = new ValueRef();
-
     user.getCreditCard(forked[1].from(c -> {
       creditCard.set(c);
       return c != null;
     }));
+  }
 
-    boolean forkResult = fork.get();
-
-    //TODO: check fork result
-
-    _payPal.settle(auctionData.get(),
+  public void chargeUser(AuctionDataPublic auctionData,
+                         CreditCard creditCard,
+                         Result<CommitState> status)
+  {
+    _payPal.settle(auctionData,
                    _bid,
-                   creditCard.get(),
+                   creditCard,
                    _userId,
                    _id,
                    status.from(x -> processPayment(x)));
+
   }
 
   private CommitState processPayment(Payment payment)
@@ -386,7 +396,8 @@ public class AuctionSettlementImpl
 
   private Auction getAuction()
   {
-    Auction auction = _userManager.lookup('/' + _auctionId).as(Auction.class);
+    Auction auction = _auctionManager.lookup('/' + _auctionId)
+                                     .as(Auction.class);
 
     return auction;
   }

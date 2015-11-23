@@ -33,5 +33,5 @@ $BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web /auction-session
 echo "Authenticate User ..."
 $BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web /auction-session/foo login user pass
 
-$BARATINE_HOME/bin/baratine cat $BARATINE_ARGS /proc/services
+$BARATINE_HOME/bin/baratine --verbose cat $BARATINE_ARGS /proc/services
 

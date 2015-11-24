@@ -158,8 +158,6 @@ public class AuctionSettlementImpl
 
   public void commitImpl(Result<Status> status)
   {
-    log.finer(String.format("commit settlement %1$s", this));
-
     CommitState commitState = _state.getCommitState();
     RollbackState rollbackState = _state.getRollbackState();
 

@@ -55,6 +55,17 @@ public class TransactionState
     return _refund;
   }
 
+  @Override
+  public String toString()
+  {
+    return this.getClass().getSimpleName()
+           + "["
+           + _commitState
+           + ", "
+           + _rollbackState
+           + "]";
+  }
+
   enum CommitState
   {
     COMPLETED,

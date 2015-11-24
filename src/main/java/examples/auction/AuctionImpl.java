@@ -66,7 +66,7 @@ public class AuctionImpl implements Auction
       throw new IllegalStateException();
 
     ZonedDateTime date = ZonedDateTime.now();
-    date = date.plusSeconds(30);
+    date = date.plusSeconds(5);
     ZonedDateTime closingDate = date;
 
     _audit.auctionCreate(initData, Result.<Void>ignore());
@@ -262,10 +262,7 @@ public class AuctionImpl implements Auction
 
       getEvents().onClose(_auctionData);
 
-      AuctionSettlement settlement
-        = _settlement.lookup("/" + _id).as(AuctionSettlement.class);
-
-      settlement.commit(Result.ignore());
+      settle();
 
       result.complete(true);
     }
@@ -276,6 +273,21 @@ public class AuctionImpl implements Auction
                       _auctionData.getState()));
 
     }
+  }
+
+  private void settle()
+  {
+    AuctionDataPublic.Bid bid = _auctionData.getLastBid();
+
+    if (bid == null)
+      return;
+
+    AuctionSettlement settlement
+      = _settlement.lookup("/" + _id).as(AuctionSettlement.class);
+
+    settlement.create(this._id, bid.getUserId(), bid, (r -> {
+      if (r) settlement.commit(Result.ignore());
+    }));
   }
 
   @Override

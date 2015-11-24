@@ -18,14 +18,19 @@ import io.baratine.core.ServiceRef;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 
+import java.util.logging.Logger;
+
 import static examples.auction.Payment.PaymentState;
 import static examples.auction.s1.TransactionState.CommitState;
 import static examples.auction.s1.TransactionState.RollbackState;
 
 @Journal()
 public class AuctionSettlementImpl
-  implements AuctionSettlement, AuctionSettlementInternal
+  implements AuctionSettlement
 {
+  private final static Logger log
+    = Logger.getLogger(AuctionSettlementImpl.class.getName());
+
   private DatabaseService _db;
   private PayPal _payPal;
   private ServiceRef _userManager;
@@ -40,8 +45,6 @@ public class AuctionSettlementImpl
 
   private TransactionState _state;
 
-  private AuctionSettlementInternal _self;
-
   public AuctionSettlementImpl(String id)
   {
     _id = id;
@@ -54,7 +57,7 @@ public class AuctionSettlementImpl
     if (_boundState != BoundState.UNBOUND)
       throw new IllegalStateException();
 
-    Result<Boolean>[] results = result.fork(2, (x -> x.get(0)));
+    Result<Boolean>[] results = result.fork(2, (l -> l.get(0) && l.get(1)));
 
     _db.findLocal(
       "select auction_id, user_id, bid from settlement where id = ?",
@@ -101,13 +104,15 @@ public class AuctionSettlementImpl
     result.complete(true);
   }
 
-  @Modify
   @Override
+  @Modify
   public void create(String auctionId,
                      String userId,
                      AuctionDataPublic.Bid bid,
                      Result<Boolean> result)
   {
+    log.finer(String.format("create %1$s", this));
+
     if (_boundState != BoundState.UNBOUND)
       throw new IllegalStateException();
 
@@ -116,23 +121,27 @@ public class AuctionSettlementImpl
     _bid = bid;
 
     _boundState = BoundState.NEW;
+
+    result.complete(true);
   }
 
-  @Override
   @Modify
+  @Override
   public void commit(Result<Status> status)
   {
+    log.finer(String.format("commit settlement %1$s", this));
+
     if (_boundState == BoundState.UNBOUND)
       throw new IllegalStateException();
 
     if (_state == null)
       _state = new TransactionState();
 
-    _self.commitImpl(status);
+    commitImpl(status);
   }
 
-  @Override
   @Modify
+  @Override
   public void rollback(Result<Status> status)
   {
     if (_boundState == BoundState.UNBOUND)
@@ -144,13 +153,13 @@ public class AuctionSettlementImpl
     if (_state.getRollbackState() == null)
       _state.setRollbackState(RollbackState.PENDING);
 
-    _self.rollbackImpl(status);
+    rollbackImpl(status);
   }
 
-  @Override
-  @Modify
   public void commitImpl(Result<Status> status)
   {
+    log.finer(String.format("commit settlement %1$s", this));
+
     CommitState commitState = _state.getCommitState();
     RollbackState rollbackState = _state.getRollbackState();
 
@@ -291,7 +300,6 @@ public class AuctionSettlementImpl
     }
   }
 
-  @Override
   public void rollbackImpl(Result<Status> status)
   {
     RollbackState rollbackState = _state.getRollbackState();
@@ -464,19 +472,25 @@ public class AuctionSettlementImpl
     }
   }
 
+  @Override
+  public String toString()
+  {
+    return this.getClass().getSimpleName()
+           + "["
+           + _id
+           + ", "
+           + _boundState
+           + ", "
+           + _state
+           + "]";
+  }
+
   enum BoundState
   {
     UNBOUND,
     NEW,
     BOUND
   }
-}
-
-interface AuctionSettlementInternal extends AuctionSettlement
-{
-  void commitImpl(Result<Status> status);
-
-  void rollbackImpl(Result<Status> status);
 }
 
 class ValueRef<T>

@@ -170,7 +170,7 @@ public class AuctionSettlementImpl
       break;
     }
     case PENDING: {
-      commitPending(status.from(x -> processCommit(x)));
+      commitPending(status.from(x -> processCommitResults(x)));
       break;
     }
     case REJECTED_PAYMENT: {
@@ -194,13 +194,73 @@ public class AuctionSettlementImpl
   public void commitPending(Result<TransactionState.CommitState> status)
   {
     Result<TransactionState.CommitState>[] children
-      = status.fork(3, (s, r) -> r.complete(
-                      TransactionState.CommitState.COMPLETED),
-                    (s, e, r) -> {});
+      = status.fork(3, (l, r) ->
+                      r.complete(processCommitResults(l.get(0), l.get(1), l.get(2))),
+                    (l, e, r) ->
+                      r.complete(processCommitException(l.get(0),
+                                                        e.get(0),
+                                                        l.get(1),
+                                                        e.get(1),
+                                                        l.get(2),
+                                                        e.get(2)))
+    );
 
     updateUser(children[0]);
     updateAuction(children[1]);
     chargeUser(children[2]);
+  }
+
+  public CommitState processCommitResults(CommitState userUpdateState,
+                                          CommitState auctionUpdateState,
+                                          CommitState paymentState)
+  {
+    if (userUpdateState == CommitState.REJECTED_USER) {
+      return CommitState.REJECTED_USER;
+    }
+    else if (auctionUpdateState == CommitState.REJECTED_AUCTION) {
+      return CommitState.REJECTED_AUCTION;
+    }
+    else if (paymentState == CommitState.REJECTED_PAYMENT) {
+      return CommitState.REJECTED_PAYMENT;
+    }
+    else if (paymentState == CommitState.PENDING) {
+      return CommitState.PENDING;
+    }
+    else if (userUpdateState == CommitState.COMPLETED
+             && auctionUpdateState == CommitState.COMPLETED
+             && paymentState == CommitState.COMPLETED) {
+      return CommitState.COMPLETED;
+    }
+    else {
+      throw new IllegalStateException(String.format("%1$s %2$s %3$s",
+                                                    userUpdateState,
+                                                    auctionUpdateState,
+                                                    paymentState));
+    }
+  }
+
+  public CommitState processCommitException(CommitState userUpdateState,
+                                            Throwable userUpdateException,
+                                            CommitState auctionUpdateState,
+                                            Throwable auctionUpdateException,
+                                            CommitState paymentState,
+                                            Throwable paymentException)
+  {
+    if (userUpdateException != null) {
+      return CommitState.REJECTED_USER;
+    }
+    else if (auctionUpdateException != null) {
+      return CommitState.REJECTED_AUCTION;
+    }
+    else if (paymentException != null) {
+      return CommitState.REJECTED_PAYMENT;
+    }
+    else {
+      throw new IllegalStateException(String.format("%1$s %2$s %3$s",
+                                                    userUpdateException,
+                                                    auctionUpdateException,
+                                                    paymentException));
+    }
   }
 
   public void updateUser(Result<TransactionState.CommitState> status)
@@ -234,7 +294,7 @@ public class AuctionSettlementImpl
                                          chargeUser(auctionData.get(),
                                                     creditCard.get(),
                                                     status),
-                                       e -> status.complete(CommitState.REJECTED_USER)
+                                       e -> status.complete(CommitState.REJECTED_PAYMENT)
     );
 
     Result<Boolean>[] forked
@@ -261,7 +321,6 @@ public class AuctionSettlementImpl
                    _userId,
                    _id,
                    status.from(x -> processPayment(x)));
-
   }
 
   private CommitState processPayment(Payment payment)
@@ -276,7 +335,7 @@ public class AuctionSettlementImpl
     }
   }
 
-  private Status processCommit(CommitState commitState)
+  private Status processCommitResults(CommitState commitState)
   {
     _state.setCommitState(commitState);
 
@@ -338,8 +397,9 @@ public class AuctionSettlementImpl
   {
     Result<TransactionState.RollbackState>[] forked
       = status.fork(3, (s, r) -> r.complete(
-                      TransactionState.RollbackState.COMPLETED),
-                    (s, e, r) -> {});
+      TransactionState.RollbackState.COMPLETED),
+                    (s, e, r) -> {
+                    });
 
     resetUser(forked[0]);
     resetAuction(forked[1]);

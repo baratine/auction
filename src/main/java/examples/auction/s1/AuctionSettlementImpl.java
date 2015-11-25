@@ -1,4 +1,3 @@
-
 package examples.auction.s1;
 
 import examples.auction.Auction;

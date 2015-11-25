@@ -12,6 +12,7 @@ import io.baratine.db.DatabaseService;
 import io.baratine.timer.TimerService;
 
 import java.time.ZonedDateTime;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 public class AuctionImpl implements Auction
@@ -34,6 +35,8 @@ public class AuctionImpl implements Auction
   private State _state;
 
   private ServiceRef _settlement;
+
+  private String _settlementId;
 
   public AuctionImpl()
   {
@@ -224,6 +227,15 @@ public class AuctionImpl implements Auction
     result.complete(true);
   }
 
+  @Override
+  @Modify
+  public void setSettled(Result<Boolean> result)
+  {
+    _auctionData.toSettled();
+
+    getEvents().onSettled(_auctionData);
+  }
+
   private AuctionEvents getEvents()
   {
     if (_events == null) {
@@ -275,11 +287,13 @@ public class AuctionImpl implements Auction
   {
     AuctionDataPublic.Bid bid = _auctionData.getLastBid();
 
+    _settlementId = UUID.randomUUID().toString();
+
     if (bid == null)
       return;
 
     AuctionSettlement settlement
-      = _settlement.lookup("/" + _id).as(AuctionSettlement.class);
+      = _settlement.lookup("/" + _settlementId).as(AuctionSettlement.class);
 
     settlement.create(this._id, bid.getUserId(), bid, (r -> {
       if (r) settlement.commit(Result.ignore());

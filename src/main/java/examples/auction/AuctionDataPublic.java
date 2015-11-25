@@ -165,11 +165,26 @@ public class AuctionDataPublic implements Serializable
     return sb.toString();
   }
 
+  public void toSettled()
+  {
+    if (_state != State.CLOSED)
+      throw new IllegalStateException();
+
+    _state = State.SETTLED;
+  }
+
+  public void toRolledBack()
+  {
+    _state = State.ROLLED_BACK;
+  }
+
   static enum State
   {
     INIT,
     OPEN,
-    CLOSED
+    CLOSED,
+    SETTLED,
+    ROLLED_BACK
   }
 
   public interface Bid

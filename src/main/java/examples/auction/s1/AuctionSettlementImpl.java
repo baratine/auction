@@ -259,6 +259,8 @@ public class AuctionSettlementImpl
   private Status processCommit(boolean result)
   {
     if (result) {
+      getAuction().setSettled(Result.ignore());
+
       return Status.COMMITTED;
     }
     else {

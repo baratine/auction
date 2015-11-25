@@ -217,7 +217,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
       Auction auction = _auctions.lookup("/" + auctionId).as(Auction.class);
 
-      auction.setAuctionWinner(userId, Result.ignore());
+      auction.setPendingAuctionWinner(userId, Result.ignore());
     }
     else {
       //send to customer service

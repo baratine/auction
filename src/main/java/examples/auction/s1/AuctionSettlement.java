@@ -20,7 +20,7 @@ public interface AuctionSettlement
 enum Status
 {
   COMMITTED,
-  PENDING,
+  COMMITTING,
   ROLLING_BACK,
   ROLLED_BACK
 }

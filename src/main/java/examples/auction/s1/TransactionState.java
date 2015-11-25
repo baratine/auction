@@ -5,34 +5,92 @@ import examples.auction.Refund;
 
 public class TransactionState
 {
-  private CommitState _commitState;
-  private RollbackState _rollbackState;
+  private CommitPhase _commitPhase = CommitPhase.COMMITTING;
+
+  private UserUpdateState _userUpdateState = UserUpdateState.UNKNOWN;
+  private AuctionUpdateState _auctionUpdateState = AuctionUpdateState.UNKNOWN;
+  private PaymentState _paymentState = PaymentState.UNKNOWN;
+
   private Payment _payment;
   private Refund _refund;
 
   public TransactionState()
   {
-    _commitState = CommitState.PENDING;
   }
 
-  public CommitState getCommitState()
+  public void toRollBack()
   {
-    return _commitState;
+    _commitPhase = CommitPhase.ROLLING_BACK;
   }
 
-  public void setCommitState(CommitState commitState)
+  public UserUpdateState getUserUpdateState()
   {
-    _commitState = commitState;
+    return _userUpdateState;
   }
 
-  public RollbackState getRollbackState()
+  public void setUserUpdateState(UserUpdateState userUpdateState)
   {
-    return _rollbackState;
+    _userUpdateState = userUpdateState;
   }
 
-  public void setRollbackState(RollbackState rollbackState)
+  public AuctionUpdateState getAuctionUpdateState()
   {
-    _rollbackState = rollbackState;
+    return _auctionUpdateState;
+  }
+
+  public void setAuctionUpdateState(AuctionUpdateState auctionUpdateState)
+  {
+    _auctionUpdateState = auctionUpdateState;
+  }
+
+  public PaymentState getPaymentState()
+  {
+    return _paymentState;
+  }
+
+  public void setPaymentState(PaymentState paymentState)
+  {
+    _paymentState = paymentState;
+  }
+
+  public boolean isCommitted()
+  {
+    boolean isCommitted = _commitPhase == CommitPhase.COMMITTING;
+
+    isCommitted &= _userUpdateState == UserUpdateState.SUCCESS;
+
+    isCommitted &= _auctionUpdateState == AuctionUpdateState.SUCCESS;
+
+    isCommitted &= _paymentState == PaymentState.SUCCESS;
+
+    return isCommitted;
+  }
+
+  public boolean isCommitting()
+  {
+    return _commitPhase == CommitPhase.COMMITTING;
+  }
+
+  public boolean isRolledBack()
+  {
+    boolean isRolledBack = _commitPhase == CommitPhase.ROLLING_BACK;
+
+    isRolledBack &= (_userUpdateState == UserUpdateState.REJECTED
+                     || _userUpdateState == UserUpdateState.ROLLED_BACK);
+
+    isRolledBack &= (_auctionUpdateState == AuctionUpdateState.REJECTED
+                     || _auctionUpdateState == AuctionUpdateState.ROLLED_BACK);
+
+    isRolledBack &= (_paymentState == PaymentState.REFUNDED
+                     || _paymentState == PaymentState.FAILED);
+
+    return isRolledBack;
+
+  }
+
+  public boolean isRollingBack()
+  {
+    return _commitPhase == CommitPhase.ROLLING_BACK;
   }
 
   public Payment getPayment()
@@ -60,25 +118,41 @@ public class TransactionState
   {
     return this.getClass().getSimpleName()
            + "["
-           + _commitState
+           + _commitPhase
            + ", "
-           + _rollbackState
+           + _userUpdateState + ", "
+           + _auctionUpdateState + ", "
+           + _paymentState
            + "]";
   }
 
-  enum CommitState
+  enum CommitPhase
   {
-    COMPLETED,
-    PENDING,
-    REJECTED_PAYMENT,
-    REJECTED_USER,
-    REJECTED_AUCTION
+    COMMITTING,
+    ROLLING_BACK
   }
 
-  enum RollbackState
+  enum UserUpdateState
   {
-    COMPLETED,
-    PENDING,
-    REFUND_FAILED
+    SUCCESS,
+    REJECTED,
+    ROLLED_BACK,
+    UNKNOWN
+  }
+
+  enum AuctionUpdateState
+  {
+    SUCCESS,
+    REJECTED,
+    ROLLED_BACK,
+    UNKNOWN
+  }
+
+  enum PaymentState
+  {
+    SUCCESS,
+    FAILED,
+    REFUNDED,
+    UNKNOWN
   }
 }

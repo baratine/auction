@@ -7,6 +7,8 @@ import examples.auction.PayPal;
 import examples.auction.Payment;
 import examples.auction.Refund;
 import examples.auction.User;
+import examples.auction.s1.TransactionState.AuctionUpdateState;
+import examples.auction.s1.TransactionState.UserUpdateState;
 import io.baratine.core.Journal;
 import io.baratine.core.Modify;
 import io.baratine.core.OnInit;
@@ -21,8 +23,6 @@ import io.baratine.db.DatabaseService;
 import java.util.logging.Logger;
 
 import static examples.auction.Payment.PaymentState;
-import static examples.auction.s1.TransactionState.CommitState;
-import static examples.auction.s1.TransactionState.RollbackState;
 
 @Journal()
 public class AuctionSettlementImpl
@@ -87,6 +87,9 @@ public class AuctionSettlementImpl
     if (state != null)
       _state = (TransactionState) state.getObject(1);
 
+    if (_state == null)
+      _state = new TransactionState();
+
     return true;
   }
 
@@ -134,9 +137,6 @@ public class AuctionSettlementImpl
     if (_boundState == BoundState.UNBOUND)
       throw new IllegalStateException();
 
-    if (_state == null)
-      _state = new TransactionState();
-
     commitImpl(status);
   }
 
@@ -147,82 +147,58 @@ public class AuctionSettlementImpl
     if (_boundState == BoundState.UNBOUND)
       throw new IllegalStateException();
 
-    if (_state == null)
-      throw new IllegalStateException();
-
-    if (_state.getRollbackState() == null)
-      _state.setRollbackState(RollbackState.PENDING);
-
-    rollbackImpl(status);
+    if (_state.isRollingBack())
+      rollbackImpl(status);
   }
 
   public void commitImpl(Result<Status> status)
   {
-    CommitState commitState = _state.getCommitState();
-    RollbackState rollbackState = _state.getRollbackState();
-
-    if (rollbackState != null)
+    if (_state.isRollingBack())
+      throw new IllegalStateException();
+    else if (_state.isCommitted())
+      throw new IllegalStateException();
+    else if (!_state.isCommitting())
       throw new IllegalStateException();
 
-    switch (commitState) {
-    case COMPLETED: {
-      status.complete(Status.COMMITTED);
-      break;
-    }
-    case PENDING: {
-      commitPending(status.from(x -> processCommit(x)));
-      break;
-    }
-    case REJECTED_PAYMENT: {
-      status.complete(Status.ROLLING_BACK);
-      break;
-    }
-    case REJECTED_USER: {
-      status.complete(Status.ROLLING_BACK);
-      break;
-    }
-    case REJECTED_AUCTION: {
-      status.complete(Status.ROLLING_BACK);
-      break;
-    }
-    default: {
-      break;
-    }
-    }
+    commitPending(status.from(x -> processCommit(x)));
   }
 
-  public void commitPending(Result<TransactionState.CommitState> status)
+  public void commitPending(Result<Boolean> status)
   {
-    Result<TransactionState.CommitState>[] children
-      = status.fork(3, (s, r) -> r.complete(
-                      TransactionState.CommitState.COMPLETED),
-                    (s, e, r) -> {});
+    Result<Boolean>[] children
+      = status.fork(3, (s, r) -> r.complete(s.get(0) && s.get(1) && s.get(2)),
+                    (s, e, r) -> r.complete(false));
 
     updateUser(children[0]);
     updateAuction(children[1]);
     chargeUser(children[2]);
   }
 
-  public void updateUser(Result<TransactionState.CommitState> status)
+  public void updateUser(Result<Boolean> status)
   {
     User user = getUser();
 
     user.addWonAuction(_auctionId,
-                       status.from(x -> x ?
-                         CommitState.COMPLETED :
-                         CommitState.REJECTED_USER));
+                       status.from(x -> {
+                         _state.setUserUpdateState(x ?
+                                                     UserUpdateState.SUCCESS :
+                                                     UserUpdateState.REJECTED);
+                         return x;
+                       }));
   }
 
-  public void updateAuction(Result<CommitState> status)
+  public void updateAuction(Result<Boolean> status)
   {
     Auction auction = getAuction();
 
-    auction.setAuctionWinner(_userId, status.from(x -> x ?
-      CommitState.COMPLETED :
-      CommitState.REJECTED_AUCTION));
+    auction.setPendingAuctionWinner(_userId, status.from(x -> {
+      _state.setAuctionUpdateState(
+        x ? AuctionUpdateState.SUCCESS : AuctionUpdateState.REJECTED);
+      return x;
+    }));
   }
 
-  public void chargeUser(Result<CommitState> status)
+  public void chargeUser(Result<Boolean> status)
   {
     User user = getUser();
     Auction auction = getAuction();
@@ -234,7 +210,7 @@ public class AuctionSettlementImpl
                                          chargeUser(auctionData.get(),
                                                     creditCard.get(),
                                                     status),
-                                       e -> status.complete(CommitState.REJECTED_USER)
+                                       e -> status.complete(false)
     );
 
     Result<Boolean>[] forked
@@ -253,7 +229,7 @@ public class AuctionSettlementImpl
 
   public void chargeUser(AuctionDataPublic auctionData,
                          CreditCard creditCard,
-                         Result<CommitState> status)
+                         Result<Boolean> status)
   {
     _payPal.settle(auctionData,
                    _bid,
@@ -264,133 +240,134 @@ public class AuctionSettlementImpl
 
   }
 
-  private CommitState processPayment(Payment payment)
+  private boolean processPayment(Payment payment)
   {
     _state.setPayment(payment);
 
     if (payment.getState().equals(PaymentState.approved)) {
-      return CommitState.COMPLETED;
+      _state.setPaymentState(TransactionState.PaymentState.SUCCESS);
+
+      return true;
     }
     else {
-      return CommitState.REJECTED_PAYMENT;
+      _state.setPaymentState(TransactionState.PaymentState.FAILED);
+
+      return false;
     }
   }
 
-  private Status processCommit(CommitState commitState)
+  private Status processCommit(boolean result)
   {
-    _state.setCommitState(commitState);
-
-    switch (commitState) {
-    case COMPLETED: {
+    if (result) {
       return Status.COMMITTED;
     }
-    case PENDING: {
-      return Status.PENDING;
-    }
-    case REJECTED_AUCTION:
-    case REJECTED_PAYMENT:
-    case REJECTED_USER: {
+    else {
+      _state.toRollBack();
+
       return Status.ROLLING_BACK;
-    }
-    default: {
-      throw new IllegalStateException();
-    }
     }
   }
 
   public void rollbackImpl(Result<Status> status)
   {
-    RollbackState rollbackState = _state.getRollbackState();
-
-    switch (rollbackState) {
-    case COMPLETED: {
-      status.complete(Status.ROLLED_BACK);
-      break;
-    }
-    case PENDING: {
-      rollbackPending(status.from(x -> processRollback(x)));
-      break;
-    }
-    case REFUND_FAILED: {
-      //TODO:
-      break;
-    }
-    default: {
-      throw new IllegalStateException();
-    }
-    }
+    rollbackPending(status.from(x -> {
+      if (x) {
+        return Status.ROLLED_BACK;
+      }
+      else {
+        //process false
+        return Status.ROLLED_BACK;
+      }
+    }));
   }
 
-  private Status processRollback(RollbackState state)
+  public void rollbackPending(Result<Boolean> status)
   {
-    switch (state) {
-    case COMPLETED:
-      return Status.ROLLED_BACK;
-    case PENDING:
-      return Status.ROLLING_BACK;
-    default: {
-      throw new IllegalStateException();
-    }
-    }
-  }
-
-  public void rollbackPending(Result<TransactionState.RollbackState> status)
-  {
-    Result<TransactionState.RollbackState>[] forked
-      = status.fork(3, (s, r) -> r.complete(
-                      TransactionState.RollbackState.COMPLETED),
+    Result<Boolean>[] children
+      = status.fork(3, (s, r) -> r.complete(true),
                     (s, e, r) -> {});
 
-    resetUser(forked[0]);
-    resetAuction(forked[1]);
-    refundUser(forked[2]);
+    resetUser(children[0]);
+    resetAuction(children[1]);
+    refundUser(children[2]);
   }
 
-  private void resetUser(Result<RollbackState> forkedState)
+  private void resetUser(Result<Boolean> result)
   {
+    if (_state.getUserUpdateState() == UserUpdateState.REJECTED) {
+      result.complete(true);
+
+      return;
+    }
+
     User user = getUser();
     user.removeWonAuction(_auctionId,
-                          forkedState.from(x -> RollbackState.COMPLETED));
+                          result.from(x -> {
+                            if (x) {
+                              _state.setUserUpdateState(
+                                UserUpdateState.ROLLED_BACK);
+                              return true;
+                            }
+                            else {
+                              throw new IllegalStateException();
+                            }
+                          }));
   }
 
-  private void resetAuction(Result<RollbackState> forkedState)
+  private void resetAuction(Result<Boolean> result)
   {
+    if (_state.getAuctionUpdateState() == AuctionUpdateState.REJECTED) {
+      result.complete(true);
+
+      return;
+    }
+
     Auction auction = getAuction();
 
-    auction.resetAuctionWinner(_userId,
-                               forkedState.from(x -> RollbackState.COMPLETED));
+    auction.clearAuctionWinner(_userId,
+                               result.from(x -> {
+                                 if (x) {
+                                   _state.setAuctionUpdateState(
+                                     AuctionUpdateState.ROLLED_BACK);
+                                   return true;
+                                 }
+                                 else {
+                                   throw new IllegalStateException();
+                                 }
+                               }));
   }
 
-  private void refundUser(Result<RollbackState> forkedState)
+  private void refundUser(Result<Boolean> result)
   {
+    if (_state.getPaymentState() == TransactionState.PaymentState.FAILED) {
+      result.complete(true);
+
+      return;
+    }
+
     Payment payment = _state.getPayment();
     if (payment == null) {
-      forkedState.complete(RollbackState.COMPLETED);
+      //send payment to refund service
+      result.complete(true);
     }
     else {
       _payPal.refund(_id, payment.getSaleId(),
                      payment.getSaleId(),
-                     forkedState.from(r -> processRefund(r)));
+                     result.from(r -> processRefund(r)));
     }
   }
 
-  private RollbackState processRefund(Refund refund)
+  private boolean processRefund(Refund refund)
   {
-    _state.setRefund(refund);
+    if (refund.getStatus() == Refund.RefundState.completed) {
+      _state.setPaymentState(TransactionState.PaymentState.REFUNDED);
 
-    switch (refund.getStatus()) {
-    case completed: {
-      break;
+      return true;
     }
-    case failed: {
-      break;
-    }
-    case pending: {
-      break;
-    }
-    }
+    else {
 
-    return RollbackState.COMPLETED;
+      return false;
+    }
   }
 
   private User getUser()
@@ -430,44 +407,27 @@ public class AuctionSettlementImpl
   }
 
   @Override
-  public void status(Result<Status> status)
+  public void status(Result<Status> result)
   {
-    CommitState commitState = _state.getCommitState();
-    RollbackState rollbackState = _state.getRollbackState();
+    Status status;
 
-    if (rollbackState == null) {
-      switch (commitState) {
-      case COMPLETED: {
-        status.complete(Status.COMMITTED);
-        break;
-      }
-      case PENDING: {
-        status.complete(Status.PENDING);
-        break;
-      }
-      case REJECTED_AUCTION:
-      case REJECTED_PAYMENT:
-      case REJECTED_USER: {
-        status.complete(Status.ROLLING_BACK);
-        break;
-      }
-      default: {
-        throw new IllegalStateException();
-      }
-      }
+    if (_state.isCommitted()) {
+      status = Status.COMMITTED;
+    }
+    else if (_state.isRolledBack()) {
+      status = Status.ROLLED_BACK;
+    }
+    else if (_state.isCommitting()) {
+      status = Status.COMMITTING;
+    }
+    else if (_state.isRollingBack()) {
+      status = Status.ROLLING_BACK;
     }
     else {
-      switch (rollbackState) {
-      case COMPLETED: {
-        status.complete(Status.ROLLED_BACK);
-        break;
-      }
-      case PENDING: {
-        status.complete(Status.ROLLING_BACK);
-        break;
-      }
-      }
+      throw new IllegalStateException(_state.toString());
     }
+
+    result.complete(status);
   }
 
   @Override

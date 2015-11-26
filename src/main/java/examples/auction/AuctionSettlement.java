@@ -1,6 +1,5 @@
-package examples.auction.s1;
+package examples.auction;
 
-import examples.auction.AuctionDataPublic;
 import io.baratine.core.Result;
 
 public interface AuctionSettlement
@@ -15,12 +14,15 @@ public interface AuctionSettlement
   void rollback(Result<Status> status);
 
   void status(Result<Status> status);
+
+  void getTransactionState(Result<SettlementTransactionState> result);
+
+  enum Status
+  {
+    COMMITTED,
+    COMMITTING,
+    ROLLING_BACK,
+    ROLLED_BACK
+  }
 }
 
-enum Status
-{
-  COMMITTED,
-  COMMITTING,
-  ROLLING_BACK,
-  ROLLED_BACK
-}

@@ -1,9 +1,6 @@
-package examples.auction.s1;
+package examples.auction;
 
-import examples.auction.Payment;
-import examples.auction.Refund;
-
-public class TransactionState
+public class SettlementTransactionState
 {
   private CommitPhase _commitPhase = CommitPhase.COMMITTING;
 
@@ -14,7 +11,7 @@ public class TransactionState
   private Payment _payment;
   private Refund _refund;
 
-  public TransactionState()
+  public SettlementTransactionState()
   {
   }
 
@@ -103,14 +100,14 @@ public class TransactionState
     _payment = payment;
   }
 
-  public void setRefund(Refund refund)
-  {
-    _refund = refund;
-  }
-
   public Refund getRefund()
   {
     return _refund;
+  }
+
+  public void setRefund(Refund refund)
+  {
+    _refund = refund;
   }
 
   @Override

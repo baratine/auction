@@ -1,14 +1,5 @@
-package examples.auction.s1;
+package examples.auction;
 
-import examples.auction.Auction;
-import examples.auction.AuctionDataPublic;
-import examples.auction.CreditCard;
-import examples.auction.PayPal;
-import examples.auction.Payment;
-import examples.auction.Refund;
-import examples.auction.User;
-import examples.auction.s1.TransactionState.AuctionUpdateState;
-import examples.auction.s1.TransactionState.UserUpdateState;
 import io.baratine.core.Journal;
 import io.baratine.core.Modify;
 import io.baratine.core.OnInit;
@@ -43,7 +34,7 @@ public class AuctionSettlementImpl
   private String _userId;
   private AuctionDataPublic.Bid _bid;
 
-  private TransactionState _state;
+  private SettlementTransactionState _state;
 
   public AuctionSettlementImpl(String id)
   {
@@ -85,10 +76,10 @@ public class AuctionSettlementImpl
   public boolean loadState(Cursor state)
   {
     if (state != null)
-      _state = (TransactionState) state.getObject(1);
+      _state = (SettlementTransactionState) state.getObject(1);
 
     if (_state == null)
-      _state = new TransactionState();
+      _state = new SettlementTransactionState();
 
     return true;
   }
@@ -170,10 +161,17 @@ public class AuctionSettlementImpl
     user.addWonAuction(_auctionId,
                        status.from(x -> {
                          _state.setUserUpdateState(x ?
-                                                     UserUpdateState.SUCCESS :
-                                                     UserUpdateState.REJECTED);
+                                                     SettlementTransactionState.UserUpdateState.SUCCESS :
+                                                     SettlementTransactionState.UserUpdateState.REJECTED);
                          return x;
                        }));
+  }
+
+  private User getUser()
+  {
+    User user = _userManager.lookup('/' + _userId).as(User.class);
+
+    return user;
   }
 
   public void updateAuction(Result<Boolean> status)
@@ -182,9 +180,19 @@ public class AuctionSettlementImpl
 
     auction.setPendingAuctionWinner(_userId, status.from(x -> {
       _state.setAuctionUpdateState(
-        x ? AuctionUpdateState.SUCCESS : AuctionUpdateState.REJECTED);
+        x ?
+          SettlementTransactionState.AuctionUpdateState.SUCCESS :
+          SettlementTransactionState.AuctionUpdateState.REJECTED);
       return x;
     }));
+  }
+
+  private Auction getAuction()
+  {
+    Auction auction = _auctionManager.lookup('/' + _auctionId)
+                                     .as(Auction.class);
+
+    return auction;
   }
 
   public void chargeUser(Result<Boolean> status)
@@ -234,12 +242,12 @@ public class AuctionSettlementImpl
     _state.setPayment(payment);
 
     if (payment.getState().equals(PaymentState.approved)) {
-      _state.setPaymentState(TransactionState.PaymentState.SUCCESS);
+      _state.setPaymentState(SettlementTransactionState.PaymentState.SUCCESS);
 
       return true;
     }
     else {
-      _state.setPaymentState(TransactionState.PaymentState.FAILED);
+      _state.setPaymentState(SettlementTransactionState.PaymentState.FAILED);
 
       return false;
     }
@@ -296,7 +304,8 @@ public class AuctionSettlementImpl
 
   private void resetUser(Result<Boolean> result)
   {
-    if (_state.getUserUpdateState() == UserUpdateState.REJECTED) {
+    if (_state.getUserUpdateState()
+        == SettlementTransactionState.UserUpdateState.REJECTED) {
       result.complete(true);
 
       return;
@@ -307,7 +316,7 @@ public class AuctionSettlementImpl
                           result.from(x -> {
                             if (x) {
                               _state.setUserUpdateState(
-                                UserUpdateState.ROLLED_BACK);
+                                SettlementTransactionState.UserUpdateState.ROLLED_BACK);
                               return true;
                             }
                             else {
@@ -318,7 +327,8 @@ public class AuctionSettlementImpl
 
   private void resetAuction(Result<Boolean> result)
   {
-    if (_state.getAuctionUpdateState() == AuctionUpdateState.REJECTED) {
+    if (_state.getAuctionUpdateState()
+        == SettlementTransactionState.AuctionUpdateState.REJECTED) {
       result.complete(true);
 
       return;
@@ -330,7 +340,7 @@ public class AuctionSettlementImpl
                                result.from(x -> {
                                  if (x) {
                                    _state.setAuctionUpdateState(
-                                     AuctionUpdateState.ROLLED_BACK);
+                                     SettlementTransactionState.AuctionUpdateState.ROLLED_BACK);
                                    return true;
                                  }
                                  else {
@@ -341,7 +351,8 @@ public class AuctionSettlementImpl
 
   private void refundUser(Result<Boolean> result)
   {
-    if (_state.getPaymentState() == TransactionState.PaymentState.FAILED) {
+    if (_state.getPaymentState()
+        == SettlementTransactionState.PaymentState.FAILED) {
       result.complete(true);
 
       return;
@@ -362,7 +373,7 @@ public class AuctionSettlementImpl
   private boolean processRefund(Refund refund)
   {
     if (refund.getStatus() == Refund.RefundState.completed) {
-      _state.setPaymentState(TransactionState.PaymentState.REFUNDED);
+      _state.setPaymentState(SettlementTransactionState.PaymentState.REFUNDED);
 
       return true;
     }
@@ -370,21 +381,6 @@ public class AuctionSettlementImpl
 
       return false;
     }
-  }
-
-  private User getUser()
-  {
-    User user = _userManager.lookup('/' + _userId).as(User.class);
-
-    return user;
-  }
-
-  private Auction getAuction()
-  {
-    Auction auction = _auctionManager.lookup('/' + _auctionId)
-                                     .as(Auction.class);
-
-    return auction;
   }
 
   @OnSave
@@ -406,6 +402,12 @@ public class AuctionSettlementImpl
              },
              _id,
              _state);
+  }
+
+  @Override
+  public void getTransactionState(Result<SettlementTransactionState> result)
+  {
+    result.complete(_state);
   }
 
   @Override

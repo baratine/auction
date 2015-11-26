@@ -1,4 +1,4 @@
-package examples.auction.s1;
+package examples.auction;
 
 public interface AuctionSettlementManager
 {

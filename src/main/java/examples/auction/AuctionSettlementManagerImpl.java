@@ -1,4 +1,4 @@
-package examples.auction.s1;
+package examples.auction;
 
 import io.baratine.core.Lookup;
 import io.baratine.core.OnInit;
@@ -14,11 +14,10 @@ import javax.inject.Inject;
 public class AuctionSettlementManagerImpl
   implements AuctionSettlementManager
 {
-  private ServiceRef _selfRef;
-
   @Inject
   @Lookup("bardb:///")
   DatabaseService _db;
+  private ServiceRef _selfRef;
 
   @OnInit
   public void init(Result<Boolean> result)

@@ -1,6 +1,5 @@
 package examples.auction;
 
-import examples.auction.s1.AuctionSettlement;
 import io.baratine.core.Modify;
 import io.baratine.core.OnLoad;
 import io.baratine.core.OnSave;
@@ -183,6 +182,60 @@ public class AuctionImpl implements Auction
   }
 
   @Modify
+  public void close(Result<Boolean> result)
+  {
+    if (_state == State.UNBOUND)
+      throw new IllegalStateException();
+
+    if (_auctionData.getState() == AuctionDataPublic.State.OPEN) {
+      _audit.auctionToClose(_auctionData, Result.<Void>ignore());
+
+      _auctionData.toClose();
+
+      getEvents().onClose(_auctionData);
+
+      settle();
+
+      result.complete(true);
+    }
+    else {
+      throw new IllegalStateException(
+        String.format("can't close auction %1s from state %2s",
+                      _auctionData.getId(),
+                      _auctionData.getState()));
+
+    }
+  }
+
+  private AuctionEvents getEvents()
+  {
+    if (_events == null) {
+      String url = "event://auction/auction/" + _auctionData.getId();
+
+      _events = _manager.lookup(url).as(AuctionEvents.class);
+    }
+
+    return _events;
+  }
+
+  private void settle()
+  {
+    AuctionDataPublic.Bid bid = _auctionData.getLastBid();
+
+    _settlementId = UUID.randomUUID().toString();
+
+    if (bid == null)
+      return;
+
+    AuctionSettlement settlement
+      = _settlement.lookup("/" + _settlementId).as(AuctionSettlement.class);
+
+    settlement.create(this._id, bid.getUserId(), bid, (r -> {
+      if (r) settlement.commit(Result.ignore());
+    }));
+  }
+
+  @Modify
   public void bid(Bid bid, Result<Boolean> result)
     throws IllegalStateException
   {
@@ -240,17 +293,6 @@ public class AuctionImpl implements Auction
     getEvents().onSettled(_auctionData);
   }
 
-  private AuctionEvents getEvents()
-  {
-    if (_events == null) {
-      String url = "event://auction/auction/" + _auctionData.getId();
-
-      _events = _manager.lookup(url).as(AuctionEvents.class);
-    }
-
-    return _events;
-  }
-
   public void get(Result<AuctionDataPublic> result)
   {
     log.finer("get auction data public @"
@@ -261,55 +303,10 @@ public class AuctionImpl implements Auction
     result.complete(_auctionData);
   }
 
-  @Modify
-  public void close(Result<Boolean> result)
-  {
-    if (_state == State.UNBOUND)
-      throw new IllegalStateException();
-
-    if (_auctionData.getState() == AuctionDataPublic.State.OPEN) {
-      _audit.auctionToClose(_auctionData, Result.<Void>ignore());
-
-      _auctionData.toClose();
-
-      getEvents().onClose(_auctionData);
-
-      settle();
-
-      result.complete(true);
-    }
-    else {
-      throw new IllegalStateException(
-        String.format("can't close auction %1s from state %2s",
-                      _auctionData.getId(),
-                      _auctionData.getState()));
-
-    }
-  }
-
   @Override
   public void getSettlementId(Result<String> result)
   {
     result.complete(_settlementId);
-
-
-  }
-
-  private void settle()
-  {
-    AuctionDataPublic.Bid bid = _auctionData.getLastBid();
-
-    _settlementId = UUID.randomUUID().toString();
-
-    if (bid == null)
-      return;
-
-    AuctionSettlement settlement
-      = _settlement.lookup("/" + _settlementId).as(AuctionSettlement.class);
-
-    settlement.create(this._id, bid.getUserId(), bid, (r -> {
-      if (r) settlement.commit(Result.ignore());
-    }));
   }
 
   @Override

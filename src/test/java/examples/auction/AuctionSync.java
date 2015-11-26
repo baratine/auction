@@ -11,4 +11,6 @@ public interface AuctionSync extends Auction
   AuctionDataPublic get();
 
   boolean bid(Bid bid);
+
+  String getSettlementId();
 }

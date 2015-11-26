@@ -60,14 +60,6 @@ public class PayPalRestLink
     }
   }
 
-  private String getBA() throws UnsupportedEncodingException
-  {
-    String auth = _clientId + ':' + _secret;
-    byte[] bytes = Base64.getEncoder().encode(auth.getBytes("UTF-8"));
-
-    return new String(bytes, "UTF-8");
-  }
-
   public PayPalAuth auth() throws IOException
   {
     Map<String,String> headers = new HashMap<>();
@@ -83,6 +75,14 @@ public class PayPalRestLink
                         "grant_type=client_credentials".getBytes());
 
     return new PayPalAuth(reply);
+  }
+
+  private String getBA() throws UnsupportedEncodingException
+  {
+    String auth = _clientId + ':' + _secret;
+    byte[] bytes = Base64.getEncoder().encode(auth.getBytes("UTF-8"));
+
+    return new String(bytes, "UTF-8");
   }
 
   private String send(String subUrl,

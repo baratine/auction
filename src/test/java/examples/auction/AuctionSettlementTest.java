@@ -2,8 +2,6 @@ package examples.auction;
 
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
-import com.caucho.v5.cli.baratine.SleepCommand;
-import examples.auction.s1.AuctionSettlementImpl;
 import io.baratine.core.Lookup;
 import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
@@ -12,7 +10,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
@@ -67,7 +64,7 @@ import java.util.logging.Logger;
 public class AuctionSettlementTest
 {
   private static final Logger log
-    = Logger.getLogger(AuctionTest.class.getName());
+    = Logger.getLogger(AuctionSettlementTest.class.getName());
 
   @Inject
   @Lookup("pod://user/user")
@@ -84,6 +81,10 @@ public class AuctionSettlementTest
   @Inject
   @Lookup("pod://auction/auction")
   ServiceRef _auctionsRef;
+
+  @Inject
+  @Lookup("pod://settlement/settlement")
+  ServiceRef _settlementRef;
 
   @Inject
   RunnerBaratine _testContext;
@@ -138,35 +139,6 @@ public class AuctionSettlementTest
   }
 
   /**
-   * open and close an auction.
-   */
-
-  @Test
-  public void openClose() throws InterruptedException
-  {
-    UserSync user = createUser("Spock", "test");
-
-    AuctionSync auction = createAuction(user, "book", 15);
-
-    Assert.assertNotNull(auction);
-
-    AuctionDataPublic data = auction.get();
-    Assert.assertEquals(AuctionDataPublic.State.INIT, data.getState());
-
-    boolean result = auction.open();
-    Assert.assertTrue(result);
-
-    data = auction.get();
-    Assert.assertEquals(AuctionDataPublic.State.OPEN, data.getState());
-
-    result = auction.close();
-    Assert.assertTrue(result);
-
-    data = auction.get();
-    Assert.assertEquals(AuctionDataPublic.State.CLOSED, data.getState());
-  }
-
-  /**
    * Tests normal bid.
    */
   @Test
@@ -182,15 +154,22 @@ public class AuctionSettlementTest
     boolean result = auction.open();
     Assert.assertTrue(result);
 
-    // successful bid
     result = auction.bid(new Bid(userKirk.getUserData().getId(), 2));
     result = auction.close();
     Assert.assertTrue(result);
 
+    String settlementId = auction.getSettlementId();
+
+    AuctionSettlementSync settlement =
+      _settlementRef.lookup("/" + settlementId).as(AuctionSettlementSync.class);
+
+    AuctionSettlement.Status status = settlement.commit();
+
+    System.out.println(status);
 
     AuctionDataPublic data = auction.get();
 
-
+    System.out.println(data);
   }
 
   /**
@@ -248,61 +227,6 @@ public class AuctionSettlementTest
     Assert.assertEquals(auctionCallback.getCount(), 2);
   }
 
-  /**
-   * Tests normal auction expire (5 days)
-   */
-
-  @Test
-  public void testAuctionExpire() throws InterruptedException
-  {
-    UserSync userSpock = createUser("Spock", "test");
-    UserSync userKirk = createUser("Kirk", "test");
-
-    AuctionSync auction = createAuction(userSpock, "book", 15);
-
-    Assert.assertNotNull(auction);
-
-    boolean result = auction.open();
-    Assert.assertTrue(result);
-
-    result = auction.bid(new Bid(userKirk.getUserData().getId(), 20));
-    Assert.assertTrue(result);
-
-    String id = auction.get().getId();
-
-    String url = "event://auction/auction/" + id;
-    ServiceRef eventRef = _auctionPod.lookup(url);
-    AuctionListenerImpl auctionCallback = new AuctionListenerImpl("book");
-    ServiceRef callbackRef
-      = _auctionPod.newService().service(auctionCallback).build();
-    eventRef.subscribe(callbackRef);
-
-    // 1 seconds later auction is still open
-    _testContext.addTime(1, TimeUnit.SECONDS);
-
-    Thread.sleep(100);
-
-    AuctionDataPublic data = auction.get();
-
-    Assert.assertEquals(AuctionDataPublic.State.OPEN, data.getState());
-
-    Assert.assertEquals("", auctionCallback.getAndClear());
-
-    // 30 seconds after that, auction is closed
-    _testContext.addTime(30, TimeUnit.SECONDS);
-    Thread.sleep(100);
-
-    data = auction.get();
-    Assert.assertEquals(AuctionDataPublic.State.CLOSED, data.getState());
-    Assert.assertEquals("close book user=Kirk 20",
-                        auctionCallback.getAndClear());
-
-    // 24 hours after that, no extra events
-    _testContext.addTime(24, TimeUnit.HOURS);
-    Thread.sleep(100);
-    Assert.assertEquals("", auctionCallback.getAndClear());
-  }
-
   class AuctionListenerImpl implements AuctionEvents
   {
     private String _title;
@@ -348,7 +272,7 @@ public class AuctionSettlementTest
     @Override
     public void onBid(AuctionDataPublic data)
     {
-      _user = AuctionTest.this.getUser(data.getLastBid().getUserId());
+      _user = AuctionSettlementTest.this.getUser(data.getLastBid().getUserId());
       _bid = data.getLastBid().getBid();
       _type = "bid";
       _count++;
@@ -373,7 +297,7 @@ public class AuctionSettlementTest
     @Override
     public void onClose(AuctionDataPublic data)
     {
-      _user = AuctionTest.this.getUser(data.getLastBid().getUserId());
+      _user = AuctionSettlementTest.this.getUser(data.getLastBid().getUserId());
       _bid = data.getLastBid().getBid();
       _type = "close";
       _count++;

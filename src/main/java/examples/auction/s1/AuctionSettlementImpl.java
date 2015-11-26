@@ -140,17 +140,6 @@ public class AuctionSettlementImpl
     commitImpl(status);
   }
 
-  @Modify
-  @Override
-  public void rollback(Result<Status> status)
-  {
-    if (_boundState == BoundState.UNBOUND)
-      throw new IllegalStateException();
-
-    if (_state.isRollingBack())
-      rollbackImpl(status);
-  }
-
   public void commitImpl(Result<Status> status)
   {
     if (_state.isRollingBack())
@@ -268,6 +257,17 @@ public class AuctionSettlementImpl
 
       return Status.ROLLING_BACK;
     }
+  }
+
+  @Modify
+  @Override
+  public void rollback(Result<Status> status)
+  {
+    if (_boundState == BoundState.UNBOUND)
+      throw new IllegalStateException();
+
+    if (_state.isRollingBack())
+      rollbackImpl(status);
   }
 
   public void rollbackImpl(Result<Status> status)

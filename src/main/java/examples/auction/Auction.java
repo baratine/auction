@@ -21,5 +21,7 @@ public interface Auction
   void get(Result<AuctionDataPublic> result);
 
   void close(Result<Boolean> result);
+
+  void getSettlementId(Result<String> result);
 }
 

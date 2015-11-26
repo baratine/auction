@@ -1,7 +1,5 @@
 package examples.auction;
 
-import io.baratine.core.Result;
-
 public interface AuctionSync extends Auction
 {
   String create(AuctionDataInit initData);

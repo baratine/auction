@@ -2,6 +2,8 @@ package examples.auction;
 
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
+import com.caucho.v5.cli.baratine.SleepCommand;
+import examples.auction.s1.AuctionSettlementImpl;
 import io.baratine.core.Lookup;
 import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
@@ -53,7 +55,16 @@ import java.util.logging.Logger;
           @ConfigurationBaratine.Log(name = "examples.auction",
                                      level = "FINER")},
   testTime = 0)
-public class AuctionTest
+
+@ConfigurationBaratine(
+  services = {AuctionSettlementImpl.class},
+  pod = "",
+  logLevel = "finer",
+  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
+          @ConfigurationBaratine.Log(name = "examples.auction",
+                                     level = "FINER")},
+  testTime = 0)
+public class AuctionSettlementTest
 {
   private static final Logger log
     = Logger.getLogger(AuctionTest.class.getName());
@@ -156,89 +167,15 @@ public class AuctionTest
   }
 
   /**
-   * double open
-   */
-  @Test
-  public void openOpen() throws InterruptedException
-  {
-    UserSync user = createUser("Spock", "test");
-
-    AuctionSync auction = createAuction(user, "book", 15);
-
-    Assert.assertNotNull(auction);
-
-    boolean result = auction.open();
-    Assert.assertTrue(result);
-
-    try {
-      result = auction.open();
-
-      Assert.assertTrue(false);
-    } catch (RuntimeException e) {
-      Assert.assertEquals(e.getCause().getClass(), IllegalStateException.class);
-    }
-  }
-
-  /**
-   * init/close
-   */
-  @Test
-  public void initClose() throws InterruptedException
-  {
-    UserSync user = createUser("Spock", "test");
-
-    AuctionSync auction = createAuction(user, "book", 15);
-
-    Assert.assertNotNull(auction);
-
-    try {
-      auction.close();
-
-      Assert.assertTrue(false);
-    } catch (Throwable t) {
-      Assert.assertEquals(t.getCause().getClass(), IllegalStateException.class);
-    }
-  }
-
-  /**
-   * close open
-   */
-  @Test
-  public void closeOpen() throws InterruptedException
-  {
-    UserSync user = createUser("Spock", "test");
-
-    AuctionSync auction = createAuction(user, "book", 15);
-
-    Assert.assertNotNull(auction);
-
-    boolean result = auction.open();
-    Assert.assertTrue(result);
-
-    result = auction.close();
-    Assert.assertTrue(result);
-
-    try {
-      auction.open();
-
-      Assert.assertTrue(false);
-    } catch (RuntimeException e) {
-      Assert.assertEquals(e.getCause().getClass(), IllegalStateException.class);
-    }
-  }
-
-  /**
    * Tests normal bid.
    */
-
   @Test
-  public void testAuctionBid() throws InterruptedException
+  public void testAuctionSettle() throws InterruptedException
   {
     UserSync userSpock = createUser("Spock", "test");
     UserSync userKirk = createUser("Kirk", "test");
-    UserSync userUhura = createUser("Uhura", "test");
 
-    AuctionSync auction = createAuction(userSpock, "book", 15);
+    AuctionSync auction = createAuction(userSpock, "book", 1);
 
     Assert.assertNotNull(auction);
 
@@ -246,28 +183,14 @@ public class AuctionTest
     Assert.assertTrue(result);
 
     // successful bid
-    result = auction.bid(new Bid(userKirk.getUserData().getId(), 20));
-    Assert.assertTrue(result);
-    AuctionDataPublic data = auction.get();
-    Assert.assertEquals(data.getLastBid().getBid(), 20);
-    Assert.assertEquals(data.getLastBid().getUserId(),
-                        userKirk.getUserData().getId());
-
-    // failed bid
-    result = auction.bid(new Bid(userUhura.getUserData().getId(), 17));
-    Assert.assertFalse(result);
-    data = auction.get();
-    Assert.assertEquals(data.getLastBid().getBid(), 20);
-    Assert.assertEquals(data.getLastBid().getUserId(),
-                        userKirk.getUserData().getId());
-
+    result = auction.bid(new Bid(userKirk.getUserData().getId(), 2));
     result = auction.close();
     Assert.assertTrue(result);
 
-    data = auction.get();
-    Assert.assertEquals(data.getLastBid().getBid(), 20);
-    Assert.assertEquals(data.getLastBid().getUserId(),
-                        userKirk.getUserData().getId());
+
+    AuctionDataPublic data = auction.get();
+
+
   }
 
   /**

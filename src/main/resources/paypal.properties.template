@@ -1,0 +1,12 @@
+# Copy the file into paypal.properties and fill
+# out with your paypal account values.
+#
+# These properties are loaded by PayPalRestLink
+#
+#
+app=<APPLICATION-ID>
+account=<paypal-account>
+client-id=<client-id>
+secret=<secret>
+endpoint=api.sandbox.paypal.com
+

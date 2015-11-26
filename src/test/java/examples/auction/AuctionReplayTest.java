@@ -38,7 +38,7 @@ import java.util.logging.Logger;
                                      level = "FINER")},
   port = 6810,
   testTime = 0,
-  journalDelay=120000)
+  journalDelay = 120000)
 
 @ConfigurationBaratine(
   services = {AuditServiceImpl.class},

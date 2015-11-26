@@ -190,6 +190,17 @@ public class AuctionSessionTest
     Assert.assertNull(data.getLastBid());
   }
 
+  private AuctionSessionSync createUser(String user, String password)
+  {
+    AuctionSessionSync session = getSession();
+
+    boolean result = session.createUser(user, password);
+
+    Assert.assertTrue(result);
+
+    return session;
+  }
+
   /**
    * bid on an auction
    */
@@ -214,17 +225,6 @@ public class AuctionSessionTest
     AuctionDataPublic data = sessionKirk.getAuction(idBid);
     Assert.assertNotNull(data);
     Assert.assertEquals(data.getLastBid().getBid(), 17);
-  }
-
-  private AuctionSessionSync createUser(String user, String password)
-  {
-    AuctionSessionSync session = getSession();
-
-    boolean result = session.createUser(user, password);
-
-    Assert.assertTrue(result);
-
-    return session;
   }
 
   /**

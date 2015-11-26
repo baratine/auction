@@ -169,13 +169,17 @@ public class AuctionImpl implements Auction
     ServiceManager manager = ServiceManager.current();
     TimerService timer = manager.lookup(url).as(TimerService.class);
 
-    Auction service = _auctionManager.lookup("/" + _id).as(Auction.class);
-
-    timer.runAt((x) -> service.close(Result.ignore()),
+    timer.runAt((x) -> closeOnTimer(Result.ignore()),
                 _auctionData.getDateToClose().toInstant().toEpochMilli(),
                 Result.ignore());
 
     log.finer("start timer for auction: " + _auctionData);
+  }
+
+  void closeOnTimer(Result<Boolean> result)
+  {
+    if (_auctionData.getState() == AuctionDataPublic.State.OPEN)
+      close(Result.ignore());
   }
 
   @Modify
@@ -281,6 +285,14 @@ public class AuctionImpl implements Auction
                       _auctionData.getState()));
 
     }
+  }
+
+  @Override
+  public void getSettlementId(Result<String> result)
+  {
+    result.complete(_settlementId);
+
+
   }
 
   private void settle()

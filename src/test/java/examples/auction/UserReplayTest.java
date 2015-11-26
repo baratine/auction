@@ -23,7 +23,7 @@ import javax.inject.Inject;
           @ConfigurationBaratine.Log(name = "examples.auction",
                                      level = "FINER")},
   port = 6810,
-  journalDelay=120000)
+  journalDelay = 120000)
 public class UserReplayTest
 {
   @Inject

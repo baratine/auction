@@ -151,7 +151,7 @@ public class AuctionDataPublic implements Serializable
   public String toString()
   {
     String toString
-      = String.format("%1$s@%2$d[%3$d, %4$s, %5$s, %6$s]",
+      = String.format("%1$s@%2$d[%3$s, %4$s, %5$s, %6$s]",
                       getClass().getSimpleName(),
                       System.identityHashCode(this),
                       _id,

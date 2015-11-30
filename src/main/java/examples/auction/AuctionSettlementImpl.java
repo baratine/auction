@@ -274,32 +274,40 @@ public class AuctionSettlementImpl
     if (_boundState == BoundState.UNBOUND)
       throw new IllegalStateException();
 
-    if (_state.isRollingBack())
-      rollbackImpl(status);
+    if (_state.isRolledBack())
+      throw new IllegalStateException();
+
+    _state.toRollBack();
+
+    rollbackImpl(status);
   }
 
   public void rollbackImpl(Result<Status> status)
   {
-    rollbackPending(status.from(x -> {
-      if (x) {
-        return Status.ROLLED_BACK;
-      }
-      else {
-        //process false
-        return Status.ROLLED_BACK;
-      }
-    }));
+    rollbackPending(status.from(x -> processRollback(x)));
   }
 
   public void rollbackPending(Result<Boolean> status)
   {
     Result<Boolean>[] children
-      = status.fork(3, (s, r) -> r.complete(true),
+      = status.fork(3, (s, r) -> r.complete(s.get(0) && s.get(1) && s.get(2)),
                     (s, e, r) -> {});
 
     resetUser(children[0]);
     resetAuction(children[1]);
     refundUser(children[2]);
+  }
+
+  private Status processRollback(boolean result)
+  {
+    if (result) {
+      getAuction().setRolledBack(Result.<Boolean>ignore());
+
+      return Status.ROLLED_BACK;
+    }
+    else {
+      return Status.ROLLING_BACK;
+    }
   }
 
   private void resetUser(Result<Boolean> result)

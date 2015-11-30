@@ -7,4 +7,6 @@ public interface AuctionEvents
   void onClose(AuctionDataPublic auctionData);
 
   void onSettled(AuctionDataPublic auctionData);
+
+  void onRolledBack(AuctionDataPublic auctionData);
 }

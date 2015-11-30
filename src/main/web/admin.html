@@ -20,11 +20,7 @@
 
     auctionApp.controller('AuctionListCtrl', function ($scope)
     {
-      $scope.myAuctions = [];
-      $scope.myBids = [];
-
-      $scope.auctionTitle = null;
-      $scope.auctionPrice = 1;
+      $scope.auctions = [];
 
       $scope.userForm = ['form-inline'];
       $scope.btnUserRegister = ['btn', 'btn-default'];
@@ -32,9 +28,6 @@
 
       $scope.userStatus = 'no logged in user';
       $scope.user = null;
-      $scope.createAuctionMessage = 'User created no auctions';
-
-      $scope.searchTitle = null;
 
       $scope.apply = function ()
       {
@@ -72,7 +65,7 @@
 
       $scope.createUser = function ()
       {
-        $scope.client.query("/auction-session",
+        $scope.client.query("/auction-admin-session",
                             "createUser",
                 [$scope.userName, $scope.userPassword],
                             $scope.onUserCreate);
@@ -107,7 +100,7 @@
 
       $scope.login = function ()
       {
-        $scope.client.query("/auction-session",
+        $scope.client.query("/auction-admin-session",
                             "login",
                 [$scope.userName, $scope.userPassword],
                             $scope.onUserLogin);
@@ -116,8 +109,7 @@
       $scope.onUserLogout = function (result)
       {
         $scope.user = null;
-        $scope.myAuctions = [];
-        $scope.myBids = [];
+        $scope.auctions = [];
         $scope.userStatus = "no user logged in";
         $scope.createAuctionMessage = "";
 
@@ -133,14 +125,14 @@
 
       $scope.logout = function ()
       {
-        $scope.client.query("/auction-session",
+        $scope.client.query("/auction-admin-session",
                             "logout",
                 [], $scope.onUserLogout);
       };
 
       $scope.onAuctionCreated = function (auction)
       {
-        $scope.myAuctions.push({
+        $scope.auctions.push({
           'id': auction._id,
           'title': auction._title,
           'price': auction._startingBid,
@@ -164,20 +156,15 @@
 
       $scope.addMyAuction = function (id)
       {
-        $scope.client.query("/auction-session", "getAuction", [id],
+        $scope.client.query("/auction-admin-session", "getAuction", [id],
                             $scope.onAuctionCreated);
       };
 
       $scope.subscribeAuction = function (id)
       {
-        $scope.client.send("/auction-session", "addAuctionListener", [id]);
-      };
-
-      $scope.createAuction = function (title, price)
-      {
-        $scope.client.query("/auction-session",
-                            "createAuction",
-                [title, price], $scope.onAuctionIdCreated);
+        $scope.client.send("/auction-admin-session",
+                           "addAuctionListener",
+                [id]);
       };
 
       $scope.onAuctionListener = function (auction)
@@ -188,8 +175,7 @@
         if (auction._bids.length > 0)
           price = auction._bids[auction._bids.length - 1]._bid;
 
-        $scope.updateAuctionModels($scope.myAuctions, auction, price, state);
-        $scope.updateAuctionModels($scope.myBids, auction, price, state);
+        $scope.updateAuctionModels($scope.auctions, auction, price, state);
 
         $scope.apply();
       };
@@ -218,21 +204,12 @@
         if (auction._bids.length > 0)
           price = auction._bids[auction._bids.length - 1]._bid;
 
-        var myBid;
-
-        for (var i in $scope.myBids) {
-          if (auction._id === $scope.myBids[i].id) {
-            myBid = $scope.myBids[i];
-          }
-        }
-
-        if (myBid === undefined)
-          $scope.myBids.push({
-            'id': auction._id,
-            'title': auction._title,
-            'price': price,
-            'state': auction._state
-          });
+        $scope.auctions.push({
+          'id': auction._id,
+          'title': auction._title,
+          'price': price,
+          'state': auction._state
+        });
 
         $scope.apply();
       };
@@ -244,44 +221,35 @@
         if (auctionIds === undefined || auctionIds === null) {
         }
         else if (Array.isArray(auctionIds)) {
-          console.log("onSearchComplete 1" )
           for (var i in auctionIds) {
             var auctionId = auctionIds[i];
             $scope.onSearchAuction(auctionId);
           }
-        } else {
+        }
+        else {
           console.log("onSearchComplete 2");
           $scope.onSearchAuction(auctionIds);
         }
       };
 
-      $scope.onSearchAuction = function(auctionId)
+      $scope.onSearchAuction = function (auctionId)
       {
         console.log("onSearchAuction: " + JSON.stringify(auctionId));
 
-        $scope.client.query("/auction-session",
+        $scope.client.query("/auction-admin-session",
                             "getAuction", [auctionId], $scope.onSearchResult);
         $scope.subscribeAuction(auctionId);
       };
 
-      $scope.Xsearch = function (searchTitle)
-      {
-        $scope.client.query("/auction-session", "findAuction", [searchTitle],
-                            $scope.onSearch);
-      };
-
       $scope.search = function (searchTitle)
       {
-        $scope.client.query("/auction-session", "search", [searchTitle],
+        $scope.client.query("/auction-admin-session", "search", [searchTitle],
                             $scope.onSearch);
       };
 
-      $scope.bid = function (id, index)
+      $scope.refund = function (id)
       {
-        var auction = $scope.myBids[index];
-        var price = auction.price + 1;
-
-        $scope.client.query("/auction-session", "bidAuction", [id, price]);
+        $scope.client.query("/auction-admin-session", "refund", [id]);
       };
 
       var host = window.location.host;
@@ -304,11 +272,15 @@
       $scope.client.onSession = function ()
       {
         console.log("on-session:");
-        $scope.client.query("/auction-session", "setListener", [listener]);
+        $scope.client.query("/auction-admin-session",
+                            "setListener",
+                [listener]);
       };
 
       if (url.search("http") === 0) {
-        $scope.client.query("/auction-session", "setListener", [listener]);
+        $scope.client.query("/auction-admin-session",
+                            "setListener",
+                [listener]);
       }
     });
 
@@ -350,53 +322,6 @@
 </div>
 <br>
 
-<form ng-class="userForm" role="form">
-  <div class="form-group">
-    <label class="sr-only" for="auctionTitle">Auction Title</label>
-    <input ng-model="auctionTitle" type="text" class="form-control"
-           id="auctionTitle"
-           placeholder="Auction Title">
-  </div>
-  <div class="form-group">
-    <label class="sr-only" for="price">Price</label>
-    <input ng-model="auctionPrice" type="number" class="form-control"
-           id="price"
-           placeholder="Starting price">
-  </div>
-  <button type="submit" class='btn btn-default'
-          ng-disabled="! user || ! auctionTitle"
-          ng-click="createAuction(auctionTitle, auctionPrice)">
-    Create Auction
-  </button>
-</form>
-
-<br>
-
-<div>
-  <p>{{createAuctionMessage}}</p>
-</div>
-<br>
-
-<table border="1" class="table table-striped">
-  <thead>
-  <th>ID</th>
-  <th>Title</th>
-  <th>Current Bid</th>
-  <th>State</th>
-  </thead>
-  <tbody>
-  <tr ng-repeat="auction in myAuctions">
-    <td>{{auction.id}}</td>
-    <td>{{auction.title}}</td>
-    <td>{{auction.price}}</td>
-    <td>{{auction.state}}</td>
-  </tr>
-  </tbody>
-</table>
-
-<br>
-<br>
-
 <div>
   <form ng-class="userForm" role="form">
     <div class="form-group">
@@ -425,14 +350,14 @@
   <th>State</th>
   </thead>
   <tbody>
-  <tr ng-repeat="auction in myBids">
+  <tr ng-repeat="auction in auctions">
     <td>{{auction.id}}</td>
     <td>{{auction.title}}</td>
     <td>{{auction.price}}</td>
     <td>
       <button class='btn btn-link btn-xs'
-              ng-disabled="(auction.state == 'CLOSED')"
-              ng-click="bid(auction.id, $index)">Bid
+              ng-disabled="(auction.state != 'SETTLED')"
+              ng-click="refund(auction.id)">Refund
       </button>
     </td>
     <td>{{auction.state}}</td>

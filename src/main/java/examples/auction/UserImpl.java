@@ -39,9 +39,12 @@ public class UserImpl implements User
 
   @Override
   @Modify
-  public void create(String userName, String password, Result<String> userId)
+  public void create(String userName,
+                     String password,
+                     boolean isAdmin,
+                     Result<String> userId)
   {
-    _user = new UserDataPublic(_id, userName, digest(password));
+    _user = new UserDataPublic(_id, userName, digest(password), false);
 
     log.finer("creating new user: " + userName);
 

@@ -16,13 +16,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * User visible channel facade at session:///auction-session.
+ * User visible channel facade at session://web/auction-admin-session.
  */
-@Service("session://web/auction-session")
-public class AuctionSessionImpl implements AuctionSession
+@Service("session://web/auction-admin-session")
+public class AuctionAdminSessionImpl implements AuctionAdminSession
 {
   private final static Logger log
-    = Logger.getLogger(AuctionSessionImpl.class.getName());
+    = Logger.getLogger(AuctionAdminSessionImpl.class.getName());
 
   private String _sessionId;
 
@@ -51,10 +51,11 @@ public class AuctionSessionImpl implements AuctionSession
   private User _user;
   private String _userId;
 
-  public void createUser(String userName, String password,
+  public void createUser(String userName,
+                         String password,
                          final Result<Boolean> result)
   {
-    _users.create(userName, password, false, result.from(id -> true));
+    _users.create(userName, password, true, result.from(id -> true));
   }
 
   public void login(String userName, String password, Result<Boolean> result)
@@ -92,26 +93,6 @@ public class AuctionSessionImpl implements AuctionSession
     _user.getUserData(userData);
   }
 
-  public void createAuction(String title,
-                            int bid,
-                            Result<String> result)
-  {
-    if (_user == null) {
-      throw new IllegalStateException("No user is logged in");
-    }
-
-    _auctions.create(new AuctionDataInit(_userId, title, bid),
-                     result.from((x, r) -> afterCreateAuction(x, title, r)));
-  }
-
-  private void afterCreateAuction(String id, String title,
-                                  Result<String> result)
-  {
-    Auction auction = _auctionsServiceRef.lookup("/" + id).as(Auction.class);
-
-    auction.open(result.from(b -> id));
-  }
-
   public void getAuction(String id, Result<AuctionDataPublic> result)
   {
     if (id == null) {
@@ -133,16 +114,6 @@ public class AuctionSessionImpl implements AuctionSession
     return auction;
   }
 
-  public void findAuction(String title,
-                          Result<String> result)
-  {
-    if (_user == null) {
-      throw new IllegalStateException("No user is logged in");
-    }
-
-    _auctions.find(title, result);
-  }
-
   @Override
   public void search(String query, Result<String[]> result)
   {
@@ -152,24 +123,6 @@ public class AuctionSessionImpl implements AuctionSession
                                     (l, e) -> l.add(e),
                                     (a, b) -> a.addAll(b))
              .result(result.from(l -> l.toArray(new String[l.size()])));
-  }
-
-  /**
-   * Bid on an auction.
-   *
-   * @param auctionId the auction to bid on
-   * @param bid       the new bid
-   * @param result    true for successful auction.
-   */
-  public void bidAuction(String auctionId,
-                         int bid,
-                         Result<Boolean> result)
-  {
-    if (_user == null) {
-      throw new IllegalStateException("No user is logged in");
-    }
-
-    getAuctionService(auctionId).bid(new Bid(_userId, bid), result);
   }
 
   public void setListener(@Service ChannelListener listener,
@@ -199,6 +152,14 @@ public class AuctionSessionImpl implements AuctionSession
       else
         throw new RuntimeException(t);
     }
+  }
+
+  @Override
+  public void refund(String id, Result<Boolean> result)
+  {
+    Auction auction = getAuctionService(id);
+
+    auction.refund(result);
   }
 
   private void addAuctionListenerImpl(String id)

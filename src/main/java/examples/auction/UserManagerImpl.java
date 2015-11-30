@@ -67,6 +67,7 @@ public class UserManagerImpl implements UserManager
   @Override
   public void create(String userName,
                      String password,
+                     boolean isAdmin,
                      Result<String> userId)
   {
     log.finer("create new user: " + userName);
@@ -75,17 +76,19 @@ public class UserManagerImpl implements UserManager
                                           -> createWithId(id,
                                                           userName,
                                                           password,
+                                                          isAdmin,
                                                           r)));
   }
 
   private void createWithId(String id,
                             String userName,
                             String password,
+                            boolean isAdmin,
                             Result<String> userId)
   {
     User user = _self.lookup("/" + id).as(User.class);
 
-    user.create(userName, password, userId);
+    user.create(userName, password, isAdmin, userId);
   }
 
   @Override

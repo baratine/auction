@@ -4,7 +4,10 @@ import io.baratine.core.Result;
 
 public interface User
 {
-  void create(String userName, String password, Result<String> userId);
+  void create(String userName,
+              String password,
+              boolean isAdmin,
+              Result<String> userId);
 
   void authenticate(String password, Result<Boolean> result);
 

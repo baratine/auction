@@ -18,9 +18,13 @@ public interface Auction
 
   void setSettled(Result<Boolean> result);
 
+  void setRolledBack(Result<Boolean> result);
+
   void get(Result<AuctionDataPublic> result);
 
   void close(Result<Boolean> result);
+
+  void refund(Result<Boolean> result);
 
   void getSettlementId(Result<String> result);
 }

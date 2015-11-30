@@ -29,6 +29,7 @@ $BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar
 
 echo "Create User ..."
 $BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web /auction-session/foo createUser user pass
+$BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web /auction-admin-session/foo createUser admin pass
 
 echo "Authenticate User ..."
 $BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web /auction-session/foo login user pass

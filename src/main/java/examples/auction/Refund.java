@@ -56,6 +56,15 @@ public class Refund
     return _status;
   }
 
+  @Override
+  public String toString()
+  {
+    return String.format("%1$s@%2$d: %3$s",
+                         this.getClass().getSimpleName(),
+                         System.identityHashCode(this),
+                         _refund);
+  }
+
   public enum RefundState
   {
     pending, completed, failed

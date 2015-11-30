@@ -4,7 +4,7 @@ import io.baratine.core.Result;
 import io.baratine.core.Service;
 
 /**
- * User visible channel facade at channel:///auction-channel.
+ * User visible channel facade at session://web/auction-session
  */
 public interface AuctionSession
 {

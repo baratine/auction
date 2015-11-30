@@ -1,5 +1,6 @@
 package examples.auction;
 
+import examples.auction.AuctionSettlement.Status;
 import io.baratine.core.Modify;
 import io.baratine.core.OnLoad;
 import io.baratine.core.OnSave;
@@ -68,7 +69,7 @@ public class AuctionImpl implements Auction
       throw new IllegalStateException();
 
     ZonedDateTime date = ZonedDateTime.now();
-    date = date.plusSeconds(5);
+    date = date.plusSeconds(15);
     ZonedDateTime closingDate = date;
 
     _audit.auctionCreate(initData, Result.<Void>ignore());
@@ -207,6 +208,18 @@ public class AuctionImpl implements Auction
     }
   }
 
+  @Override
+  public void refund(Result<Boolean> result)
+  {
+    if (_auctionData.getState() != AuctionDataPublic.State.SETTLED)
+      throw new IllegalStateException();
+
+    AuctionSettlement settlement
+      = _settlement.lookup("/" + _settlementId).as(AuctionSettlement.class);
+
+    settlement.rollback(result.from(s -> s.equals(Status.ROLLED_BACK)));
+  }
+
   private AuctionEvents getEvents()
   {
     if (_events == null) {
@@ -291,6 +304,14 @@ public class AuctionImpl implements Auction
     _auctionData.toSettled();
 
     getEvents().onSettled(_auctionData);
+  }
+
+  @Override
+  public void setRolledBack(Result<Boolean> result)
+  {
+    _auctionData.toRolledBack();
+
+    getEvents().onRolledBack(_auctionData);
   }
 
   public void get(Result<AuctionDataPublic> result)

@@ -12,7 +12,6 @@ import io.baratine.db.DatabaseService;
 import io.baratine.timer.TimerService;
 
 import java.time.ZonedDateTime;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 public class AuctionImpl implements Auction
@@ -35,8 +34,6 @@ public class AuctionImpl implements Auction
   private State _state;
 
   private ServiceRef _settlement;
-
-  private String _settlementId;
 
   public AuctionImpl()
   {
@@ -99,14 +96,6 @@ public class AuctionImpl implements Auction
              _auctionData);
 
     log.finer(String.format("async-saved auction %1$s to db", _auctionData));
-
-/*
-    _db.exec("update auction set title=?, value=? where id=?",
-             result.from(o -> o != null),
-             _auctionData.getTitle(),
-             _auctionData,
-             _auctionData.getId());
-*/
   }
 
   private boolean resultFromSave(Object obj)
@@ -214,10 +203,8 @@ public class AuctionImpl implements Auction
     if (_auctionData.getState() != AuctionDataPublic.State.SETTLED)
       throw new IllegalStateException();
 
-    AuctionSettlement settlement
-      = _settlement.lookup("/" + _settlementId).as(AuctionSettlement.class);
-
-    settlement.rollback(result.from(s -> s.equals(Status.ROLLED_BACK)));
+    getAuctionSettlement()
+      .rollback(result.from(s -> s.equals(Status.ROLLED_BACK)));
   }
 
   private AuctionEvents getEvents()
@@ -231,17 +218,24 @@ public class AuctionImpl implements Auction
     return _events;
   }
 
+  private AuctionSettlement getAuctionSettlement()
+  {
+    String settlementUri = "/" + _auctionData.getSettlementId();
+
+    AuctionSettlement settlement
+      = _settlement.lookup(settlementUri).as(AuctionSettlement.class);
+
+    return settlement;
+  }
+
   private void settle()
   {
     AuctionDataPublic.Bid bid = _auctionData.getLastBid();
 
-    _settlementId = UUID.randomUUID().toString();
-
     if (bid == null)
       return;
 
-    AuctionSettlement settlement
-      = _settlement.lookup("/" + _settlementId).as(AuctionSettlement.class);
+    AuctionSettlement settlement = getAuctionSettlement();
 
     settlement.create(this._id, bid.getUserId(), bid, (r -> {
       if (r) settlement.commit(Result.ignore());
@@ -322,12 +316,6 @@ public class AuctionImpl implements Auction
               + _auctionData);
 
     result.complete(_auctionData);
-  }
-
-  @Override
-  public void getSettlementId(Result<String> result)
-  {
-    result.complete(_settlementId);
   }
 
   @Override

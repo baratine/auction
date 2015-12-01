@@ -3,6 +3,7 @@ package examples.auction;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.UUID;
 
 /**
  *
@@ -25,6 +26,7 @@ public class AuctionDataPublic implements Serializable
 
   //user id
   private String _winner;
+  private String _settlementId;
 
   public AuctionDataPublic()
   {
@@ -39,6 +41,7 @@ public class AuctionDataPublic implements Serializable
     _title = initData.getTitle();
     _startingBid = initData.getStartingBid();
     _dateToClose = closingDate;
+    _settlementId = UUID.randomUUID().toString();
   }
 
   public String getId()
@@ -151,13 +154,14 @@ public class AuctionDataPublic implements Serializable
   public String toString()
   {
     String toString
-      = String.format("%1$s@%2$d[%3$s, %4$s, %5$s, %6$s]",
+      = String.format("%1$s@%2$d[%3$s, %4$s, %5$s, %6$s, %7$s]",
                       getClass().getSimpleName(),
                       System.identityHashCode(this),
                       _id,
                       _title,
                       _lastBid,
-                      _winner);
+                      _winner,
+                      _state);
     return toString;
   }
 
@@ -169,12 +173,17 @@ public class AuctionDataPublic implements Serializable
     _state = State.SETTLED;
   }
 
+  public String getSettlementId()
+  {
+    return _settlementId;
+  }
+
   public void toRolledBack()
   {
     _state = State.ROLLED_BACK;
   }
 
-  static enum State
+  enum State
   {
     INIT,
     OPEN,

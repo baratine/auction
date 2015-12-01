@@ -93,6 +93,16 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     _user.getUserData(userData);
   }
 
+  @Override
+  public void getWinner(String auctionId, Result<UserDataPublic> result)
+  {
+    Auction auction = getAuctionService(auctionId);
+
+    auction.get(result.from((a, r) -> {
+      getUserService(a.getWinner()).getUserData(r.from(u -> u.mask()));
+    }));
+  }
+
   public void getAuction(String id, Result<AuctionDataPublic> result)
   {
     if (id == null) {
@@ -112,6 +122,13 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
       = _auctionsServiceRef.lookup('/' + id).as(Auction.class);
 
     return auction;
+  }
+
+  private User getUserService(String id)
+  {
+    User user = _usersServiceRef.lookup('/' + id).as(User.class);
+
+    return user;
   }
 
   @Override

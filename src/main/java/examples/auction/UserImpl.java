@@ -10,9 +10,7 @@ import io.baratine.db.DatabaseService;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
 import java.util.logging.Logger;
 
 public class UserImpl implements User
@@ -25,7 +23,6 @@ public class UserImpl implements User
   private String _id;
   private UserDataPublic _user;
   private CreditCard _creditCard;
-  private List<String> _wonAuctions = new ArrayList<>();
 
   public UserImpl()
   {
@@ -140,15 +137,15 @@ public class UserImpl implements User
   @Modify
   public void addWonAuction(String auctionId, Result<Boolean> result)
   {
-    _wonAuctions.add(auctionId);
+    _user.addWonAuction(auctionId);
 
     result.complete(true);
   }
 
   @Override
-  public void removeWonAuction(String auction, Result<Boolean> result)
+  public void removeWonAuction(String auctionId, Result<Boolean> result)
   {
-    _wonAuctions.remove(auction);
+    _user.removeWonAuction(auctionId);
 
     result.complete(true);
   }

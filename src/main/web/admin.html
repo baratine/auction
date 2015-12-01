@@ -252,6 +252,33 @@
         $scope.client.query("/auction-admin-session", "refund", [id]);
       };
 
+      $scope.onDisplayAuctionData = function (auction)
+      {
+        $scope.auctionData = JSON.stringify(auction, null, 2);
+        $scope.apply();
+      };
+
+      $scope.onDisplayWinnerData = function (user)
+      {
+        console.log(user);
+
+        $scope.winnerData = JSON.stringify(user, null, 2);
+        $scope.apply();
+      };
+
+      $scope.display = function (index)
+      {
+        var id = $scope.auctions[index].id;
+
+        $scope.client.query("/auction-admin-session",
+                            "getAuction",
+                [id], $scope.onDisplayAuctionData);
+
+        $scope.client.query("/auction-admin-session",
+                            "getWinner",
+                [id], $scope.onDisplayWinnerData);
+      };
+
       var host = window.location.host;
 
       var url = "ws://" + host + "/s/web";
@@ -352,7 +379,7 @@
   <tbody>
   <tr ng-repeat="auction in auctions">
     <td>{{auction.id}}</td>
-    <td>{{auction.title}}</td>
+    <td><a ng-click="display($index)">{{auction.title}}</a></td>
     <td>{{auction.price}}</td>
     <td>
       <button class='btn btn-link btn-xs'
@@ -364,6 +391,14 @@
   </tr>
   </tbody>
 </table>
+
+<div id="auctionData">Selected auction:<br>
+  <pre>{{auctionData}}</pre>
+</div>
+
+<div id="winnerData">Auction winner:<br>
+  <pre>{{winnerData}}</pre>
+</div>
 
 </body>
 </html>

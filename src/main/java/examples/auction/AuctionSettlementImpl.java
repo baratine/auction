@@ -143,17 +143,6 @@ public class AuctionSettlementImpl
     commitPending(status.from(x -> processCommit(x)));
   }
 
-  public void XcommitPending(Result<Boolean> status)
-  {
-    Result<Boolean>[] children
-      = status.fork(3, (l, r) -> r.complete(l.get(0) && l.get(1) && l.get(2)),
-                    (l, e, r) -> r.complete(false));
-
-    updateUser(children[0]);
-    updateAuction(children[1]);
-    chargeUser(children[2]);
-  }
-
   public void commitPending(Result<Boolean> status)
   {
     Result.ForkBuilder<Boolean,Boolean> fork = status.newFork();

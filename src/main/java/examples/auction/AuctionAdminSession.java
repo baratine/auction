@@ -14,6 +14,8 @@ public interface AuctionAdminSession
 
   void getUser(Result<UserDataPublic> result);
 
+  void getWinner(String auctionId, Result<UserDataPublic> result);
+
   void getAuction(String id, Result<AuctionDataPublic> result);
 
   void search(String query, Result<String[]> result);

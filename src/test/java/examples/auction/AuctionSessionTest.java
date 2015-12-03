@@ -93,8 +93,9 @@ public class AuctionSessionTest
 
   AuctionSessionSync getSession()
   {
-    AuctionSessionSync session = _auctionPod.lookup(
-      "session://web/auction-session/test").as(AuctionSessionSync.class);
+    AuctionSessionSync session
+      = _auctionPod.lookup("session://web/auction-session")
+                   .as(AuctionSessionSync.class);
 
     return session;
   }

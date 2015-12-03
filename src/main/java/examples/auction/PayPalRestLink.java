@@ -196,7 +196,7 @@ public class PayPalRestLink
     String response = send("/v1/payments/payment", "POST", headers,
                            payment.getBytes("UTF-8"));
 
-    return new Payment(response);
+    return new PaymentImpl(response);
   }
 
   public String list(String token) throws IOException
@@ -222,7 +222,7 @@ public class PayPalRestLink
                            headers,
                            "{}".getBytes(StandardCharsets.UTF_8));
 
-    return new Refund(response);
+    return new RefundImpl(response);
   }
 
   @Override

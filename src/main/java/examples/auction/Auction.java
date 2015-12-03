@@ -25,5 +25,7 @@ public interface Auction
   void close(Result<Boolean> result);
 
   void refund(Result<Boolean> result);
+
+  void getSettlementId(Result<String> result);
 }
 

@@ -54,8 +54,8 @@ import java.util.logging.Logger;
   testTime = 0)
 
 @ConfigurationBaratine(
-  services = {AuctionSettlementImpl.class},
-  pod = "",
+  services = {AuctionSettlementManagerImpl.class},
+  pod = "settlement",
   logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
           @ConfigurationBaratine.Log(name = "examples.auction",

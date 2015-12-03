@@ -319,6 +319,12 @@ public class AuctionImpl implements Auction
   }
 
   @Override
+  public void getSettlementId(Result<String> result)
+  {
+    result.complete(_auctionData.getSettlementId());
+  }
+
+  @Override
   public String toString()
   {
     return AuctionImpl.class.getSimpleName() + "[" + _id + ", " + _state + "]";

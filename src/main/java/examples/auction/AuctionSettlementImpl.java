@@ -422,7 +422,7 @@ public class AuctionSettlementImpl
 
   private boolean processRefund(Refund refund)
   {
-    if (refund.getStatus() == Refund.RefundState.completed) {
+    if (refund.getStatus() == RefundImpl.RefundState.completed) {
       _state.setPaymentState(SettlementTransactionState.PaymentState.REFUNDED);
 
       return true;

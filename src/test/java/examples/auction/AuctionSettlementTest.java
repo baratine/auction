@@ -27,7 +27,7 @@ import java.util.logging.Logger;
   testTime = 0)
 
 @ConfigurationBaratine(
-  services = {IdentityManagerImpl.class, AuctionManagerImpl.class},
+  services = {IdentityManagerImpl.class, AuctionManagerImpl.class, MockPayPal.class},
   pod = "auction",
   logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
@@ -45,7 +45,7 @@ import java.util.logging.Logger;
   testTime = 0)
 
 @ConfigurationBaratine(
-  services = {MockLuceneServiceImpl.class},
+  services = {MockLuceneService.class},
   pod = "lucene",
   logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
@@ -169,7 +169,7 @@ public class AuctionSettlementTest
 
     AuctionDataPublic data = auction.get();
 
-    System.out.println(data);
+    System.out.println("xxx: " + data);
   }
 
   /**

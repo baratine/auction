@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service("pod://lucene/service")
-public class MockLuceneServiceImpl implements LuceneFacade
+public class MockLuceneService implements LuceneFacade
 {
   @Override
   public void indexFile(String s, String s1, Result<Boolean> result)

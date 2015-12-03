@@ -46,7 +46,7 @@ import java.util.logging.Logger;
   testTime = 0)
 
 @ConfigurationBaratine(
-  services = {MockLuceneServiceImpl.class},
+  services = {MockLuceneService.class},
   pod = "lucene",
   logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),

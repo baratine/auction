@@ -14,16 +14,19 @@ public class MockPayPal implements PayPal
                      String payPalRequestId,
                      Result<Payment> result)
   {
-    Payment payment = new PaymentImpl();
+    Payment payment = new MockPayment("sale-id", Payment.PaymentState.approved);
 
+    result.complete(payment);
   }
 
   @Override
   public void refund(String settlementId,
                      String payPalRequestId,
                      String sale,
-                     Result<Refund> refund)
+                     Result<Refund> result)
   {
+    Refund refund = new MockRefund(Refund.RefundState.completed);
 
+    result.complete(refund);
   }
 }

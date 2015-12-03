@@ -48,14 +48,26 @@ public class AuctionSettlementImpl
     if (_boundState != BoundState.UNBOUND)
       throw new IllegalStateException();
 
-    Result<Boolean>[] results = result.fork(2, (l -> l.get(0) && l.get(1)));
+    Result.Fork<Boolean,Boolean> fork = result.newFork();
+
+    fork.fail((l, e, r) -> {
+      for (Throwable t : e) {
+        if (t != null) {
+          r.fail(t);
+
+          break;
+        }
+      }
+    });
 
     _db.findLocal(
       "select auction_id, user_id, bid from settlement where id = ?",
-      _id).first().result(results[0].from(c -> loadSettlement(c)));
+      _id).first().result(fork.fork().from(c -> loadSettlement(c)));
 
     _db.findLocal("select state from settlement_state where id = ?",
-                  _id).first().result(results[1].from(c -> loadState(c)));
+                  _id).first().result(fork.fork().from(c -> loadState(c)));
+
+    fork.join(l -> l.get(0) && l.get(1));
   }
 
   public boolean loadSettlement(Cursor settlement)
@@ -145,7 +157,7 @@ public class AuctionSettlementImpl
 
   public void commitPending(Result<Boolean> status)
   {
-    Result.ForkBuilder<Boolean,Boolean> fork = status.newFork();
+    Result.Fork<Boolean,Boolean> fork = status.newFork();
 
     fork.fail((x, e, r) -> {
       for (Throwable t : e) {
@@ -213,25 +225,35 @@ public class AuctionSettlementImpl
     final ValueRef<AuctionDataPublic> auctionData = new ValueRef();
     final ValueRef<CreditCard> creditCard = new ValueRef();
 
-    Result<Boolean> fork = Result.from(x ->
-                                         chargeUser(auctionData.get(),
-                                                    creditCard.get(),
-                                                    status),
-                                       e -> status.complete(false)
+    Result<Boolean> paymentResult = Result.from(x ->
+                                                  chargeUser(auctionData.get(),
+                                                             creditCard.get(),
+                                                             status),
+                                                e -> status.complete(false)
     );
 
-    Result<Boolean>[] forked
-      = fork.fork(2, (x, r) -> r.complete(x.get(0) && x.get(1)));
+    Result.Fork<Boolean,Boolean> fork = paymentResult.newFork();
 
-    auction.get(forked[0].from(d -> {
+    fork = fork.fail((l, e, r) -> {
+      for (Throwable t : e) {
+        if (t != null) {
+          r.fail(t);
+          break;
+        }
+      }
+    });
+
+    auction.get(fork.fork().from(d -> {
       auctionData.set(d);
       return d != null;
     }));
 
-    user.getCreditCard(forked[1].from(c -> {
+    user.getCreditCard(fork.fork().from(c -> {
       creditCard.set(c);
       return c != null;
     }));
+
+    fork.join(l -> l.get(0) && l.get(1));
   }
 
   public void chargeUser(AuctionDataPublic auctionData,
@@ -299,13 +321,23 @@ public class AuctionSettlementImpl
 
   public void rollbackPending(Result<Boolean> status)
   {
-    Result<Boolean>[] children
-      = status.fork(3, (s, r) -> r.complete(s.get(0) && s.get(1) && s.get(2)),
-                    (s, e, r) -> {});
+    Result.Fork<Boolean,Boolean> fork = status.newFork();
 
-    resetUser(children[0]);
-    resetAuction(children[1]);
-    refundUser(children[2]);
+    fork.fail((l, e, r) -> {
+      for (Throwable t : e) {
+        if (t != null) {
+          r.fail(t);
+
+          break;
+        }
+      }
+    });
+
+    resetUser(fork.fork());
+    resetAuction(fork.fork());
+    refundUser(fork.fork());
+
+    fork.join(l -> l.get(0) && l.get(1) && l.get(2));
   }
 
   private Status processRollback(boolean result)

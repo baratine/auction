@@ -24,18 +24,28 @@ public class AuctionSettlementManagerImpl
   {
     _selfRef = ServiceRef.current();
 
-    Result<Boolean>[] results
-      = result.fork(2, (l, r) -> r.complete(l.get(0) && l.get(1)));
+    Result.Fork<Boolean,Boolean> fork = result.newFork();
+
+    fork.fail((l, e, r) -> {
+      for (Throwable t : e) {
+        if (t != null) {
+          r.fail(t);
+          break;
+        }
+      }
+    });
 
     _db.exec(
       "create table settlement(id varchar primary key, auction_id varchar, user_id varchar, bid object) with hash '/settlements/$id'",
-      results[0].from(o -> true, (e, r) -> {r.complete(true);})
+      fork.fork().from(o -> true, (e, r) -> {r.complete(true);})
     );
 
     _db.exec(
       "create table settlement_state(id varchar primary key, state object) with hash '/settlements/$id'",
-      results[1].from(o -> true, (e, r) -> {r.complete(true);})
+      fork.fork().from(o -> true, (e, r) -> {r.complete(true);})
     );
+
+    fork.join(l -> l.get(0) && l.get(1));
   }
 
   /**

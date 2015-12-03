@@ -36,7 +36,7 @@ public class UserTest
   @Test
   public void createUser()
   {
-    final String id = _userManager.create("Spock", "Password");
+    final String id = _userManager.create("Spock", "Password", false);
 
     UserSync user = _userManagerRef.lookup("/" + id).as(UserSync.class);
 
@@ -49,7 +49,7 @@ public class UserTest
   @Test
   public void authenticateUser()
   {
-    final String id = _userManager.create("Kirk", "Password");
+    final String id = _userManager.create("Kirk", "Password", false);
 
     UserSync user = _userManagerRef.lookup("/" + id).as(UserSync.class);
 
@@ -64,7 +64,7 @@ public class UserTest
   @Test
   public void findUser()
   {
-    final String id = _userManager.create("Doug", "Password");
+    final String id = _userManager.create("Doug", "Password", false);
 
     String findId = _userManager.find("Doug");
     Assert.assertEquals(id, findId);

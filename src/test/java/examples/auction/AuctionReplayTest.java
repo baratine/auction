@@ -93,7 +93,7 @@ public class AuctionReplayTest
 
   UserSync createUser(String name, String password)
   {
-    String id = _users.create(name, password);
+    String id = _users.create(name, password, false);
 
     return getUser(id);
   }

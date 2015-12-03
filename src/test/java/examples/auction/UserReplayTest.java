@@ -43,7 +43,7 @@ public class UserReplayTest
   @Test
   public void createUser()
   {
-    final String id = _userManager.create("Spock", "Password");
+    final String id = _userManager.create("Spock", "Password", false);
 
     _testContext.closeImmediate();
     _testContext.start();

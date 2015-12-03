@@ -113,7 +113,7 @@ public class AuctionSettlementTest
 
   UserSync createUser(String name, String password)
   {
-    String id = _users.create(name, password);
+    String id = _users.create(name, password, false);
 
     return getUser(id);
   }
@@ -312,6 +312,12 @@ public class AuctionSettlementTest
 
     @Override
     public void onSettled(AuctionDataPublic auctionData)
+    {
+
+    }
+
+    @Override
+    public void onRolledBack(AuctionDataPublic auctionData)
     {
 
     }

@@ -1,4 +1,6 @@
-package examples.auction;
+package examples.auction.mock;
+
+import examples.auction.Refund;
 
 public class MockRefund implements Refund
 {

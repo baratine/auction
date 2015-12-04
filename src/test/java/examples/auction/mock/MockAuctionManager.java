@@ -1,4 +1,4 @@
-package examples.auction.usermock;
+package examples.auction.mock;
 
 import examples.auction.Auction;
 import examples.auction.AuctionDataInit;
@@ -11,7 +11,7 @@ import io.baratine.core.Service;
 
 @Service("pod://auction/auction")
 @Journal()
-public class AuctionManagerMock extends AuctionManagerImpl
+public class MockAuctionManager extends AuctionManagerImpl
 {
   @Override
   public Object lookup(String path)

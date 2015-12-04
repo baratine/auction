@@ -1,4 +1,6 @@
-package examples.auction;
+package examples.auction.mock;
+
+import examples.auction.Payment;
 
 public class MockPayment implements Payment
 {

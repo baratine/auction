@@ -2,7 +2,8 @@ package examples.auction;
 
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
-import examples.auction.usermock.AuctionManagerMock;
+import examples.auction.mock.MockAuctionManager;
+import examples.auction.mock.MockPayPal;
 import io.baratine.core.Lookup;
 import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
@@ -28,7 +29,7 @@ import java.util.logging.Logger;
   testTime = 0)
 
 @ConfigurationBaratine(
-  services = {IdentityManagerImpl.class, AuctionManagerMock.class, MockPayPal.class},
+  services = {IdentityManagerImpl.class, MockAuctionManager.class, MockPayPal.class},
   pod = "auction",
   logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),

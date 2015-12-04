@@ -3,7 +3,6 @@ package examples.auction;
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
 import examples.auction.mock.MockPayPal;
-import examples.auction.mock.MockUserManager;
 import io.baratine.core.Lookup;
 import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
@@ -21,7 +20,7 @@ import java.util.logging.Logger;
  */
 @RunWith(RunnerBaratine.class)
 @ConfigurationBaratine(
-  services = {IdentityManagerImpl.class, MockUserManager.class}, pod = "user",
+  services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
   logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
           @ConfigurationBaratine.Log(name = "examples.auction",
@@ -63,10 +62,10 @@ import java.util.logging.Logger;
           @ConfigurationBaratine.Log(name = "examples.auction",
                                      level = "FINER")},
   testTime = 0)
-public class AuctionSettleRejectUserTest
+public class AuctionSettleRejectPaymentTest
 {
   private static final Logger log
-    = Logger.getLogger(AuctionSettleRejectUserTest.class.getName());
+    = Logger.getLogger(AuctionSettleRejectPaymentTest.class.getName());
 
   @Inject
   @Lookup("pod://user/user")
@@ -94,6 +93,10 @@ public class AuctionSettleRejectUserTest
   @Inject
   @Lookup("pod://auction/")
   ServiceManager _auctionPod;
+
+  @Inject
+  @Lookup("pod://auction/paypal")
+  PayPalSync _paypal;
 
   UserSync createUser(String name, String password)
   {
@@ -146,6 +149,8 @@ public class AuctionSettleRejectUserTest
 
     Assert.assertTrue(auction.bid(new Bid(userKirk.getUserData().getId(), 2)));
 
+    _paypal.setPayToSucceed(false);
+
     Assert.assertTrue(auction.close());
 
     AuctionSettlementSync settlement = getSettlement(auction);
@@ -163,14 +168,14 @@ public class AuctionSettleRejectUserTest
 
     SettlementTransactionState txState = settlement.getTransactionState();
 
+    Assert.assertEquals(SettlementTransactionState.UserUpdateState.SUCCESS,
+                        txState.getUserCommitState());
+
     Assert.assertEquals(SettlementTransactionState.AuctionUpdateState.SUCCESS,
                         txState.getAuctionCommitState());
 
-    Assert.assertEquals(SettlementTransactionState.PaymentTxState.SUCCESS,
+    Assert.assertEquals(SettlementTransactionState.PaymentTxState.FAILED,
                         txState.getPaymentCommitState());
-
-    Assert.assertEquals(SettlementTransactionState.UserUpdateState.REJECTED,
-                        txState.getUserCommitState());
   }
 }
 

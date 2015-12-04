@@ -1,4 +1,4 @@
-package examples.auction.usermock;
+package examples.auction.mock;
 
 import examples.auction.CreditCard;
 import examples.auction.User;
@@ -10,7 +10,7 @@ import io.baratine.core.Service;
 
 @Service("pod://user/user")
 @Journal()
-public class UserManagerMock extends UserManagerImpl
+public class MockUserManager extends UserManagerImpl
 {
   @Override
   public Object lookup(String path)

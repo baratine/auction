@@ -11,4 +11,6 @@ public interface PayPalSync extends PayPal
   Refund refund(String settlementId,
                 String payPalRequestId,
                 String sale);
+
+  void setPayToSucceed(boolean succeed);
 }

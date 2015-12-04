@@ -251,9 +251,9 @@ public class AuctionImpl implements Auction
 
     _audit.auctionBid(_auctionData, bid, Result.<Void>ignore());
 
-    boolean isSuccess = _auctionData.bid(bid.getUser(), bid.getBid());
+    boolean isAccepted = _auctionData.bid(bid.getUser(), bid.getBid());
 
-    if (isSuccess) {
+    if (isAccepted) {
       _audit.auctionBidAccept(bid, Result.<Void>ignore());
 
       getEvents().onBid(_auctionData);
@@ -269,7 +269,7 @@ public class AuctionImpl implements Auction
 
   @Override
   @Modify
-  public void setPendingAuctionWinner(String user, Result<Boolean> result)
+  public void setAuctionWinner(String user, Result<Boolean> result)
   {
     if (_state != State.BOUND)
       throw new IllegalStateException();

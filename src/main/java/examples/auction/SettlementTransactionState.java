@@ -4,9 +4,12 @@ public class SettlementTransactionState
 {
   private CommitPhase _commitPhase = CommitPhase.COMMITTING;
 
-  private UserUpdateState _userUpdateState = UserUpdateState.UNKNOWN;
-  private AuctionUpdateState _auctionUpdateState = AuctionUpdateState.UNKNOWN;
-  private PaymentState _paymentState = PaymentState.UNKNOWN;
+  private AuctionSettlement.Status _commitStatus
+    = AuctionSettlement.Status.COMMITTING;
+
+  private UserUpdateState _userCommitState = UserUpdateState.UNKNOWN;
+  private AuctionUpdateState _auctionCommitState = AuctionUpdateState.UNKNOWN;
+  private PaymentTxState _paymentCommitState = PaymentTxState.UNKNOWN;
 
   private Payment _payment;
   private Refund _refund;
@@ -20,45 +23,45 @@ public class SettlementTransactionState
     _commitPhase = CommitPhase.ROLLING_BACK;
   }
 
-  public UserUpdateState getUserUpdateState()
+  public UserUpdateState getUserCommitState()
   {
-    return _userUpdateState;
+    return _userCommitState;
   }
 
-  public void setUserUpdateState(UserUpdateState userUpdateState)
+  public void setUserCommitState(UserUpdateState userCommitState)
   {
-    _userUpdateState = userUpdateState;
+    _userCommitState = userCommitState;
   }
 
-  public AuctionUpdateState getAuctionUpdateState()
+  public AuctionUpdateState getAuctionCommitState()
   {
-    return _auctionUpdateState;
+    return _auctionCommitState;
   }
 
-  public void setAuctionUpdateState(AuctionUpdateState auctionUpdateState)
+  public void setAuctionCommitState(AuctionUpdateState auctionCommitState)
   {
-    _auctionUpdateState = auctionUpdateState;
+    _auctionCommitState = auctionCommitState;
   }
 
-  public PaymentState getPaymentState()
+  public PaymentTxState getPaymentCommitState()
   {
-    return _paymentState;
+    return _paymentCommitState;
   }
 
-  public void setPaymentState(PaymentState paymentState)
+  public void setPaymentCommitState(PaymentTxState paymentCommitState)
   {
-    _paymentState = paymentState;
+    _paymentCommitState = paymentCommitState;
   }
 
   public boolean isCommitted()
   {
     boolean isCommitted = _commitPhase == CommitPhase.COMMITTING;
 
-    isCommitted &= _userUpdateState == UserUpdateState.SUCCESS;
+    isCommitted &= _userCommitState == UserUpdateState.SUCCESS;
 
-    isCommitted &= _auctionUpdateState == AuctionUpdateState.SUCCESS;
+    isCommitted &= _auctionCommitState == AuctionUpdateState.SUCCESS;
 
-    isCommitted &= _paymentState == PaymentState.SUCCESS;
+    isCommitted &= _paymentCommitState == PaymentTxState.SUCCESS;
 
     return isCommitted;
   }
@@ -72,14 +75,14 @@ public class SettlementTransactionState
   {
     boolean isRolledBack = _commitPhase == CommitPhase.ROLLING_BACK;
 
-    isRolledBack &= (_userUpdateState == UserUpdateState.REJECTED
-                     || _userUpdateState == UserUpdateState.ROLLED_BACK);
+    isRolledBack &= (_userCommitState == UserUpdateState.REJECTED
+                     || _userCommitState == UserUpdateState.ROLLED_BACK);
 
-    isRolledBack &= (_auctionUpdateState == AuctionUpdateState.REJECTED
-                     || _auctionUpdateState == AuctionUpdateState.ROLLED_BACK);
+    isRolledBack &= (_auctionCommitState == AuctionUpdateState.REJECTED
+                     || _auctionCommitState == AuctionUpdateState.ROLLED_BACK);
 
-    isRolledBack &= (_paymentState == PaymentState.REFUNDED
-                     || _paymentState == PaymentState.FAILED);
+    isRolledBack &= (_paymentCommitState == PaymentTxState.REFUNDED
+                     || _paymentCommitState == PaymentTxState.FAILED);
 
     return isRolledBack;
 
@@ -110,6 +113,16 @@ public class SettlementTransactionState
     _refund = refund;
   }
 
+  public void setCommitStatus(AuctionSettlement.Status commitStatus)
+  {
+    _commitStatus = commitStatus;
+  }
+
+  public AuctionSettlement.Status getCommitStatus()
+  {
+    return _commitStatus;
+  }
+
   @Override
   public String toString()
   {
@@ -117,9 +130,9 @@ public class SettlementTransactionState
            + "["
            + _commitPhase
            + ", "
-           + _userUpdateState + ", "
-           + _auctionUpdateState + ", "
-           + _paymentState
+           + _userCommitState + ", "
+           + _auctionCommitState + ", "
+           + _paymentCommitState
            + "]";
   }
 
@@ -145,7 +158,7 @@ public class SettlementTransactionState
     UNKNOWN
   }
 
-  enum PaymentState
+  enum PaymentTxState
   {
     SUCCESS,
     FAILED,

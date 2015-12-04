@@ -6,7 +6,7 @@ public interface Payment
 
   String getSaleId();
 
-  public enum PaymentState
+  enum PaymentState
   {
     created, approved, failed, canceled, expired, pending;
   }

@@ -1,5 +1,8 @@
 package examples.auction;
 
+import examples.auction.SettlementTransactionState.AuctionUpdateState;
+import examples.auction.SettlementTransactionState.PaymentTxState;
+import examples.auction.SettlementTransactionState.UserUpdateState;
 import io.baratine.core.Journal;
 import io.baratine.core.Modify;
 import io.baratine.core.OnInit;
@@ -12,8 +15,6 @@ import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 
 import java.util.logging.Logger;
-
-import static examples.auction.Payment.PaymentState;
 
 @Journal()
 public class AuctionSettlementImpl
@@ -182,9 +183,10 @@ public class AuctionSettlementImpl
 
     user.addWonAuction(_auctionId,
                        status.from(x -> {
-                         _state.setUserUpdateState(x ?
-                                                     SettlementTransactionState.UserUpdateState.SUCCESS :
-                                                     SettlementTransactionState.UserUpdateState.REJECTED);
+                         _state.setUserCommitState(
+                           x ?
+                             UserUpdateState.SUCCESS :
+                             UserUpdateState.REJECTED);
                          return x;
                        }));
   }
@@ -200,11 +202,11 @@ public class AuctionSettlementImpl
   {
     Auction auction = getAuction();
 
-    auction.setPendingAuctionWinner(_userId, status.from(x -> {
-      _state.setAuctionUpdateState(
+    auction.setAuctionWinner(_userId, status.from(x -> {
+      _state.setAuctionCommitState(
         x ?
-          SettlementTransactionState.AuctionUpdateState.SUCCESS :
-          SettlementTransactionState.AuctionUpdateState.REJECTED);
+          AuctionUpdateState.SUCCESS :
+          AuctionUpdateState.REJECTED);
       return x;
     }));
   }
@@ -273,13 +275,13 @@ public class AuctionSettlementImpl
   {
     _state.setPayment(payment);
 
-    if (payment.getState().equals(PaymentState.approved)) {
-      _state.setPaymentState(SettlementTransactionState.PaymentState.SUCCESS);
+    if (payment.getState().equals(Payment.PaymentState.approved)) {
+      _state.setPaymentCommitState(PaymentTxState.SUCCESS);
 
       return true;
     }
     else {
-      _state.setPaymentState(SettlementTransactionState.PaymentState.FAILED);
+      _state.setPaymentCommitState(PaymentTxState.FAILED);
 
       return false;
     }
@@ -287,16 +289,26 @@ public class AuctionSettlementImpl
 
   private Status processCommit(boolean result)
   {
+    Status status = Status.COMMITTING;
+
     if (result) {
+      status = Status.COMMITTED;
+
       getAuction().setSettled(Result.ignore());
-
-      return Status.COMMITTED;
     }
-    else {
-      _state.toRollBack();
-
-      return Status.ROLLING_BACK;
+    else if (_state.getUserCommitState() == UserUpdateState.REJECTED) {
+      status = Status.COMMIT_FAILED;
     }
+    else if (_state.getAuctionCommitState() == AuctionUpdateState.REJECTED) {
+      status = Status.COMMIT_FAILED;
+    }
+    else if (_state.getPaymentCommitState() == PaymentTxState.FAILED) {
+      status = Status.COMMIT_FAILED;
+    }
+
+    _state.setCommitStatus(status);
+
+    return status;
   }
 
   @Modify
@@ -354,8 +366,8 @@ public class AuctionSettlementImpl
 
   private void resetUser(Result<Boolean> result)
   {
-    if (_state.getUserUpdateState()
-        == SettlementTransactionState.UserUpdateState.REJECTED) {
+    if (_state.getUserCommitState()
+        == UserUpdateState.REJECTED) {
       result.complete(true);
 
       return;
@@ -365,8 +377,8 @@ public class AuctionSettlementImpl
     user.removeWonAuction(_auctionId,
                           result.from(x -> {
                             if (x) {
-                              _state.setUserUpdateState(
-                                SettlementTransactionState.UserUpdateState.ROLLED_BACK);
+                              _state.setUserCommitState(
+                                UserUpdateState.ROLLED_BACK);
                               return true;
                             }
                             else {
@@ -377,8 +389,8 @@ public class AuctionSettlementImpl
 
   private void resetAuction(Result<Boolean> result)
   {
-    if (_state.getAuctionUpdateState()
-        == SettlementTransactionState.AuctionUpdateState.REJECTED) {
+    if (_state.getAuctionCommitState()
+        == AuctionUpdateState.REJECTED) {
       result.complete(true);
 
       return;
@@ -389,8 +401,8 @@ public class AuctionSettlementImpl
     auction.clearAuctionWinner(_userId,
                                result.from(x -> {
                                  if (x) {
-                                   _state.setAuctionUpdateState(
-                                     SettlementTransactionState.AuctionUpdateState.ROLLED_BACK);
+                                   _state.setAuctionCommitState(
+                                     AuctionUpdateState.ROLLED_BACK);
                                    return true;
                                  }
                                  else {
@@ -401,8 +413,7 @@ public class AuctionSettlementImpl
 
   private void refundUser(Result<Boolean> result)
   {
-    if (_state.getPaymentState()
-        == SettlementTransactionState.PaymentState.FAILED) {
+    if (_state.getPaymentCommitState() == PaymentTxState.FAILED) {
       result.complete(true);
 
       return;
@@ -423,7 +434,7 @@ public class AuctionSettlementImpl
   private boolean processRefund(Refund refund)
   {
     if (refund.getStatus() == RefundImpl.RefundState.completed) {
-      _state.setPaymentState(SettlementTransactionState.PaymentState.REFUNDED);
+      _state.setPaymentCommitState(PaymentTxState.REFUNDED);
 
       return true;
     }
@@ -463,25 +474,7 @@ public class AuctionSettlementImpl
   @Override
   public void status(Result<Status> result)
   {
-    Status status;
-
-    if (_state.isCommitted()) {
-      status = Status.COMMITTED;
-    }
-    else if (_state.isRolledBack()) {
-      status = Status.ROLLED_BACK;
-    }
-    else if (_state.isCommitting()) {
-      status = Status.COMMITTING;
-    }
-    else if (_state.isRollingBack()) {
-      status = Status.ROLLING_BACK;
-    }
-    else {
-      throw new IllegalStateException(_state.toString());
-    }
-
-    result.complete(status);
+    result.complete(_state.getCommitStatus());
   }
 
   @Override

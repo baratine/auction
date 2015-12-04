@@ -21,6 +21,7 @@ public interface AuctionSettlement
   {
     COMMITTED,
     COMMITTING,
+    COMMIT_FAILED,
     ROLLING_BACK,
     ROLLED_BACK
   }

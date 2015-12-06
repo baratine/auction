@@ -2,7 +2,7 @@ package examples.auction;
 
 public class SettlementTransactionState
 {
-  private CommitPhase _commitPhase = CommitPhase.COMMITTING;
+  private Intent _intent = Intent.COMMIT;
 
   private AuctionSettlement.Status _commitStatus
     = AuctionSettlement.Status.COMMITTING;
@@ -10,9 +10,13 @@ public class SettlementTransactionState
   private AuctionSettlement.Status _rollbackStatus
     = AuctionSettlement.Status.NONE;
 
-  private UserUpdateState _userCommitState = UserUpdateState.UNKNOWN;
-  private AuctionUpdateState _auctionCommitState = AuctionUpdateState.UNKNOWN;
-  private PaymentTxState _paymentCommitState = PaymentTxState.UNKNOWN;
+  private UserUpdateState _userCommitState = UserUpdateState.NONE;
+  private AuctionUpdateState _auctionCommitState = AuctionUpdateState.NONE;
+  private PaymentTxState _paymentCommitState = PaymentTxState.NONE;
+
+  private UserUpdateState _userRollbackState = UserUpdateState.NONE;
+  private AuctionUpdateState _auctionRollbackState = AuctionUpdateState.NONE;
+  private PaymentTxState _paymentRollbackState = PaymentTxState.NONE;
 
   private Payment _payment;
   private Refund _refund;
@@ -23,7 +27,7 @@ public class SettlementTransactionState
 
   public void toRollBack()
   {
-    _commitPhase = CommitPhase.ROLLING_BACK;
+    _intent = Intent.ROLLBACK;
   }
 
   public UserUpdateState getUserCommitState()
@@ -56,9 +60,39 @@ public class SettlementTransactionState
     _paymentCommitState = paymentCommitState;
   }
 
+  public UserUpdateState getUserRollbackState()
+  {
+    return _userRollbackState;
+  }
+
+  public void setUserRollbackState(UserUpdateState userRollbackState)
+  {
+    _userRollbackState = userRollbackState;
+  }
+
+  public AuctionUpdateState getAuctionRollbackState()
+  {
+    return _auctionRollbackState;
+  }
+
+  public void setAuctionRollbackState(AuctionUpdateState auctionRollbackState)
+  {
+    _auctionRollbackState = auctionRollbackState;
+  }
+
+  public PaymentTxState getPaymentRollbackState()
+  {
+    return _paymentRollbackState;
+  }
+
+  public void setPaymentRollbackState(PaymentTxState paymentRollbackState)
+  {
+    _paymentRollbackState = paymentRollbackState;
+  }
+
   public boolean isCommitted()
   {
-    boolean isCommitted = _commitPhase == CommitPhase.COMMITTING;
+    boolean isCommitted = _intent == Intent.COMMIT;
 
     isCommitted &= _userCommitState == UserUpdateState.SUCCESS;
 
@@ -71,12 +105,12 @@ public class SettlementTransactionState
 
   public boolean isCommitting()
   {
-    return _commitPhase == CommitPhase.COMMITTING;
+    return _intent == Intent.COMMIT;
   }
 
   public boolean isRolledBack()
   {
-    boolean isRolledBack = _commitPhase == CommitPhase.ROLLING_BACK;
+    boolean isRolledBack = _intent == Intent.ROLLBACK;
 
     isRolledBack &= (_userCommitState == UserUpdateState.REJECTED
                      || _userCommitState == UserUpdateState.ROLLED_BACK);
@@ -93,7 +127,7 @@ public class SettlementTransactionState
 
   public boolean isRollingBack()
   {
-    return _commitPhase == CommitPhase.ROLLING_BACK;
+    return _intent == Intent.ROLLBACK;
   }
 
   public Payment getPayment()
@@ -141,7 +175,7 @@ public class SettlementTransactionState
   {
     return this.getClass().getSimpleName()
            + "["
-           + _commitPhase
+           + _intent
            + ", "
            + _userCommitState + ", "
            + _auctionCommitState + ", "
@@ -149,10 +183,10 @@ public class SettlementTransactionState
            + "]";
   }
 
-  enum CommitPhase
+  enum Intent
   {
-    COMMITTING,
-    ROLLING_BACK
+    COMMIT,
+    ROLLBACK
   }
 
   enum UserUpdateState
@@ -160,7 +194,7 @@ public class SettlementTransactionState
     SUCCESS,
     REJECTED,
     ROLLED_BACK,
-    UNKNOWN
+    NONE
   }
 
   enum AuctionUpdateState
@@ -168,7 +202,7 @@ public class SettlementTransactionState
     SUCCESS,
     REJECTED,
     ROLLED_BACK,
-    UNKNOWN
+    NONE
   }
 
   enum PaymentTxState
@@ -176,6 +210,6 @@ public class SettlementTransactionState
     SUCCESS,
     FAILED,
     REFUNDED,
-    UNKNOWN
+    NONE
   }
 }

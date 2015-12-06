@@ -150,12 +150,12 @@ public class AuctionSettleRejectUserTest
 
     AuctionSettlementSync settlement = getSettlement(auction);
 
-    AuctionSettlement.Status status = settlement.status();
+    AuctionSettlement.Status status = settlement.commitStatus();
 
     int i = 0;
     while (status == AuctionSettlement.Status.COMMITTING && i < 10) {
       Thread.sleep(10);
-      status = settlement.status();
+      status = settlement.commitStatus();
       i++;
     }
 

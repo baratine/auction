@@ -143,6 +143,7 @@ public class UserImpl implements User
   }
 
   @Override
+  @Modify
   public void removeWonAuction(String auctionId, Result<Boolean> result)
   {
     _user.removeWonAuction(auctionId);

@@ -62,10 +62,10 @@ import java.util.logging.Logger;
           @ConfigurationBaratine.Log(name = "examples.auction",
                                      level = "FINER")},
   testTime = 0)
-public class AuctionSettleTest
+public class AuctionSettleRollbackTest
 {
   private static final Logger log
-    = Logger.getLogger(AuctionSettleTest.class.getName());
+    = Logger.getLogger(AuctionSettleRollbackTest.class.getName());
 
   @Inject
   @Lookup("pod://user/user")
@@ -149,13 +149,12 @@ public class AuctionSettleTest
 
     AuctionSettlementSync settlement = getSettlement(auction);
 
-    AuctionSettlement.Status status = settlement.status();
+    AuctionSettlement.Status status = settlement.commitStatus();
 
     int i = 0;
-    while (status == AuctionSettlement.Status.COMMITTING && i < 10) {
+    while (status == AuctionSettlement.Status.COMMITTING && i++ < 10) {
       Thread.sleep(10);
-      status = settlement.status();
-      i++;
+      status = settlement.commitStatus();
     }
 
     Assert.assertEquals(AuctionSettlement.Status.COMMITTED, status);
@@ -164,12 +163,30 @@ public class AuctionSettleTest
     Assert.assertEquals(AuctionDataPublic.State.SETTLED,
                         auctionData.getState());
 
-    UserSync winner = getUser(auctionData.getWinner());
+    UserSync winner = getUser(auctionData.getLastBidder());
     UserDataPublic winnerUserData = winner.getUserData();
 
     Assert.assertTrue(winnerUserData.getWonAuctions()
                                     .contains(auctionData.getId()));
 
-    Assert.assertEquals(auctionData.getWinner(), winnerUserData.getId());
+    Assert.assertEquals(auctionData.getLastBidder(), winnerUserData.getId());
+
+    //rollback
+    status = settlement.rollback();
+
+    i = 0;
+    while (status == AuctionSettlement.Status.ROLLING_BACK && i < 10) {
+      Thread.sleep(10);
+      status = settlement.rollbackStatus();
+    }
+
+    auctionData = auction.get();
+
+    Assert.assertEquals(AuctionDataPublic.State.ROLLED_BACK,
+                        auctionData.getState());
+
+    Assert.assertNull(auctionData.getWinner());
+
+    Assert.assertEquals(0, winner.getUserData().getWonAuctions().size());
   }
 }

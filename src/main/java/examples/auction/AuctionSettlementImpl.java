@@ -472,9 +472,15 @@ public class AuctionSettlementImpl
   }
 
   @Override
-  public void status(Result<Status> result)
+  public void commitStatus(Result<Status> result)
   {
     result.complete(_state.getCommitStatus());
+  }
+
+  @Override
+  public void rollbackStatus(Result<Status> result)
+  {
+    result.complete(_state.getRollbackStatus());
   }
 
   @Override

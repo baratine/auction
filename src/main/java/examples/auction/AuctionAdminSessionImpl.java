@@ -99,7 +99,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     Auction auction = getAuctionService(auctionId);
 
     auction.get(result.from((a, r) -> {
-      getUserService(a.getWinner()).getUserData(r.from(u -> u.mask()));
+      getUserService(a.getLastBidder()).getUserData(r.from(u -> u.mask()));
     }));
   }
 

@@ -7,6 +7,9 @@ public class SettlementTransactionState
   private AuctionSettlement.Status _commitStatus
     = AuctionSettlement.Status.COMMITTING;
 
+  private AuctionSettlement.Status _rollbackStatus
+    = AuctionSettlement.Status.NONE;
+
   private UserUpdateState _userCommitState = UserUpdateState.UNKNOWN;
   private AuctionUpdateState _auctionCommitState = AuctionUpdateState.UNKNOWN;
   private PaymentTxState _paymentCommitState = PaymentTxState.UNKNOWN;
@@ -121,6 +124,16 @@ public class SettlementTransactionState
   public AuctionSettlement.Status getCommitStatus()
   {
     return _commitStatus;
+  }
+
+  public AuctionSettlement.Status getRollbackStatus()
+  {
+    return _rollbackStatus;
+  }
+
+  public void setRollbackStatus(AuctionSettlement.Status rollbackStatus)
+  {
+    _rollbackStatus = rollbackStatus;
   }
 
   @Override

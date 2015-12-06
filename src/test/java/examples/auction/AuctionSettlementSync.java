@@ -9,7 +9,9 @@ public interface AuctionSettlementSync extends AuctionSettlement
 
   Status rollback();
 
-  Status status();
+  Status commitStatus();
+
+  Status rollbackStatus();
 
   SettlementTransactionState getTransactionState();
 }

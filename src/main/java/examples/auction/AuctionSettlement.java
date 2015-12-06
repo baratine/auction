@@ -13,17 +13,21 @@ public interface AuctionSettlement
 
   void rollback(Result<Status> status);
 
-  void status(Result<Status> status);
+  void commitStatus(Result<Status> status);
+
+  void rollbackStatus(Result<Status> status);
 
   void getTransactionState(Result<SettlementTransactionState> result);
 
   enum Status
   {
-    COMMITTED,
+    NONE,
     COMMITTING,
+    COMMITTED,
     COMMIT_FAILED,
     ROLLING_BACK,
-    ROLLED_BACK
+    ROLLED_BACK,
+    ROLLBACK_FAILED
   }
 }
 

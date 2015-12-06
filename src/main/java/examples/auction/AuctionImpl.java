@@ -286,6 +286,9 @@ public class AuctionImpl implements Auction
   @Modify
   public void clearAuctionWinner(String user, Result<Boolean> result)
   {
+    System.out.println("AuctionImpl.clearAuctionWinner");
+
+
     _auctionData.setWinner(null);
 
     result.complete(true);

@@ -107,11 +107,8 @@ public class AuctionDataPublic implements Serializable
     return _lastBid;
   }
 
-  public String getWinner()
+  public String getLastBidder()
   {
-    if (_winner != null)
-      return _winner;
-
     Bid lastBid = getLastBid();
 
     if (lastBid != null) {
@@ -120,6 +117,11 @@ public class AuctionDataPublic implements Serializable
     else {
       return null;
     }
+  }
+
+  public String getWinner()
+  {
+    return _winner;
   }
 
   public void setWinner(String winner)

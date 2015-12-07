@@ -2,7 +2,6 @@ package examples.auction;
 
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
-import examples.auction.mock.MockAuctionManager;
 import examples.auction.mock.MockPayPal;
 import examples.auction.mock.MockPayment;
 import io.baratine.core.Lookup;
@@ -27,7 +26,7 @@ import java.util.logging.Logger;
   testTime = 0)
 
 @ConfigurationBaratine(
-  services = {IdentityManagerImpl.class, MockAuctionManager.class, MockPayPal.class},
+  services = {IdentityManagerImpl.class, AuctionManagerImpl.class, MockPayPal.class},
   pod = "auction",
   logLevel = "finer",
   logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
@@ -61,10 +60,10 @@ import java.util.logging.Logger;
           @ConfigurationBaratine.Log(name = "examples.auction",
                                      level = "FINER")},
   testTime = 0)
-public class AuctionSettleRejectAuctionTest
+public class AuctionSettleRetryTest
 {
   private static final Logger log
-    = Logger.getLogger(AuctionSettleRejectAuctionTest.class.getName());
+    = Logger.getLogger(AuctionSettleRetryTest.class.getName());
 
   @Inject
   @Lookup("pod://user/user")
@@ -149,7 +148,7 @@ public class AuctionSettleRejectAuctionTest
     Assert.assertTrue(auction.bid(new Bid(userKirk.getUserData().getId(), 2)));
 
     _paypal.setPaymentResult(new MockPayment("sale-id",
-                                             Payment.PaymentState.approved));
+                                             Payment.PaymentState.pending));
 
     Assert.assertTrue(auction.close());
 
@@ -158,24 +157,96 @@ public class AuctionSettleRejectAuctionTest
     AuctionSettlement.Status status = settlement.commitStatus();
 
     int i = 0;
-    while (status == AuctionSettlement.Status.COMMITTING && i < 10) {
+    while (status == AuctionSettlement.Status.COMMITTING && i++ < 10) {
       Thread.sleep(10);
       status = settlement.commitStatus();
-      i++;
     }
 
-    Assert.assertEquals(AuctionSettlement.Status.COMMIT_FAILED, status);
+    Assert.assertEquals(AuctionSettlement.Status.COMMITTING, status);
 
-    SettlementTransactionState txState = settlement.getTransactionState();
+    AuctionDataPublic auctionData = auction.get();
+    Assert.assertEquals(AuctionDataPublic.State.CLOSED,
+                        auctionData.getState());
 
-    Assert.assertEquals(SettlementTransactionState.UserUpdateState.SUCCESS,
-                        txState.getUserCommitState());
+    UserSync winner = getUser(auctionData.getLastBidder());
+    UserDataPublic winnerUserData = winner.getUserData();
 
-    Assert.assertEquals(SettlementTransactionState.AuctionUpdateState.REJECTED,
-                        txState.getAuctionCommitState());
+    Assert.assertTrue(winnerUserData.getWonAuctions()
+                                    .contains(auctionData.getId()));
 
-    Assert.assertEquals(SettlementTransactionState.PaymentTxState.SUCCESS,
-                        txState.getPaymentCommitState());
+    Assert.assertEquals(auctionData.getLastBidder(), winnerUserData.getId());
+
+    SettlementTransactionState state = settlement.getTransactionState();
+
+    Assert.assertEquals(state.getCommitStatus(),
+                        AuctionSettlement.Status.COMMITTING);
+
+    Assert.assertEquals(state.getRollbackStatus(),
+                        AuctionSettlement.Status.NONE);
+
+    Assert.assertEquals(state.getAuctionCommitState(),
+                        SettlementTransactionState.AuctionUpdateState.SUCCESS);
+    Assert.assertEquals(state.getAuctionRollbackState(),
+                        SettlementTransactionState.AuctionUpdateState.NONE);
+
+    Assert.assertEquals(state.getUserCommitState(),
+                        SettlementTransactionState.UserUpdateState.SUCCESS);
+    Assert.assertEquals(state.getUserRollbackState(),
+                        SettlementTransactionState.UserUpdateState.NONE);
+
+    Assert.assertEquals(state.getPaymentCommitState(),
+                        SettlementTransactionState.PaymentTxState.PENDING);
+    Assert.assertEquals(state.getPaymentRollbackState(),
+                        SettlementTransactionState.PaymentTxState.NONE);
+
+    //retry
+    _paypal.setPaymentResult(new MockPayment("sale-id",
+                                             Payment.PaymentState.approved));
+
+    settlement.commit();
+
+    i = 0;
+    while (status == AuctionSettlement.Status.COMMITTING && i++ < 10) {
+      Thread.sleep(10);
+      status = settlement.commitStatus();
+    }
+
+    Assert.assertEquals(AuctionSettlement.Status.COMMITTED, status);
+
+    auctionData = auction.get();
+    Assert.assertEquals(AuctionDataPublic.State.SETTLED,
+                        auctionData.getState());
+
+    winner = getUser(auctionData.getLastBidder());
+    winnerUserData = winner.getUserData();
+
+    Assert.assertTrue(winnerUserData.getWonAuctions()
+                                    .contains(auctionData.getId()));
+
+    Assert.assertEquals(auctionData.getLastBidder(), winnerUserData.getId());
+
+    state = settlement.getTransactionState();
+
+    Assert.assertEquals(state.getCommitStatus(),
+                        AuctionSettlement.Status.COMMITTED);
+
+    Assert.assertEquals(state.getRollbackStatus(),
+                        AuctionSettlement.Status.NONE);
+
+    Assert.assertEquals(state.getAuctionCommitState(),
+                        SettlementTransactionState.AuctionUpdateState.SUCCESS);
+    Assert.assertEquals(state.getAuctionRollbackState(),
+                        SettlementTransactionState.AuctionUpdateState.NONE);
+
+    Assert.assertEquals(state.getUserCommitState(),
+                        SettlementTransactionState.UserUpdateState.SUCCESS);
+    Assert.assertEquals(state.getUserRollbackState(),
+                        SettlementTransactionState.UserUpdateState.NONE);
+
+    Assert.assertEquals(state.getPaymentCommitState(),
+                        SettlementTransactionState.PaymentTxState.SUCCESS);
+    Assert.assertEquals(state.getPaymentRollbackState(),
+                        SettlementTransactionState.PaymentTxState.NONE);
+
   }
 }
-

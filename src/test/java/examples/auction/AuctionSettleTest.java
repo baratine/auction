@@ -3,6 +3,7 @@ package examples.auction;
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
 import examples.auction.mock.MockPayPal;
+import examples.auction.mock.MockPayment;
 import io.baratine.core.Lookup;
 import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
@@ -91,6 +92,10 @@ public class AuctionSettleTest
   @Lookup("pod://auction/")
   ServiceManager _auctionPod;
 
+  @Inject
+  @Lookup("pod://auction/paypal")
+  PayPalSync _paypal;
+
   UserSync createUser(String name, String password)
   {
     String id = _users.create(name, password, false);
@@ -141,6 +146,9 @@ public class AuctionSettleTest
     Assert.assertTrue(auction.open());
 
     Assert.assertTrue(auction.bid(new Bid(userKirk.getUserData().getId(), 2)));
+
+    _paypal.setPaymentResult(new MockPayment("sale-id",
+                                             Payment.PaymentState.approved));
 
     Assert.assertTrue(auction.close());
 

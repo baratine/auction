@@ -12,5 +12,5 @@ public interface PayPalSync extends PayPal
                 String payPalRequestId,
                 String sale);
 
-  void setPayToSucceed(boolean succeed);
+  void setPaymentResult(Payment state);
 }

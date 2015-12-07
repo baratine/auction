@@ -11,7 +11,7 @@ import io.baratine.core.Service;
 @Service("pod://auction/paypal")
 public class MockPayPal implements PayPal
 {
-  private boolean _isPaymentToSucceed = true;
+  private Payment _payment;
 
   @Override
   public void settle(AuctionDataPublic auction,
@@ -21,16 +21,7 @@ public class MockPayPal implements PayPal
                      String payPalRequestId,
                      Result<Payment> result)
   {
-    Payment payment;
-    if (_isPaymentToSucceed) {
-      payment = new MockPayment("sale-id", Payment.PaymentState.approved);
-
-    }
-    else {
-      payment = new MockPayment("sale-id", Payment.PaymentState.failed);
-    }
-
-    result.complete(payment);
+    result.complete(_payment);
   }
 
   @Override
@@ -44,9 +35,9 @@ public class MockPayPal implements PayPal
     result.complete(refund);
   }
 
-  public void setPayToSucceed(boolean succeed, Result<Void> result)
+  public void setPaymentResult(Payment payment, Result<Void> result)
   {
-    _isPaymentToSucceed = succeed;
+    _payment = payment;
 
     result.complete(null);
   }

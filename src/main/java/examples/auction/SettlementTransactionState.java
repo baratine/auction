@@ -208,6 +208,7 @@ public class SettlementTransactionState
   enum PaymentTxState
   {
     SUCCESS,
+    PENDING,
     FAILED,
     REFUNDED,
     NONE

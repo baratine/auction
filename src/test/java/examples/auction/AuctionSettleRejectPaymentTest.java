@@ -3,6 +3,7 @@ package examples.auction;
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
 import examples.auction.mock.MockPayPal;
+import examples.auction.mock.MockPayment;
 import io.baratine.core.Lookup;
 import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
@@ -146,7 +147,8 @@ public class AuctionSettleRejectPaymentTest
 
     Assert.assertTrue(auction.bid(new Bid(userKirk.getUserData().getId(), 2)));
 
-    _paypal.setPayToSucceed(false);
+    _paypal.setPaymentResult(new MockPayment("sale-id",
+                                             Payment.PaymentState.failed));
 
     Assert.assertTrue(auction.close());
 

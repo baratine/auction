@@ -300,16 +300,25 @@ public class AuctionSettlementImpl
   {
     _state.setPayment(payment);
 
+    boolean result;
+
     if (payment.getState().equals(Payment.PaymentState.approved)) {
       _state.setPaymentCommitState(PaymentTxState.SUCCESS);
 
-      return true;
+      result = true;
+    }
+    else if (payment.getState().equals(Payment.PaymentState.pending)) {
+      _state.setPaymentCommitState(PaymentTxState.PENDING);
+
+      result = false;
     }
     else {
       _state.setPaymentCommitState(PaymentTxState.FAILED);
 
-      return false;
+      result = false;
     }
+
+    return result;
   }
 
   private Status processCommit(boolean result)

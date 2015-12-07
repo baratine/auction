@@ -42,6 +42,8 @@ public class AuctionSettlementImpl
     _id = id;
   }
 
+  private boolean _inProgress = false;
+
   //id, auction_id, user_id, bid
   @OnLoad
   public void load(Result<Boolean> result)
@@ -141,19 +143,32 @@ public class AuctionSettlementImpl
     if (_boundState == BoundState.UNBOUND)
       throw new IllegalStateException();
 
+    if (_state.isCommitted()) {
+      status.complete(Status.COMMITTED);
+    }
+    else if (_state.isRolledBack()) {
+      throw new IllegalStateException();
+    }
+    else if (_state.isRollingBack()) {
+      throw new IllegalStateException();
+    }
+
     commitImpl(status);
   }
 
-  public void commitImpl(Result<Status> status)
+  private void commitImpl(Result<Status> status)
   {
-    if (_state.isRollingBack())
-      throw new IllegalStateException();
-    else if (_state.isCommitted())
-      throw new IllegalStateException();
-    else if (!_state.isCommitting())
-      throw new IllegalStateException();
+    if (_state.getCommitStatus() == Status.COMMIT_FAILED) {
+      status.complete(_state.getCommitStatus());
+    }
+    else if (_inProgress) {
+      status.complete(_state.getCommitStatus());
+    }
+    else {
+      _inProgress = true;
 
-    commitPending(status.from(x -> processCommit(x)));
+      commitPending(status.from(x -> processCommit(x)));
+    }
   }
 
   public void commitPending(Result<Boolean> status)
@@ -179,16 +194,21 @@ public class AuctionSettlementImpl
 
   public void updateUser(Result<Boolean> status)
   {
-    User user = getUser();
+    if (_state.getUserCommitState() == UserUpdateState.SUCCESS) {
+      status.complete(true);
+    }
+    else {
+      User user = getUser();
 
-    user.addWonAuction(_auctionId,
-                       status.from(x -> {
-                         _state.setUserCommitState(
-                           x ?
-                             UserUpdateState.SUCCESS :
-                             UserUpdateState.REJECTED);
-                         return x;
-                       }));
+      user.addWonAuction(_auctionId,
+                         status.from(x -> {
+                           _state.setUserCommitState(
+                             x ?
+                               UserUpdateState.SUCCESS :
+                               UserUpdateState.REJECTED);
+                           return x;
+                         }));
+    }
   }
 
   private User getUser()
@@ -200,15 +220,20 @@ public class AuctionSettlementImpl
 
   public void updateAuction(Result<Boolean> status)
   {
-    Auction auction = getAuction();
+    if (_state.getAuctionCommitState() == AuctionUpdateState.SUCCESS) {
+      status.complete(true);
+    }
+    else {
+      Auction auction = getAuction();
 
-    auction.setAuctionWinner(_userId, status.from(x -> {
-      _state.setAuctionCommitState(
-        x ?
-          AuctionUpdateState.SUCCESS :
-          AuctionUpdateState.REJECTED);
-      return x;
-    }));
+      auction.setAuctionWinner(_userId, status.from(x -> {
+        _state.setAuctionCommitState(
+          x ?
+            AuctionUpdateState.SUCCESS :
+            AuctionUpdateState.REJECTED);
+        return x;
+      }));
+    }
   }
 
   private Auction getAuction()
@@ -308,6 +333,8 @@ public class AuctionSettlementImpl
 
     _state.setCommitStatus(status);
 
+    _inProgress = false;
+
     return status;
   }
 
@@ -318,8 +345,12 @@ public class AuctionSettlementImpl
     if (_boundState == BoundState.UNBOUND)
       throw new IllegalStateException();
 
-    if (_state.isRolledBack())
+    if (_state.isRolledBack()) {
+      status.complete(Status.ROLLED_BACK);
+    }
+    else if (_state.isCommitting() && _inProgress) {
       throw new IllegalStateException();
+    }
 
     _state.toRollBack();
 
@@ -328,7 +359,12 @@ public class AuctionSettlementImpl
 
   public void rollbackImpl(Result<Status> status)
   {
-    rollbackPending(status.from(x -> processRollback(x)));
+    if (_inProgress) {
+      status.complete(_state.getRollbackStatus());
+    }
+    else {
+      rollbackPending(status.from(x -> processRollback(x)));
+    }
   }
 
   public void rollbackPending(Result<Boolean> status)
@@ -354,14 +390,16 @@ public class AuctionSettlementImpl
 
   private Status processRollback(boolean result)
   {
+    Status status = Status.ROLLING_BACK;
+
     if (result) {
       getAuction().setRolledBack(Result.<Boolean>ignore());
+      status = Status.ROLLED_BACK;
+    }
 
-      return Status.ROLLED_BACK;
-    }
-    else {
-      return Status.ROLLING_BACK;
-    }
+    _state.setRollbackStatus(status);
+
+    return status;
   }
 
   private void resetUser(Result<Boolean> result)
@@ -369,22 +407,24 @@ public class AuctionSettlementImpl
     if (_state.getUserCommitState()
         == UserUpdateState.REJECTED) {
       result.complete(true);
-
-      return;
     }
-
-    User user = getUser();
-    user.removeWonAuction(_auctionId,
-                          result.from(x -> {
-                            if (x) {
-                              _state.setUserCommitState(
-                                UserUpdateState.ROLLED_BACK);
-                              return true;
-                            }
-                            else {
-                              throw new IllegalStateException();
-                            }
-                          }));
+    else if (_state.getUserRollbackState() == UserUpdateState.ROLLED_BACK) {
+      result.complete(true);
+    }
+    else {
+      User user = getUser();
+      user.removeWonAuction(_auctionId,
+                            result.from(x -> {
+                              if (x) {
+                                _state.setUserRollbackState(
+                                  UserUpdateState.ROLLED_BACK);
+                                return true;
+                              }
+                              else {
+                                throw new IllegalStateException();
+                              }
+                            }));
+    }
   }
 
   private void resetAuction(Result<Boolean> result)
@@ -392,56 +432,61 @@ public class AuctionSettlementImpl
     if (_state.getAuctionCommitState()
         == AuctionUpdateState.REJECTED) {
       result.complete(true);
-
-      return;
     }
+    else if (_state.getAuctionRollbackState()
+             == AuctionUpdateState.ROLLED_BACK) {
+      result.complete(true);
+    }
+    else {
+      Auction auction = getAuction();
 
-    Auction auction = getAuction();
-
-    auction.clearAuctionWinner(_userId,
-                               result.from(x -> {
-                                 if (x) {
-                                   _state.setAuctionCommitState(
-                                     AuctionUpdateState.ROLLED_BACK);
-                                   return true;
-                                 }
-                                 else {
-                                   throw new IllegalStateException();
-                                 }
-                               }));
+      auction.clearAuctionWinner(_userId,
+                                 result.from(x -> {
+                                   if (x) {
+                                     _state.setAuctionRollbackState(
+                                       AuctionUpdateState.ROLLED_BACK);
+                                     return true;
+                                   }
+                                   else {
+                                     throw new IllegalStateException();
+                                   }
+                                 }));
+    }
   }
 
   private void refundUser(Result<Boolean> result)
   {
     if (_state.getPaymentCommitState() == PaymentTxState.FAILED) {
       result.complete(true);
-
-      return;
     }
-
-    Payment payment = _state.getPayment();
-    if (payment == null) {
-      //send payment to refund service
+    else if (_state.getPaymentRollbackState() == PaymentTxState.REFUNDED) {
       result.complete(true);
     }
     else {
-      _payPal.refund(_id, payment.getSaleId(),
-                     payment.getSaleId(),
-                     result.from(r -> processRefund(r)));
+
+      Payment payment = _state.getPayment();
+      if (payment == null) {
+        //send payment to refund service
+        result.complete(true);
+      }
+      else {
+        _payPal.refund(_id, payment.getSaleId(),
+                       payment.getSaleId(),
+                       result.from(r -> processRefund(r)));
+      }
     }
   }
 
   private boolean processRefund(Refund refund)
   {
+    boolean isRefunded = false;
+
     if (refund.getStatus() == RefundImpl.RefundState.completed) {
-      _state.setPaymentCommitState(PaymentTxState.REFUNDED);
-
-      return true;
+      _state.setPaymentRollbackState(PaymentTxState.REFUNDED);
+      isRefunded = true;
     }
-    else {
 
-      return false;
-    }
+    return isRefunded;
   }
 
   @OnSave

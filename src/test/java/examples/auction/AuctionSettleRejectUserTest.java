@@ -15,9 +15,6 @@ import javax.inject.Inject;
 import java.util.logging.Logger;
 
 /**
- * AuctionResource unit tests.
- * <p/>
- * testTime is set to use artificial time to test auction timeouts.
  */
 @RunWith(RunnerBaratine.class)
 @ConfigurationBaratine(

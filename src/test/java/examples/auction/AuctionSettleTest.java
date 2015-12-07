@@ -59,10 +59,10 @@ import java.util.logging.Logger;
           @ConfigurationBaratine.Log(name = "examples.auction",
                                      level = "FINER")},
   testTime = 0)
-public class AuctionSettleRollbackTest
+public class AuctionSettleTest
 {
   private static final Logger log
-    = Logger.getLogger(AuctionSettleRollbackTest.class.getName());
+    = Logger.getLogger(AuctionSettleTest.class.getName());
 
   @Inject
   @Lookup("pod://user/user")
@@ -168,46 +168,28 @@ public class AuctionSettleRollbackTest
 
     Assert.assertEquals(auctionData.getLastBidder(), winnerUserData.getId());
 
-    //rollback
-    status = settlement.rollback();
-
-    i = 0;
-    while (status == AuctionSettlement.Status.ROLLING_BACK && i < 10) {
-      Thread.sleep(10);
-      status = settlement.rollbackStatus();
-    }
-
-    auctionData = auction.get();
-
-    Assert.assertEquals(AuctionDataPublic.State.ROLLED_BACK,
-                        auctionData.getState());
-
-    Assert.assertNull(auctionData.getWinner());
-
-    Assert.assertEquals(0, winner.getUserData().getWonAuctions().size());
-
     SettlementTransactionState state = settlement.getTransactionState();
 
     Assert.assertEquals(state.getCommitStatus(),
                         AuctionSettlement.Status.COMMITTED);
 
     Assert.assertEquals(state.getRollbackStatus(),
-                        AuctionSettlement.Status.ROLLED_BACK);
+                        AuctionSettlement.Status.NONE);
 
     Assert.assertEquals(state.getAuctionCommitState(),
                         SettlementTransactionState.AuctionUpdateState.SUCCESS);
     Assert.assertEquals(state.getAuctionRollbackState(),
-                        SettlementTransactionState.AuctionUpdateState.ROLLED_BACK);
+                        SettlementTransactionState.AuctionUpdateState.NONE);
 
     Assert.assertEquals(state.getUserCommitState(),
                         SettlementTransactionState.UserUpdateState.SUCCESS);
     Assert.assertEquals(state.getUserRollbackState(),
-                        SettlementTransactionState.UserUpdateState.ROLLED_BACK);
+                        SettlementTransactionState.UserUpdateState.NONE);
 
     Assert.assertEquals(state.getPaymentCommitState(),
                         SettlementTransactionState.PaymentTxState.SUCCESS);
     Assert.assertEquals(state.getPaymentRollbackState(),
-                        SettlementTransactionState.PaymentTxState.REFUNDED);
+                        SettlementTransactionState.PaymentTxState.NONE);
 
   }
 }

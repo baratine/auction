@@ -20,10 +20,6 @@ public class PayPalImpl implements PayPal
   PayPalRestLink _rest;
 
   @Inject
-  @Lookup("pod://auction/settlement")
-  AuctionSettlement _settlement;
-
-  @Inject
   @Lookup("pod://audit/audit")
   AuditService _audit;
 

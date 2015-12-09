@@ -431,7 +431,7 @@
     <td>{{auction.price}}</td>
     <td>
       <button class='btn btn-link btn-xs'
-              ng-disabled="(auction.state == 'CLOSED')"
+              ng-disabled="(auction.state != 'OPEN')"
               ng-click="bid(auction.id, $index)">Bid
       </button>
     </td>

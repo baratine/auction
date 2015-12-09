@@ -288,7 +288,6 @@ public class AuctionImpl implements Auction
   {
     System.out.println("AuctionImpl.clearAuctionWinner");
 
-
     _auctionData.setWinner(null);
 
     result.complete(true);
@@ -304,6 +303,7 @@ public class AuctionImpl implements Auction
   }
 
   @Override
+  @Modify
   public void setRolledBack(Result<Boolean> result)
   {
     _auctionData.toRolledBack();

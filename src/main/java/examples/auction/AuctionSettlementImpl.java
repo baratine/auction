@@ -3,7 +3,6 @@ package examples.auction;
 import examples.auction.SettlementTransactionState.AuctionUpdateState;
 import examples.auction.SettlementTransactionState.PaymentTxState;
 import examples.auction.SettlementTransactionState.UserUpdateState;
-import io.baratine.core.Journal;
 import io.baratine.core.Modify;
 import io.baratine.core.OnInit;
 import io.baratine.core.OnLoad;
@@ -16,7 +15,6 @@ import io.baratine.db.DatabaseService;
 
 import java.util.logging.Logger;
 
-@Journal()
 public class AuctionSettlementImpl
   implements AuctionSettlement
 {

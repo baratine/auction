@@ -6,7 +6,9 @@ import io.baratine.core.OnLookup;
 import io.baratine.core.Result;
 import io.baratine.core.Service;
 import io.baratine.core.ServiceRef;
+import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
+import io.baratine.stream.ResultStreamBuilder;
 
 import javax.inject.Inject;
 
@@ -17,6 +19,7 @@ public class AuctionSettlementManagerImpl
   @Inject
   @Lookup("bardb:///")
   DatabaseService _db;
+
   private ServiceRef _selfRef;
 
   @OnInit
@@ -45,7 +48,35 @@ public class AuctionSettlementManagerImpl
       fork.fork().from(o -> true, (e, r) -> {r.complete(true);})
     );
 
-    fork.join(l -> l.get(0) && l.get(1));
+    fork.join((l, r) -> load(l.get(0) && l.get(1), r));
+  }
+
+  private void load(boolean initSuccess, Result<Boolean> result)
+  {
+    ResultStreamBuilder<Cursor> r = _db.findLocal(
+      "select id from settlement_state where state._commitStatus = ? or state._rollbackStatus = ?",
+      AuctionSettlement.Status.COMMITTING,
+      AuctionSettlement.Status.ROLLING_BACK);
+
+    r.forEach(c -> resume(c));
+
+    result.complete(true);
+  }
+
+  private void resume(Cursor cursor)
+  {
+    AuctionSettlement settlement
+      = _selfRef.lookup('/' + cursor.getString(1)).as(AuctionSettlement.class);
+
+    settlement.getTransactionState(t -> {
+
+      if (t.getRollbackStatus() == AuctionSettlement.Status.ROLLING_BACK) {
+        settlement.rollback(Result.ignore());
+      }
+      else if (t.getCommitStatus() == AuctionSettlement.Status.COMMITTING) {
+        settlement.commit(Result.ignore());
+      }
+    });
   }
 
   /**

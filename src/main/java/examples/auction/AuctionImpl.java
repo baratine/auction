@@ -121,6 +121,8 @@ public class AuctionImpl implements Auction
   {
     if (c != null) {
       _auctionData = (AuctionDataPublic) c.getObject(1);
+
+      _state = State.BOUND;
     }
 
     _audit.auctionLoad(_auctionData, Result.<Void>ignore());
@@ -298,6 +300,8 @@ public class AuctionImpl implements Auction
   public void setSettled(Result<Boolean> result)
   {
     _auctionData.toSettled();
+
+    result.complete(true);
 
     getEvents().onSettled(_auctionData);
   }

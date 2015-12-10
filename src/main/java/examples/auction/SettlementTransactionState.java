@@ -11,11 +11,14 @@ public class SettlementTransactionState
     = AuctionSettlement.Status.NONE;
 
   private UserUpdateState _userCommitState = UserUpdateState.NONE;
-  private AuctionUpdateState _auctionCommitState = AuctionUpdateState.NONE;
+  private AuctionWinnerUpdateState
+    _auctionWinnerUpdateState = AuctionWinnerUpdateState.NONE;
   private PaymentTxState _paymentCommitState = PaymentTxState.NONE;
+  private AuctionUpdateState _auctionStateUpdateState = AuctionUpdateState.NONE;
 
   private UserUpdateState _userRollbackState = UserUpdateState.NONE;
-  private AuctionUpdateState _auctionRollbackState = AuctionUpdateState.NONE;
+  private AuctionWinnerUpdateState
+    _auctionWinnerRollbackState = AuctionWinnerUpdateState.NONE;
   private PaymentTxState _paymentRollbackState = PaymentTxState.NONE;
 
   private Payment _payment;
@@ -40,14 +43,14 @@ public class SettlementTransactionState
     _userCommitState = userCommitState;
   }
 
-  public AuctionUpdateState getAuctionCommitState()
+  public AuctionWinnerUpdateState getAuctionWinnerUpdateState()
   {
-    return _auctionCommitState;
+    return _auctionWinnerUpdateState;
   }
 
-  public void setAuctionCommitState(AuctionUpdateState auctionCommitState)
+  public void setAuctionWinnerUpdateState(AuctionWinnerUpdateState auctionWinnerUpdateState)
   {
-    _auctionCommitState = auctionCommitState;
+    _auctionWinnerUpdateState = auctionWinnerUpdateState;
   }
 
   public PaymentTxState getPaymentCommitState()
@@ -70,14 +73,14 @@ public class SettlementTransactionState
     _userRollbackState = userRollbackState;
   }
 
-  public AuctionUpdateState getAuctionRollbackState()
+  public AuctionWinnerUpdateState getAuctionWinnerRollbackState()
   {
-    return _auctionRollbackState;
+    return _auctionWinnerRollbackState;
   }
 
-  public void setAuctionRollbackState(AuctionUpdateState auctionRollbackState)
+  public void setAuctionWinnerRollbackState(AuctionWinnerUpdateState auctionWinnerRollbackState)
   {
-    _auctionRollbackState = auctionRollbackState;
+    _auctionWinnerRollbackState = auctionWinnerRollbackState;
   }
 
   public PaymentTxState getPaymentRollbackState()
@@ -90,13 +93,24 @@ public class SettlementTransactionState
     _paymentRollbackState = paymentRollbackState;
   }
 
+  public AuctionUpdateState getAuctionStateUpdateState()
+  {
+    return _auctionStateUpdateState;
+  }
+
+  public void setAuctionStateUpdateState(AuctionUpdateState auctionStateUpdateState)
+  {
+    _auctionStateUpdateState = auctionStateUpdateState;
+  }
+
   public boolean isCommitted()
   {
     boolean isCommitted = _intent == Intent.COMMIT;
 
     isCommitted &= _userCommitState == UserUpdateState.SUCCESS;
 
-    isCommitted &= _auctionCommitState == AuctionUpdateState.SUCCESS;
+    isCommitted &= _auctionWinnerUpdateState
+                   == AuctionWinnerUpdateState.SUCCESS;
 
     isCommitted &= _paymentCommitState == PaymentTxState.SUCCESS;
 
@@ -115,14 +129,15 @@ public class SettlementTransactionState
     isRolledBack &= (_userCommitState == UserUpdateState.REJECTED
                      || _userCommitState == UserUpdateState.ROLLED_BACK);
 
-    isRolledBack &= (_auctionCommitState == AuctionUpdateState.REJECTED
-                     || _auctionCommitState == AuctionUpdateState.ROLLED_BACK);
+    isRolledBack &= (_auctionWinnerUpdateState
+                     == AuctionWinnerUpdateState.REJECTED
+                     || _auctionWinnerUpdateState
+                        == AuctionWinnerUpdateState.ROLLED_BACK);
 
     isRolledBack &= (_paymentCommitState == PaymentTxState.REFUNDED
                      || _paymentCommitState == PaymentTxState.FAILED);
 
     return isRolledBack;
-
   }
 
   public boolean isRollingBack()
@@ -178,7 +193,7 @@ public class SettlementTransactionState
            + _intent
            + ", "
            + _userCommitState + ", "
-           + _auctionCommitState + ", "
+           + _auctionWinnerUpdateState + ", "
            + _paymentCommitState
            + "]";
   }
@@ -197,10 +212,17 @@ public class SettlementTransactionState
     NONE
   }
 
-  enum AuctionUpdateState
+  enum AuctionWinnerUpdateState
   {
     SUCCESS,
     REJECTED,
+    ROLLED_BACK,
+    NONE
+  }
+
+  enum AuctionUpdateState
+  {
+    SUCCESS,
     ROLLED_BACK,
     NONE
   }

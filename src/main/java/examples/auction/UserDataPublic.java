@@ -1,7 +1,7 @@
 package examples.auction;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class UserDataPublic
 {
@@ -10,7 +10,7 @@ public class UserDataPublic
   private String _password;
   private boolean _isAdmin;
 
-  private List<String> _wonAuctions = new ArrayList<>();
+  private Set<String> _wonAuctions = new HashSet<>();
 
   public UserDataPublic()
   {
@@ -47,7 +47,7 @@ public class UserDataPublic
     return _isAdmin;
   }
 
-  public List<String> getWonAuctions()
+  public Set<String> getWonAuctions()
   {
     return _wonAuctions;
   }

@@ -184,10 +184,10 @@ public class AuctionSettleRetryTest
     Assert.assertEquals(state.getRollbackStatus(),
                         AuctionSettlement.Status.NONE);
 
-    Assert.assertEquals(state.getAuctionCommitState(),
-                        SettlementTransactionState.AuctionUpdateState.SUCCESS);
-    Assert.assertEquals(state.getAuctionRollbackState(),
-                        SettlementTransactionState.AuctionUpdateState.NONE);
+    Assert.assertEquals(state.getAuctionWinnerUpdateState(),
+                        SettlementTransactionState.AuctionWinnerUpdateState.SUCCESS);
+    Assert.assertEquals(state.getAuctionWinnerRollbackState(),
+                        SettlementTransactionState.AuctionWinnerUpdateState.NONE);
 
     Assert.assertEquals(state.getUserCommitState(),
                         SettlementTransactionState.UserUpdateState.SUCCESS);
@@ -233,10 +233,10 @@ public class AuctionSettleRetryTest
     Assert.assertEquals(state.getRollbackStatus(),
                         AuctionSettlement.Status.NONE);
 
-    Assert.assertEquals(state.getAuctionCommitState(),
-                        SettlementTransactionState.AuctionUpdateState.SUCCESS);
-    Assert.assertEquals(state.getAuctionRollbackState(),
-                        SettlementTransactionState.AuctionUpdateState.NONE);
+    Assert.assertEquals(state.getAuctionWinnerUpdateState(),
+                        SettlementTransactionState.AuctionWinnerUpdateState.SUCCESS);
+    Assert.assertEquals(state.getAuctionWinnerRollbackState(),
+                        SettlementTransactionState.AuctionWinnerUpdateState.NONE);
 
     Assert.assertEquals(state.getUserCommitState(),
                         SettlementTransactionState.UserUpdateState.SUCCESS);

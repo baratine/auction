@@ -1,6 +1,6 @@
 package examples.auction;
 
-import examples.auction.SettlementTransactionState.AuctionUpdateState;
+import examples.auction.SettlementTransactionState.AuctionWinnerUpdateState;
 import examples.auction.SettlementTransactionState.PaymentTxState;
 import examples.auction.SettlementTransactionState.UserUpdateState;
 import io.baratine.core.Modify;
@@ -13,6 +13,7 @@ import io.baratine.core.ServiceRef;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class AuctionSettlementImpl
@@ -63,12 +64,20 @@ public class AuctionSettlementImpl
       }
     });
 
+/*
     _db.findLocal(
       "select auction_id, user_id, bid from settlement where id = ?",
       _id).first().result(fork.fork().from(c -> loadSettlement(c)));
 
     _db.findLocal("select state from settlement_state where id = ?",
                   _id).first().result(fork.fork().from(c -> loadState(c)));
+*/
+
+    _db.findOne("select state from settlement_state where id = ?",
+                fork.fork().from(c -> loadState(c)), _id);
+
+    _db.findOne("select auction_id, user_id, bid from settlement where id = ?",
+                fork.fork().from(c -> loadSettlement(c)), _id);
 
     fork.join(l -> l.get(0) && l.get(1));
   }
@@ -168,7 +177,7 @@ public class AuctionSettlementImpl
     else {
       _inProgress = true;
 
-      commitPending(status.from(x -> processCommit(x)));
+      commitPending(status.from((x, r) -> processCommit(x, r)));
     }
   }
 
@@ -178,6 +187,8 @@ public class AuctionSettlementImpl
 
     fork.fail((x, e, r) -> {
       for (Throwable t : e) {
+        log.log(Level.FINER, t.getMessage(), t);
+
         if (t != null) {
           r.fail(t);
 
@@ -228,7 +239,8 @@ public class AuctionSettlementImpl
 
   public void updateAuction(Result<Boolean> status)
   {
-    if (_state.getAuctionCommitState() == AuctionUpdateState.SUCCESS) {
+    if (_state.getAuctionWinnerUpdateState()
+        == AuctionWinnerUpdateState.SUCCESS) {
       status.complete(true);
     }
     else {
@@ -242,11 +254,11 @@ public class AuctionSettlementImpl
   private boolean afterAuctionUpdated(boolean isAccepted)
   {
     if (isAccepted) {
-      _state.setAuctionCommitState(AuctionUpdateState.SUCCESS);
+      _state.setAuctionWinnerUpdateState(AuctionWinnerUpdateState.SUCCESS);
       //audit
     }
     else {
-      _state.setAuctionCommitState(AuctionUpdateState.REJECTED);
+      _state.setAuctionWinnerUpdateState(AuctionWinnerUpdateState.REJECTED);
       //audit
     }
 
@@ -344,22 +356,26 @@ public class AuctionSettlementImpl
     return result;
   }
 
-  private Status processCommit(boolean result)
+  private void processCommit(boolean commitResult, Result<Status> result)
   {
     Status status = Status.COMMITTING;
 
-    if (result) {
-      status = Status.COMMITTED;
+    if (commitResult) {
+      getAuction().setSettled(result.from((x, r) -> {
+        _state.setCommitStatus(Status.COMMITTED);
+        r.complete(Status.COMMITTED);
+        _inProgress = false;
+      }));
 
-      getAuction().setSettled(Result.ignore());
-
+      return;
       //audit
     }
     else if (_state.getUserCommitState() == UserUpdateState.REJECTED) {
       status = Status.COMMIT_FAILED;
       //audit
     }
-    else if (_state.getAuctionCommitState() == AuctionUpdateState.REJECTED) {
+    else if (_state.getAuctionWinnerUpdateState()
+             == AuctionWinnerUpdateState.REJECTED) {
       status = Status.COMMIT_FAILED;
       //audit
     }
@@ -372,8 +388,6 @@ public class AuctionSettlementImpl
     _state.setCommitStatus(status);
 
     _inProgress = false;
-
-    return status;
   }
 
   @Modify
@@ -471,12 +485,12 @@ public class AuctionSettlementImpl
 
   private void resetAuction(Result<Boolean> result)
   {
-    if (_state.getAuctionCommitState()
-        == AuctionUpdateState.REJECTED) {
+    if (_state.getAuctionWinnerUpdateState()
+        == AuctionWinnerUpdateState.REJECTED) {
       result.complete(true);
     }
-    else if (_state.getAuctionRollbackState()
-             == AuctionUpdateState.ROLLED_BACK) {
+    else if (_state.getAuctionWinnerRollbackState()
+             == AuctionWinnerUpdateState.ROLLED_BACK) {
       result.complete(true);
     }
     else {
@@ -490,7 +504,7 @@ public class AuctionSettlementImpl
   private boolean afterAuctionReset(boolean isReset)
   {
     if (isReset) {
-      _state.setAuctionRollbackState(AuctionUpdateState.ROLLED_BACK);
+      _state.setAuctionWinnerRollbackState(AuctionWinnerUpdateState.ROLLED_BACK);
 
       //audit
     }
@@ -540,6 +554,8 @@ public class AuctionSettlementImpl
   @OnSave
   public void save()
   {
+    log.log(Level.FINER, String.format("saving %1$s", this));
+
     //id , auction_id , user_id , bid
     if (_boundState == BoundState.NEW) {
       _db.exec(
@@ -552,8 +568,7 @@ public class AuctionSettlementImpl
     }
 
     _db.exec("insert into settlement_state (id, state) values (?, ?)",
-             x -> {
-             },
+             Result.ignore(),
              _id,
              _state);
   }

@@ -202,10 +202,10 @@ public class AuctionSettleRollbackTest
     Assert.assertEquals(state.getRollbackStatus(),
                         AuctionSettlement.Status.ROLLED_BACK);
 
-    Assert.assertEquals(state.getAuctionCommitState(),
-                        SettlementTransactionState.AuctionUpdateState.SUCCESS);
-    Assert.assertEquals(state.getAuctionRollbackState(),
-                        SettlementTransactionState.AuctionUpdateState.ROLLED_BACK);
+    Assert.assertEquals(state.getAuctionWinnerUpdateState(),
+                        SettlementTransactionState.AuctionWinnerUpdateState.SUCCESS);
+    Assert.assertEquals(state.getAuctionWinnerRollbackState(),
+                        SettlementTransactionState.AuctionWinnerUpdateState.ROLLED_BACK);
 
     Assert.assertEquals(state.getUserCommitState(),
                         SettlementTransactionState.UserUpdateState.SUCCESS);

@@ -170,8 +170,8 @@ public class AuctionSettleRejectPaymentTest
     Assert.assertEquals(SettlementTransactionState.UserUpdateState.SUCCESS,
                         txState.getUserCommitState());
 
-    Assert.assertEquals(SettlementTransactionState.AuctionUpdateState.SUCCESS,
-                        txState.getAuctionCommitState());
+    Assert.assertEquals(SettlementTransactionState.AuctionWinnerUpdateState.SUCCESS,
+                        txState.getAuctionWinnerUpdateState());
 
     Assert.assertEquals(SettlementTransactionState.PaymentTxState.FAILED,
                         txState.getPaymentCommitState());

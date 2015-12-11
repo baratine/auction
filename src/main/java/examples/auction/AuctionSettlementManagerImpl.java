@@ -60,13 +60,15 @@ public class AuctionSettlementManagerImpl
 
   private void load(boolean initSuccess, Result<Boolean> result)
   {
-/*
+    log.log(Level.FINER, String.format("checking pending settlements"));
+
+    /*
+
     ResultStreamBuilder<Cursor> r = _db.findLocal(
       "select id from settlement_state where state._commitStatus = ? or state._rollbackStatus = ?",
       AuctionSettlement.Status.COMMITTING,
       AuctionSettlement.Status.ROLLING_BACK);
 */
-    log.log(Level.FINER, String.format("checking pending settlements"));
 
     ResultStreamBuilder<Cursor> r = _db.findLocal(
       "select id from settlement_state");

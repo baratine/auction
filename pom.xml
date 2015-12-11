@@ -67,7 +67,7 @@
         <dependency>
           <groupId>io.baratine</groupId>
           <artifactId>baratine</artifactId>
-          <version>0.10.1</version>
+          <version>[0.10,)</version>
         </dependency>
       </dependencies>
     </profile>
@@ -157,7 +157,7 @@
       <plugin>
         <groupId>io.baratine</groupId>
         <artifactId>baratine-maven-plugin</artifactId>
-        <version>0.10.2</version>
+        <version>0.10.3</version>
         <extensions>true</extensions>
         <configuration>
           <!--verbose>true</verbose-->

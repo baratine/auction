@@ -94,7 +94,7 @@ public class AuctionTest
 
     AuctionDataPublic data = auction.get();
     Assert.assertNotNull(data);
-    Assert.assertEquals(user.getUserData().getId(),
+    Assert.assertEquals(user.get().getId(),
                         auction.get().getOwnerId());
     Assert.assertEquals(data.getTitle(), "book");
   }
@@ -114,7 +114,7 @@ public class AuctionTest
   AuctionSync createAuction(UserSync user, String title, int bid)
   {
     String id
-      = _auctions.create(new AuctionDataInit(user.getUserData().getId(),
+      = _auctions.create(new AuctionDataInit(user.get().getId(),
                                              title,
                                              bid));
 
@@ -246,20 +246,20 @@ public class AuctionTest
     Assert.assertTrue(result);
 
     // successful bid
-    result = auction.bid(new Bid(userKirk.getUserData().getId(), 20));
+    result = auction.bid(new Bid(userKirk.get().getId(), 20));
     Assert.assertTrue(result);
     AuctionDataPublic data = auction.get();
     Assert.assertEquals(data.getLastBid().getBid(), 20);
     Assert.assertEquals(data.getLastBid().getUserId(),
-                        userKirk.getUserData().getId());
+                        userKirk.get().getId());
 
     // failed bid
-    result = auction.bid(new Bid(userUhura.getUserData().getId(), 17));
+    result = auction.bid(new Bid(userUhura.get().getId(), 17));
     Assert.assertFalse(result);
     data = auction.get();
     Assert.assertEquals(data.getLastBid().getBid(), 20);
     Assert.assertEquals(data.getLastBid().getUserId(),
-                        userKirk.getUserData().getId());
+                        userKirk.get().getId());
 
     result = auction.close();
     Assert.assertTrue(result);
@@ -267,7 +267,7 @@ public class AuctionTest
     data = auction.get();
     Assert.assertEquals(data.getLastBid().getBid(), 20);
     Assert.assertEquals(data.getLastBid().getUserId(),
-                        userKirk.getUserData().getId());
+                        userKirk.get().getId());
   }
 
   /**
@@ -302,14 +302,14 @@ public class AuctionTest
 
     eventRef.subscribe(callabackRef);
 
-    auction.bid(new Bid(userKirk.getUserData().getId(), 17));
+    auction.bid(new Bid(userKirk.get().getId(), 17));
 
     // wait for events
     Thread.sleep(100);
 
     Assert.assertEquals("bid", auctionCallback.getType());
-    Assert.assertEquals(userKirk.getUserData().getId(),
-                        auctionCallback.getUser().getUserData().getId());
+    Assert.assertEquals(userKirk.get().getId(),
+                        auctionCallback.getUser().get().getId());
     Assert.assertEquals(auctionCallback.getBid(), 17);
     Assert.assertEquals(auctionCallback.getCount(), 1);
 
@@ -319,8 +319,8 @@ public class AuctionTest
     Thread.sleep(100);
 
     Assert.assertEquals("close", auctionCallback.getType());
-    Assert.assertEquals(userKirk.getUserData().getId(),
-                        auctionCallback.getUser().getUserData().getId());
+    Assert.assertEquals(userKirk.get().getId(),
+                        auctionCallback.getUser().get().getId());
     Assert.assertEquals(auctionCallback.getBid(), 17);
     Assert.assertEquals(auctionCallback.getCount(), 2);
   }
@@ -342,7 +342,7 @@ public class AuctionTest
     boolean result = auction.open();
     Assert.assertTrue(result);
 
-    result = auction.bid(new Bid(userKirk.getUserData().getId(), 20));
+    result = auction.bid(new Bid(userKirk.get().getId(), 20));
     Assert.assertTrue(result);
 
     String id = auction.get().getId();
@@ -433,7 +433,7 @@ public class AuctionTest
       addMsg("bid "
              + _title
              + " user="
-             + _user.getUserData().getName()
+             + _user.get().getName()
              + " "
              + _bid);
     }
@@ -458,7 +458,7 @@ public class AuctionTest
       addMsg("close "
              + _title
              + " user="
-             + _user.getUserData().getName()
+             + _user.get().getName()
              + " "
              + _bid);
     }

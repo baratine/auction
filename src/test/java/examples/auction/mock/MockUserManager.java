@@ -2,7 +2,7 @@ package examples.auction.mock;
 
 import examples.auction.CreditCard;
 import examples.auction.User;
-import examples.auction.UserDataPublic;
+import examples.auction.UserData;
 import examples.auction.UserManagerImpl;
 import io.baratine.core.Journal;
 import io.baratine.core.Result;
@@ -45,9 +45,9 @@ class UserWrapper implements User
   }
 
   @Override
-  public void getUserData(Result<UserDataPublic> user)
+  public void get(Result<UserData> user)
   {
-    _user.getUserData(user);
+    _user.get(user);
   }
 
   @Override

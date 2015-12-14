@@ -86,7 +86,7 @@ public class AuctionSessionTest
 
     session.login("Spock", "passwd");
 
-    UserDataPublic data = session.getUser();
+    UserData data = session.getUser();
 
     Assert.assertEquals("Spock", data.getName());
   }
@@ -120,7 +120,7 @@ public class AuctionSessionTest
     result = session.login("Spock", "passwd");
     Assert.assertTrue(result);
 
-    UserDataPublic data = session.getUser();
+    UserData data = session.getUser();
 
     Assert.assertEquals("Spock", data.getName());
   }

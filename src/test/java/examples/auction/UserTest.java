@@ -40,7 +40,7 @@ public class UserTest
 
     UserSync user = _userManagerRef.lookup("/" + id).as(UserSync.class);
 
-    UserDataPublic userData = user.getUserData();
+    UserData userData = user.get();
 
     Assert.assertEquals(id, userData.getId());
     Assert.assertEquals("Spock", userData.getName());

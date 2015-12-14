@@ -111,7 +111,7 @@ public class AuctionSettleRetryTest
   AuctionSync createAuction(UserSync user, String title, int bid)
   {
     String id
-      = _auctions.create(new AuctionDataInit(user.getUserData().getId(),
+      = _auctions.create(new AuctionDataInit(user.get().getId(),
                                              title,
                                              bid));
 
@@ -145,7 +145,7 @@ public class AuctionSettleRetryTest
 
     Assert.assertTrue(auction.open());
 
-    Assert.assertTrue(auction.bid(new Bid(userKirk.getUserData().getId(), 2)));
+    Assert.assertTrue(auction.bid(new Bid(userKirk.get().getId(), 2)));
 
     _paypal.setPaymentResult(new MockPayment("sale-id",
                                              Payment.PaymentState.pending));
@@ -157,19 +157,19 @@ public class AuctionSettleRetryTest
     AuctionSettlement.Status status = settlement.commitStatus();
 
     int i = 0;
-    while (status == AuctionSettlement.Status.COMMITTING && i++ < 10) {
+    while (status == AuctionSettlement.Status.SETTLING && i++ < 10) {
       Thread.sleep(10);
       status = settlement.commitStatus();
     }
 
-    Assert.assertEquals(AuctionSettlement.Status.COMMITTING, status);
+    Assert.assertEquals(AuctionSettlement.Status.SETTLING, status);
 
     AuctionDataPublic auctionData = auction.get();
     Assert.assertEquals(AuctionDataPublic.State.CLOSED,
                         auctionData.getState());
 
     UserSync winner = getUser(auctionData.getLastBidder());
-    UserDataPublic winnerUserData = winner.getUserData();
+    UserData winnerUserData = winner.get();
 
     Assert.assertTrue(winnerUserData.getWonAuctions()
                                     .contains(auctionData.getId()));
@@ -179,7 +179,7 @@ public class AuctionSettleRetryTest
     SettlementTransactionState state = settlement.getTransactionState();
 
     Assert.assertEquals(state.getCommitStatus(),
-                        AuctionSettlement.Status.COMMITTING);
+                        AuctionSettlement.Status.SETTLING);
 
     Assert.assertEquals(state.getRollbackStatus(),
                         AuctionSettlement.Status.NONE);
@@ -206,19 +206,19 @@ public class AuctionSettleRetryTest
     settlement.commit();
 
     i = 0;
-    while (status == AuctionSettlement.Status.COMMITTING && i++ < 10) {
+    while (status == AuctionSettlement.Status.SETTLING && i++ < 10) {
       Thread.sleep(10);
       status = settlement.commitStatus();
     }
 
-    Assert.assertEquals(AuctionSettlement.Status.COMMITTED, status);
+    Assert.assertEquals(AuctionSettlement.Status.SETTLED, status);
 
     auctionData = auction.get();
     Assert.assertEquals(AuctionDataPublic.State.SETTLED,
                         auctionData.getState());
 
     winner = getUser(auctionData.getLastBidder());
-    winnerUserData = winner.getUserData();
+    winnerUserData = winner.get();
 
     Assert.assertTrue(winnerUserData.getWonAuctions()
                                     .contains(auctionData.getId()));
@@ -228,7 +228,7 @@ public class AuctionSettleRetryTest
     state = settlement.getTransactionState();
 
     Assert.assertEquals(state.getCommitStatus(),
-                        AuctionSettlement.Status.COMMITTED);
+                        AuctionSettlement.Status.SETTLED);
 
     Assert.assertEquals(state.getRollbackStatus(),
                         AuctionSettlement.Status.NONE);

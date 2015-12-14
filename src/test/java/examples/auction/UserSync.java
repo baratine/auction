@@ -6,5 +6,5 @@ public interface UserSync extends User
 
   boolean authenticate(String password);
 
-  UserDataPublic getUserData();
+  UserData get();
 }

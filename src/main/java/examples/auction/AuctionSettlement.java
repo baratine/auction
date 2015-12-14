@@ -4,16 +4,16 @@ import io.baratine.core.Result;
 
 public interface AuctionSettlement
 {
-  void create(String auctionId,
+  void settle(String auctionId,
               String userId,
               AuctionDataPublic.Bid bid,
-              Result<Boolean> result);
+              Result<Status> result);
 
-  void commit(Result<Status> status);
+  void settleResume(Result<Status> result);
 
   void rollback(Result<Status> status);
 
-  void commitStatus(Result<Status> status);
+  void settleStatus(Result<Status> status);
 
   void rollbackStatus(Result<Status> status);
 
@@ -22,8 +22,8 @@ public interface AuctionSettlement
   enum Status
   {
     NONE,
-    COMMITTING,
-    COMMITTED,
+    SETTLING,
+    SETTLED,
     COMMIT_FAILED,
     ROLLING_BACK,
     ROLLED_BACK,

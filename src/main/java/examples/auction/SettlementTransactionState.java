@@ -5,7 +5,7 @@ public class SettlementTransactionState
   private Intent _intent = Intent.COMMIT;
 
   private AuctionSettlement.Status _commitStatus
-    = AuctionSettlement.Status.COMMITTING;
+    = AuctionSettlement.Status.SETTLING;
 
   private AuctionSettlement.Status _rollbackStatus
     = AuctionSettlement.Status.NONE;

@@ -84,13 +84,13 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
   /**
    * returns logged in user
    */
-  public void getUser(Result<UserDataPublic> userData)
+  public void getUser(Result<UserData> userData)
   {
     if (_user == null) {
       throw new IllegalStateException("No user is logged in");
     }
 
-    _user.getUserData(userData);
+    _user.get(userData);
   }
 
   @Override
@@ -99,7 +99,8 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     Auction auction = getAuctionService(auctionId);
 
     auction.get(result.from((a, r) -> {
-      getUserService(a.getLastBidder()).getUserData(r.from(u -> u.mask()));
+      getUserService(a.getLastBidder()).get(
+        r.from(u -> new UserDataPublic(u)));
     }));
   }
 

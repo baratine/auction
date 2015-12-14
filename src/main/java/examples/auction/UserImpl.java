@@ -21,7 +21,7 @@ public class UserImpl implements User
   private MessageDigest _digest;
 
   private String _id;
-  private UserDataPublic _user;
+  private UserData _user;
   private CreditCard _creditCard;
 
   public UserImpl()
@@ -41,7 +41,7 @@ public class UserImpl implements User
                      boolean isAdmin,
                      Result<String> userId)
   {
-    _user = new UserDataPublic(_id, userName, digest(password), false);
+    _user = new UserData(_id, userName, digest(password), false);
 
     log.finer("creating new user: " + userName);
 
@@ -86,7 +86,7 @@ public class UserImpl implements User
   private boolean setUser(Cursor c)
   {
     if (c != null)
-      _user = (UserDataPublic) c.getObject(1);
+      _user = (UserData) c.getObject(1);
 
     log.finer("loading user: " + _id + " ->" + _user);
 
@@ -118,7 +118,7 @@ public class UserImpl implements User
   }
 
   @Override
-  public void getUserData(Result<UserDataPublic> user)
+  public void get(Result<UserData> user)
   {
     user.complete(_user);
   }

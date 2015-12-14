@@ -83,13 +83,13 @@ public class AuctionSessionImpl implements AuctionSession
   /**
    * returns logged in user
    */
-  public void getUser(Result<UserDataPublic> userData)
+  public void getUser(Result<UserData> userData)
   {
     if (_user == null) {
       throw new IllegalStateException("No user is logged in");
     }
 
-    _user.getUserData(userData);
+    _user.get(userData);
   }
 
   public void createAuction(String title,

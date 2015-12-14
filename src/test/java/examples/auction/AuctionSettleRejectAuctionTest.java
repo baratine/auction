@@ -112,7 +112,7 @@ public class AuctionSettleRejectAuctionTest
   AuctionSync createAuction(UserSync user, String title, int bid)
   {
     String id
-      = _auctions.create(new AuctionDataInit(user.getUserData().getId(),
+      = _auctions.create(new AuctionDataInit(user.get().getId(),
                                              title,
                                              bid));
 
@@ -146,7 +146,7 @@ public class AuctionSettleRejectAuctionTest
 
     Assert.assertTrue(auction.open());
 
-    Assert.assertTrue(auction.bid(new Bid(userKirk.getUserData().getId(), 2)));
+    Assert.assertTrue(auction.bid(new Bid(userKirk.get().getId(), 2)));
 
     _paypal.setPaymentResult(new MockPayment("sale-id",
                                              Payment.PaymentState.approved));
@@ -158,7 +158,7 @@ public class AuctionSettleRejectAuctionTest
     AuctionSettlement.Status status = settlement.commitStatus();
 
     int i = 0;
-    while (status == AuctionSettlement.Status.COMMITTING && i < 10) {
+    while (status == AuctionSettlement.Status.SETTLING && i < 10) {
       Thread.sleep(10);
       status = settlement.commitStatus();
       i++;

@@ -17,8 +17,7 @@ import java.util.logging.Logger;
 
 @Service("pod://settlement/settlement")
 @Startup
-public class AuctionSettlementManagerImpl
-  implements AuctionSettlementManager
+public class AuctionSettlementManagerImpl implements AuctionSettlementManager
 {
   private static Logger log
     = Logger.getLogger(AuctionSettlementManagerImpl.class.getName());
@@ -66,7 +65,7 @@ public class AuctionSettlementManagerImpl
 
     ResultStreamBuilder<Cursor> r = _db.findLocal(
       "select id from settlement_state where state._commitStatus = ? or state._rollbackStatus = ?",
-      AuctionSettlement.Status.COMMITTING,
+      AuctionSettlement.Status.SETTLING,
       AuctionSettlement.Status.ROLLING_BACK);
 */
 
@@ -94,8 +93,8 @@ public class AuctionSettlementManagerImpl
       if (t.getRollbackStatus() == AuctionSettlement.Status.ROLLING_BACK) {
         settlement.rollback(Result.ignore());
       }
-      else if (t.getCommitStatus() == AuctionSettlement.Status.COMMITTING) {
-        settlement.commit(Result.ignore());
+      else if (t.getCommitStatus() == AuctionSettlement.Status.SETTLING) {
+        settlement.settleResume(Result.ignore());
       }
     });
   }

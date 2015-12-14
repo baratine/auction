@@ -12,7 +12,7 @@ public interface AuctionAdminSession
 
   void login(String userName, String password, Result<Boolean> result);
 
-  void getUser(Result<UserDataPublic> result);
+  void getUser(Result<UserData> result);
 
   void getWinner(String auctionId, Result<UserDataPublic> result);
 

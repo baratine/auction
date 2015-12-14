@@ -11,7 +11,7 @@ public interface User
 
   void authenticate(String password, Result<Boolean> result);
 
-  void getUserData(Result<UserDataPublic> user);
+  void get(Result<UserData> user);
 
   void getCreditCard(Result<CreditCard> creditCard);
 

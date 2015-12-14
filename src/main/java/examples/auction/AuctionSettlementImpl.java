@@ -16,8 +16,7 @@ import io.baratine.db.DatabaseService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class AuctionSettlementImpl
-  implements AuctionSettlement
+public class AuctionSettlementImpl implements AuctionSettlement
 {
   private final static Logger log
     = Logger.getLogger(AuctionSettlementImpl.class.getName());
@@ -125,10 +124,10 @@ public class AuctionSettlementImpl
 
   @Override
   @Modify
-  public void create(String auctionId,
+  public void settle(String auctionId,
                      String userId,
                      AuctionDataPublic.Bid bid,
-                     Result<Boolean> result)
+                     Result<Status> status)
   {
     log.finer(String.format("create %1$s", this));
 
@@ -141,20 +140,16 @@ public class AuctionSettlementImpl
 
     _boundState = BoundState.NEW;
 
-    result.complete(true);
+    log.finer(String.format("settle %1$s", this));
+
+    settleImpl(status);
   }
 
-  @Modify
   @Override
-  public void commit(Result<Status> status)
+  public void settleResume(Result<Status> status)
   {
-    log.finer(String.format("commit settlement %1$s", this));
-
-    if (_boundState == BoundState.UNBOUND)
-      throw new IllegalStateException();
-
     if (_state.isCommitted()) {
-      status.complete(Status.COMMITTED);
+      status.complete(Status.SETTLED);
     }
     else if (_state.isRolledBack()) {
       throw new IllegalStateException();
@@ -163,10 +158,10 @@ public class AuctionSettlementImpl
       throw new IllegalStateException();
     }
 
-    commitImpl(status);
+    settleImpl(status);
   }
 
-  private void commitImpl(Result<Status> status)
+  private void settleImpl(Result<Status> status)
   {
     if (_state.getCommitStatus() == Status.COMMIT_FAILED) {
       status.complete(_state.getCommitStatus());
@@ -177,11 +172,11 @@ public class AuctionSettlementImpl
     else {
       _inProgress = true;
 
-      commitPending(status.from((x, r) -> processCommit(x, r)));
+      settlePending(status.from((x, r) -> processSettle(x, r)));
     }
   }
 
-  public void commitPending(Result<Boolean> status)
+  public void settlePending(Result<Boolean> status)
   {
     Result.Fork<Boolean,Boolean> fork = status.newFork();
 
@@ -356,14 +351,14 @@ public class AuctionSettlementImpl
     return result;
   }
 
-  private void processCommit(boolean commitResult, Result<Status> result)
+  private void processSettle(boolean commitResult, Result<Status> result)
   {
-    Status status = Status.COMMITTING;
+    Status status = Status.SETTLING;
 
     if (commitResult) {
       getAuction().setSettled(result.from((x, r) -> {
-        _state.setCommitStatus(Status.COMMITTED);
-        r.complete(Status.COMMITTED);
+        _state.setCommitStatus(Status.SETTLED);
+        r.complete(Status.SETTLED);
         _inProgress = false;
       }));
 
@@ -580,7 +575,7 @@ public class AuctionSettlementImpl
   }
 
   @Override
-  public void commitStatus(Result<Status> result)
+  public void settleStatus(Result<Status> result)
   {
     result.complete(_state.getCommitStatus());
   }

@@ -10,6 +10,7 @@ import io.baratine.core.OnLoad;
 import io.baratine.core.OnSave;
 import io.baratine.core.Result;
 import io.baratine.core.ServiceManager;
+import io.baratine.core.ServiceRef;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 
@@ -23,6 +24,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private DatabaseService _db;
   private AuctionSettlementManager _settlementManager;
+  private ServiceRef _settlementManagerRef;
 
   private BoundState _boundState = BoundState.UNBOUND;
 
@@ -34,6 +36,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private SettlementTransactionState _state;
 
   private boolean _inProgress = false;
+
+  private AuctionSettlement _settlement;
 
   public AuctionSettlementImpl(String id)
   {
@@ -100,8 +104,13 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
     _db = manager.lookup("bardb:///").as(DatabaseService.class);
 
-    _settlementManager = manager.lookup("pod://settlement/settlement")
-                                .as(AuctionSettlementManager.class);
+    _settlementManagerRef = manager.lookup("pod://settlement/settlement");
+
+    _settlementManager
+      = _settlementManagerRef.as(AuctionSettlementManager.class);
+
+    _settlement
+      = _settlementManagerRef.lookup('/' + _id).as(AuctionSettlement.class);
 
     result.complete(true);
   }
@@ -346,6 +355,13 @@ public class AuctionSettlementImpl implements AuctionSettlement
     _state.setSettleStatus(status);
 
     _inProgress = false;
+
+    if (Status.SETTLE_FAILED == status) {
+      _settlement.refund(result);
+    }
+    else {
+      result.complete(status);
+    }
   }
 
   @Modify

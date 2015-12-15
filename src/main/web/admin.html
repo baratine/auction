@@ -252,13 +252,13 @@
         $scope.client.query("/auction-admin-session", "refund", [id]);
       };
 
-      $scope.onDisplayAuctionData = function (auction)
+      $scope.displayAuctionData = function (auction)
       {
         $scope.auctionData = JSON.stringify(auction, null, 2);
         $scope.apply();
       };
 
-      $scope.onDisplayWinnerData = function (user)
+      $scope.displayWinnerData = function (user)
       {
         console.log(user);
 
@@ -266,17 +266,30 @@
         $scope.apply();
       };
 
+      $scope.displayTransactionState = function (state)
+      {
+        console.log(state);
+
+        $scope.txState = JSON.stringify(state, null, 2);
+        $scope.apply();
+      };
+
+
       $scope.display = function (index)
       {
         var id = $scope.auctions[index].id;
 
         $scope.client.query("/auction-admin-session",
                             "getAuction",
-                [id], $scope.onDisplayAuctionData);
+                [id], $scope.displayAuctionData);
 
         $scope.client.query("/auction-admin-session",
                             "getWinner",
-                [id], $scope.onDisplayWinnerData);
+                [id], $scope.displayWinnerData);
+
+        $scope.client.query("/auction-admin-session",
+                            "getSettlementState",
+                [id], $scope.displayTransactionState);
       };
 
       var host = window.location.host;
@@ -398,6 +411,10 @@
 
 <div id="winnerData">Auction winner:<br>
   <pre>{{winnerData}}</pre>
+</div>
+
+<div id="txState">Transaction State:<br>
+  <pre>{{txState}}</pre>
 </div>
 
 </body>

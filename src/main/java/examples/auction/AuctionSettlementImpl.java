@@ -1,5 +1,6 @@
 package examples.auction;
 
+import examples.auction.SettlementTransactionState.AuctionUpdateState;
 import examples.auction.SettlementTransactionState.AuctionWinnerUpdateState;
 import examples.auction.SettlementTransactionState.PaymentTxState;
 import examples.auction.SettlementTransactionState.UserUpdateState;
@@ -47,16 +48,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
       throw new IllegalStateException();
 
     Result.Fork<Boolean,Boolean> fork = result.newFork();
-
-    fork.fail((l, e, r) -> {
-      for (Throwable t : e) {
-        if (t != null) {
-          r.fail(t);
-
-          break;
-        }
-      }
-    });
 
 /*
     _db.findLocal(
@@ -173,18 +164,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
   {
     Result.Fork<Boolean,Boolean> fork = status.newFork();
 
-    fork.fail((x, e, r) -> {
-      for (Throwable t : e) {
-        log.log(Level.FINER, t.getMessage(), t);
-
-        if (t != null) {
-          r.fail(t);
-
-          break;
-        }
-      }
-    });
-
     updateUser(fork.fork());
     updateAuction(fork.fork());
     chargeUser(fork.fork());
@@ -269,15 +248,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
     Result.Fork<Boolean,Boolean> fork = paymentResult.newFork();
 
-    fork = fork.fail((l, e, r) -> {
-      for (Throwable t : e) {
-        if (t != null) {
-          r.fail(t);
-          break;
-        }
-      }
-    });
-
     getAuction(fork.fork().from((a, r) -> {
       a.get(r.from(d -> {
         auctionData.set(d);
@@ -348,6 +318,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
       getAuction(result.from((a, r) -> {
         a.setSettled(r.from((x, ri) -> {
+          _state.setAuctionStateUpdateState(AuctionUpdateState.SUCCESS);
           _state.setSettleStatus(Status.SETTLED);
           ri.complete(Status.SETTLED);
           _inProgress = false;
@@ -409,16 +380,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
   public void rollbackPending(Result<Boolean> status)
   {
     Result.Fork<Boolean,Boolean> fork = status.newFork();
-
-    fork.fail((l, e, r) -> {
-      for (Throwable t : e) {
-        if (t != null) {
-          r.fail(t);
-
-          break;
-        }
-      }
-    });
 
     resetUser(fork.fork());
     resetAuction(fork.fork());
@@ -510,10 +471,10 @@ public class AuctionSettlementImpl implements AuctionSettlement
       result.complete(true);
     }
     else {
-
       Payment payment = _state.getPayment();
+
       if (payment == null) {
-        //send payment to refund service
+
         result.complete(true);
       }
       else {
@@ -533,6 +494,9 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private boolean processRefund(Refund refund)
   {
     boolean isRefunded = false;
+
+    if (refund != null)
+      _state.setRefund(refund);
 
     //audits
     if (refund.getStatus() == RefundImpl.RefundState.completed) {

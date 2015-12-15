@@ -45,6 +45,10 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
   @Lookup("pod://auction/auction")
   private ServiceRef _auctionsServiceRef;
 
+  @Inject
+  @Lookup("pod://settlement/settlement")
+  private ServiceRef _settlementsServiceRef;
+
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
   private ChannelListener _listener;
 
@@ -104,6 +108,14 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     }));
   }
 
+  @Override
+  public void getSettlementState(String auctionId,
+                                 Result<SettlementTransactionState> result)
+  {
+    getAuctionSettlementService(auctionId,
+                                result.from((s, r) -> s.getTransactionState(r)));
+  }
+
   public void getAuction(String id, Result<AuctionDataPublic> result)
   {
     if (id == null) {
@@ -115,6 +127,15 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     }
 
     getAuctionService(id).get(result);
+  }
+
+  private void getAuctionSettlementService(String auctionId,
+                                           Result<AuctionSettlement> result)
+  {
+    getAuctionService(auctionId).getSettlementId(result.from(sid -> {
+      return _settlementsServiceRef.lookup('/' + sid)
+                                   .as(AuctionSettlement.class);
+    }));
   }
 
   private Auction getAuctionService(String id)

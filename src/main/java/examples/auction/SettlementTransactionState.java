@@ -4,22 +4,24 @@ public class SettlementTransactionState
 {
   private Intent _intent = Intent.COMMIT;
 
-  private AuctionSettlement.Status _commitStatus
+  private AuctionSettlement.Status _settleStatus
     = AuctionSettlement.Status.SETTLING;
 
-  private AuctionSettlement.Status _rollbackStatus
+  private AuctionSettlement.Status _refundStatus
     = AuctionSettlement.Status.NONE;
 
-  private UserUpdateState _userCommitState = UserUpdateState.NONE;
+  private UserUpdateState _userSettleState = UserUpdateState.NONE;
+
   private AuctionWinnerUpdateState
     _auctionWinnerUpdateState = AuctionWinnerUpdateState.NONE;
-  private PaymentTxState _paymentCommitState = PaymentTxState.NONE;
+
+  private PaymentTxState _paymentState = PaymentTxState.NONE;
   private AuctionUpdateState _auctionStateUpdateState = AuctionUpdateState.NONE;
 
-  private UserUpdateState _userRollbackState = UserUpdateState.NONE;
+  private UserUpdateState _userResetState = UserUpdateState.NONE;
   private AuctionWinnerUpdateState
-    _auctionWinnerRollbackState = AuctionWinnerUpdateState.NONE;
-  private PaymentTxState _paymentRollbackState = PaymentTxState.NONE;
+    _auctionWinnerResetState = AuctionWinnerUpdateState.NONE;
+  private PaymentTxState _refundState = PaymentTxState.NONE;
 
   private Payment _payment;
   private Refund _refund;
@@ -28,19 +30,19 @@ public class SettlementTransactionState
   {
   }
 
-  public void toRollBack()
+  public void toRefund()
   {
-    _intent = Intent.ROLLBACK;
+    _intent = Intent.REFUND;
   }
 
-  public UserUpdateState getUserCommitState()
+  public UserUpdateState getUserSettleState()
   {
-    return _userCommitState;
+    return _userSettleState;
   }
 
-  public void setUserCommitState(UserUpdateState userCommitState)
+  public void setUserSettleState(UserUpdateState userSettleState)
   {
-    _userCommitState = userCommitState;
+    _userSettleState = userSettleState;
   }
 
   public AuctionWinnerUpdateState getAuctionWinnerUpdateState()
@@ -53,44 +55,44 @@ public class SettlementTransactionState
     _auctionWinnerUpdateState = auctionWinnerUpdateState;
   }
 
-  public PaymentTxState getPaymentCommitState()
+  public PaymentTxState getPaymentState()
   {
-    return _paymentCommitState;
+    return _paymentState;
   }
 
-  public void setPaymentCommitState(PaymentTxState paymentCommitState)
+  public void setPaymentState(PaymentTxState paymentState)
   {
-    _paymentCommitState = paymentCommitState;
+    _paymentState = paymentState;
   }
 
-  public UserUpdateState getUserRollbackState()
+  public UserUpdateState getUserResetState()
   {
-    return _userRollbackState;
+    return _userResetState;
   }
 
-  public void setUserRollbackState(UserUpdateState userRollbackState)
+  public void setUserResetState(UserUpdateState userResetState)
   {
-    _userRollbackState = userRollbackState;
+    _userResetState = userResetState;
   }
 
-  public AuctionWinnerUpdateState getAuctionWinnerRollbackState()
+  public AuctionWinnerUpdateState getAuctionWinnerResetState()
   {
-    return _auctionWinnerRollbackState;
+    return _auctionWinnerResetState;
   }
 
-  public void setAuctionWinnerRollbackState(AuctionWinnerUpdateState auctionWinnerRollbackState)
+  public void setAuctionWinnerResetState(AuctionWinnerUpdateState auctionWinnerResetState)
   {
-    _auctionWinnerRollbackState = auctionWinnerRollbackState;
+    _auctionWinnerResetState = auctionWinnerResetState;
   }
 
-  public PaymentTxState getPaymentRollbackState()
+  public PaymentTxState getRefundState()
   {
-    return _paymentRollbackState;
+    return _refundState;
   }
 
-  public void setPaymentRollbackState(PaymentTxState paymentRollbackState)
+  public void setRefundState(PaymentTxState refundState)
   {
-    _paymentRollbackState = paymentRollbackState;
+    _refundState = refundState;
   }
 
   public AuctionUpdateState getAuctionStateUpdateState()
@@ -103,16 +105,16 @@ public class SettlementTransactionState
     _auctionStateUpdateState = auctionStateUpdateState;
   }
 
-  public boolean isCommitted()
+  public boolean isSettled()
   {
     boolean isCommitted = _intent == Intent.COMMIT;
 
-    isCommitted &= _userCommitState == UserUpdateState.SUCCESS;
+    isCommitted &= _userSettleState == UserUpdateState.SUCCESS;
 
     isCommitted &= _auctionWinnerUpdateState
                    == AuctionWinnerUpdateState.SUCCESS;
 
-    isCommitted &= _paymentCommitState == PaymentTxState.SUCCESS;
+    isCommitted &= _paymentState == PaymentTxState.SUCCESS;
 
     return isCommitted;
   }
@@ -122,27 +124,27 @@ public class SettlementTransactionState
     return _intent == Intent.COMMIT;
   }
 
-  public boolean isRolledBack()
+  public boolean isRefunded()
   {
-    boolean isRolledBack = _intent == Intent.ROLLBACK;
+    boolean isRefunded = _intent == Intent.REFUND;
 
-    isRolledBack &= (_userCommitState == UserUpdateState.REJECTED
-                     || _userCommitState == UserUpdateState.ROLLED_BACK);
+    isRefunded &= (_userSettleState == UserUpdateState.REJECTED
+                   || _userResetState == UserUpdateState.ROLLED_BACK);
 
-    isRolledBack &= (_auctionWinnerUpdateState
-                     == AuctionWinnerUpdateState.REJECTED
-                     || _auctionWinnerUpdateState
-                        == AuctionWinnerUpdateState.ROLLED_BACK);
+    isRefunded &= (_auctionWinnerUpdateState
+                   == AuctionWinnerUpdateState.REJECTED
+                   || _auctionWinnerResetState
+                      == AuctionWinnerUpdateState.ROLLED_BACK);
 
-    isRolledBack &= (_paymentCommitState == PaymentTxState.REFUNDED
-                     || _paymentCommitState == PaymentTxState.FAILED);
+    isRefunded &= (_paymentState == PaymentTxState.FAILED
+                   || _refundState == PaymentTxState.REFUNDED);
 
-    return isRolledBack;
+    return isRefunded;
   }
 
-  public boolean isRollingBack()
+  public boolean isRefunding()
   {
-    return _intent == Intent.ROLLBACK;
+    return _intent == Intent.REFUND;
   }
 
   public Payment getPayment()
@@ -165,24 +167,24 @@ public class SettlementTransactionState
     _refund = refund;
   }
 
-  public void setCommitStatus(AuctionSettlement.Status commitStatus)
+  public void setSettleStatus(AuctionSettlement.Status commitStatus)
   {
-    _commitStatus = commitStatus;
+    _settleStatus = commitStatus;
   }
 
-  public AuctionSettlement.Status getCommitStatus()
+  public AuctionSettlement.Status getSettleStatus()
   {
-    return _commitStatus;
+    return _settleStatus;
   }
 
-  public AuctionSettlement.Status getRollbackStatus()
+  public AuctionSettlement.Status getRefundStatus()
   {
-    return _rollbackStatus;
+    return _refundStatus;
   }
 
-  public void setRollbackStatus(AuctionSettlement.Status rollbackStatus)
+  public void setRefundStatus(AuctionSettlement.Status refundStatus)
   {
-    _rollbackStatus = rollbackStatus;
+    _refundStatus = refundStatus;
   }
 
   @Override
@@ -192,16 +194,16 @@ public class SettlementTransactionState
            + "["
            + _intent
            + ", "
-           + _userCommitState + ", "
+           + _userSettleState + ", "
            + _auctionWinnerUpdateState + ", "
-           + _paymentCommitState
+           + _paymentState
            + "]";
   }
 
   enum Intent
   {
     COMMIT,
-    ROLLBACK
+    REFUND
   }
 
   enum UserUpdateState

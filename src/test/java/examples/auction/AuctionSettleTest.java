@@ -178,25 +178,25 @@ public class AuctionSettleTest
 
     SettlementTransactionState state = settlement.getTransactionState();
 
-    Assert.assertEquals(state.getCommitStatus(),
+    Assert.assertEquals(state.getSettleStatus(),
                         AuctionSettlement.Status.SETTLED);
 
-    Assert.assertEquals(state.getRollbackStatus(),
+    Assert.assertEquals(state.getRefundStatus(),
                         AuctionSettlement.Status.NONE);
 
     Assert.assertEquals(state.getAuctionWinnerUpdateState(),
                         SettlementTransactionState.AuctionWinnerUpdateState.SUCCESS);
-    Assert.assertEquals(state.getAuctionWinnerRollbackState(),
+    Assert.assertEquals(state.getAuctionWinnerResetState(),
                         SettlementTransactionState.AuctionWinnerUpdateState.NONE);
 
-    Assert.assertEquals(state.getUserCommitState(),
+    Assert.assertEquals(state.getUserSettleState(),
                         SettlementTransactionState.UserUpdateState.SUCCESS);
-    Assert.assertEquals(state.getUserRollbackState(),
+    Assert.assertEquals(state.getUserResetState(),
                         SettlementTransactionState.UserUpdateState.NONE);
 
-    Assert.assertEquals(state.getPaymentCommitState(),
+    Assert.assertEquals(state.getPaymentState(),
                         SettlementTransactionState.PaymentTxState.SUCCESS);
-    Assert.assertEquals(state.getPaymentRollbackState(),
+    Assert.assertEquals(state.getRefundState(),
                         SettlementTransactionState.PaymentTxState.NONE);
 
   }

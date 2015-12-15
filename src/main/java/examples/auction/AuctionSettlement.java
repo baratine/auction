@@ -11,11 +11,11 @@ public interface AuctionSettlement
 
   void settleResume(Result<Status> result);
 
-  void rollback(Result<Status> status);
+  void refund(Result<Status> status);
 
   void settleStatus(Result<Status> status);
 
-  void rollbackStatus(Result<Status> status);
+  void refundStatus(Result<Status> status);
 
   void getTransactionState(Result<SettlementTransactionState> result);
 
@@ -24,7 +24,7 @@ public interface AuctionSettlement
     NONE,
     SETTLING,
     SETTLED,
-    COMMIT_FAILED,
+    SETTLE_FAILED,
     ROLLING_BACK,
     ROLLED_BACK,
     ROLLBACK_FAILED

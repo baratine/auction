@@ -26,6 +26,22 @@ public class AuctionSettlementManagerImpl implements AuctionSettlementManager
   @Lookup("bardb:///")
   DatabaseService _db;
 
+  @Inject
+  @Lookup("pod://auction/paypal")
+  PayPal _payPal;
+
+  @Inject
+  @Lookup("pod://user/user")
+  ServiceRef _userManager;
+
+  @Inject
+  @Lookup("pod://auction/auction")
+  ServiceRef _auctionManager;
+
+  @Inject
+  @Lookup("pod://audit/audit")
+  AuditService _auditService;
+
   private ServiceRef _selfRef;
 
   @OnInit
@@ -90,10 +106,10 @@ public class AuctionSettlementManagerImpl implements AuctionSettlementManager
         settlement,
         t));
 
-      if (t.getRollbackStatus() == AuctionSettlement.Status.ROLLING_BACK) {
-        settlement.rollback(Result.ignore());
+      if (t.getRefundStatus() == AuctionSettlement.Status.ROLLING_BACK) {
+        settlement.refund(Result.ignore());
       }
-      else if (t.getCommitStatus() == AuctionSettlement.Status.SETTLING) {
+      else if (t.getSettleStatus() == AuctionSettlement.Status.SETTLING) {
         settlement.settleResume(Result.ignore());
       }
     });
@@ -109,5 +125,29 @@ public class AuctionSettlementManagerImpl implements AuctionSettlementManager
     String id = path.substring(1);
 
     return new AuctionSettlementImpl(id);
+  }
+
+  @Override
+  public void getAuction(String id, Result<Auction> result)
+  {
+    result.complete(_auctionManager.lookup('/' + id).as(Auction.class));
+  }
+
+  @Override
+  public void getUser(String id, Result<User> result)
+  {
+    result.complete(_userManager.lookup('/' + id).as(User.class));
+  }
+
+  @Override
+  public void getPayPal(Result<PayPal> result)
+  {
+    result.complete(_payPal);
+  }
+
+  @Override
+  public void getAuditService(Result<AuditService> result)
+  {
+    result.complete(_auditService);
   }
 }

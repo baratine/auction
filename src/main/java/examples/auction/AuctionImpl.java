@@ -170,7 +170,9 @@ public class AuctionImpl implements Auction
   void closeOnTimer(Result<Boolean> result)
   {
     if (_auctionData.getState() == AuctionDataPublic.State.OPEN)
-      close(Result.ignore());
+      close(result);
+    else
+      result.complete(true);
   }
 
   @Modify
@@ -180,7 +182,7 @@ public class AuctionImpl implements Auction
       throw new IllegalStateException();
 
     if (_auctionData.getState() == AuctionDataPublic.State.OPEN) {
-      _audit.auctionToClose(_auctionData, Result.<Void>ignore());
+      _audit.auctionToClose(_auctionData, Result.ignore());
 
       _auctionData.toClose();
 
@@ -206,7 +208,7 @@ public class AuctionImpl implements Auction
       throw new IllegalStateException();
 
     getAuctionSettlement()
-      .rollback(result.from(s -> s.equals(Status.ROLLED_BACK)));
+      .refund(result.from(s -> s.equals(Status.ROLLED_BACK)));
   }
 
   private AuctionEvents getEvents()
@@ -239,9 +241,7 @@ public class AuctionImpl implements Auction
 
     AuctionSettlement settlement = getAuctionSettlement();
 
-    settlement.settle(this._id, bid.getUserId(), bid, (r -> {
-      if (r) settlement.commit(Result.ignore());
-    }));
+    settlement.settle(this._id, bid.getUserId(), bid, Result.ignore());
   }
 
   @Modify
@@ -256,14 +256,14 @@ public class AuctionImpl implements Auction
     boolean isAccepted = _auctionData.bid(bid.getUser(), bid.getBid());
 
     if (isAccepted) {
-      _audit.auctionBidAccept(bid, Result.<Void>ignore());
+      _audit.auctionBidAccept(bid, Result.ignore());
 
       getEvents().onBid(_auctionData);
 
       result.complete(true);
     }
     else {
-      _audit.auctionBidReject(bid, Result.<Void>ignore());
+      _audit.auctionBidReject(bid, Result.ignore());
 
       result.complete(false);
     }

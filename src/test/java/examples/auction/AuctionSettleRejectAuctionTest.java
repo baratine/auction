@@ -164,18 +164,18 @@ public class AuctionSettleRejectAuctionTest
       i++;
     }
 
-    Assert.assertEquals(AuctionSettlement.Status.COMMIT_FAILED, status);
+    Assert.assertEquals(AuctionSettlement.Status.SETTLE_FAILED, status);
 
     SettlementTransactionState txState = settlement.getTransactionState();
 
     Assert.assertEquals(SettlementTransactionState.UserUpdateState.SUCCESS,
-                        txState.getUserCommitState());
+                        txState.getUserSettleState());
 
     Assert.assertEquals(SettlementTransactionState.AuctionWinnerUpdateState.REJECTED,
                         txState.getAuctionWinnerUpdateState());
 
     Assert.assertEquals(SettlementTransactionState.PaymentTxState.SUCCESS,
-                        txState.getPaymentCommitState());
+                        txState.getPaymentState());
   }
 }
 

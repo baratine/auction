@@ -5,11 +5,9 @@ import examples.auction.SettlementTransactionState.AuctionWinnerUpdateState;
 import examples.auction.SettlementTransactionState.PaymentTxState;
 import examples.auction.SettlementTransactionState.UserUpdateState;
 import io.baratine.core.Modify;
-import io.baratine.core.OnInit;
 import io.baratine.core.OnLoad;
 import io.baratine.core.OnSave;
 import io.baratine.core.Result;
-import io.baratine.core.ServiceManager;
 import io.baratine.core.ServiceRef;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
@@ -35,8 +33,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private BoundState _boundState = BoundState.UNBOUND;
 
   private boolean _inProgress = false;
-
-  private AuctionSettlement _settlement;
 
   public AuctionSettlementImpl(String id,
                                AuctionSettlementManagerImpl settlementManager)
@@ -98,20 +94,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
     return true;
   }
 
-  @OnInit
-  public void init(Result<Boolean> result)
-  {
-    ServiceManager manager = ServiceManager.current();
-
-    ServiceRef settlementManagerRef
-      = manager.lookup("pod://settlement/settlement");
-
-    _settlement
-      = settlementManagerRef.lookup('/' + _id).as(AuctionSettlement.class);
-
-    result.complete(true);
-  }
-
   @Override
   @Modify
   public void settle(AuctionDataPublic.Bid bid,
@@ -167,7 +149,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
     Result.Fork<Boolean,Boolean> fork = result.newFork();
 
     fork.fail((l, t, r) -> {
-      _settlement.refund(status);
+      this.settleFail(status);
+
       r.complete(false);
     });
 
@@ -176,9 +159,16 @@ public class AuctionSettlementImpl implements AuctionSettlement
     chargeUser(fork.fork());
 
     fork.join((l, r) -> {
-      boolean join = l.get(0) && l.get(1) && l.get(2);
-      processSettle(join, status);
-      r.complete(join);
+      boolean isSuccess = l.get(0) && l.get(1) && l.get(2);
+
+      if (isSuccess) {
+        settleComplete(status);
+      }
+      else {
+        settleFail(status);
+      }
+
+      r.complete(isSuccess);
     });
   }
 
@@ -312,22 +302,21 @@ public class AuctionSettlementImpl implements AuctionSettlement
     return result;
   }
 
-  private void processSettle(boolean commitResult, Result<Status> result)
+  private void settleComplete(Result<Status> result)
+  {
+    getAuction().setSettled(result.from((x, r) -> {
+      _state.setAuctionStateUpdateState(AuctionUpdateState.SUCCESS);
+      _state.setSettleStatus(Status.SETTLED);
+      r.complete(Status.SETTLED);
+      _inProgress = false;
+    }));
+  }
+
+  private void settleFail(Result<Status> result)
   {
     Status status = Status.SETTLING;
 
-    if (commitResult) {
-      getAuction().setSettled(result.from((x, r) -> {
-        _state.setAuctionStateUpdateState(AuctionUpdateState.SUCCESS);
-        _state.setSettleStatus(Status.SETTLED);
-        r.complete(Status.SETTLED);
-        _inProgress = false;
-      }));
-
-      return;
-      //audit
-    }
-    else if (_state.getUserSettleState() == UserUpdateState.REJECTED) {
+    if (_state.getUserSettleState() == UserUpdateState.REJECTED) {
       status = Status.SETTLE_FAILED;
       //audit
     }
@@ -347,7 +336,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
     _inProgress = false;
 
     if (Status.SETTLE_FAILED == status) {
-      _settlement.refund(result);
+      refund(result);
     }
     else {
       result.complete(status);
@@ -370,20 +359,20 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
     _state.toRefund();
 
-    rollbackImpl(status);
+    refundImpl(status);
   }
 
-  public void rollbackImpl(Result<Status> status)
+  public void refundImpl(Result<Status> status)
   {
     if (_inProgress) {
       status.complete(_state.getRefundStatus());
     }
     else {
-      rollbackPending(status.from(x -> processRollback(x)));
+      refundPending(status.from(x -> processRefund(x)));
     }
   }
 
-  public void rollbackPending(Result<Boolean> status)
+  public void refundPending(Result<Boolean> status)
   {
     Result.Fork<Boolean,Boolean> fork = status.newFork();
 
@@ -394,7 +383,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
     fork.join(l -> l.get(0) && l.get(1) && l.get(2));
   }
 
-  private Status processRollback(boolean result)
+  private Status processRefund(boolean result)
   {
     Status status = Status.ROLLING_BACK;
 

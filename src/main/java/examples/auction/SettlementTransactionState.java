@@ -2,7 +2,7 @@ package examples.auction;
 
 public class SettlementTransactionState
 {
-  private Intent _intent = Intent.COMMIT;
+  private Intent _intent = Intent.SETTLE;
 
   private AuctionSettlement.Status _settleStatus
     = AuctionSettlement.Status.SETTLING;
@@ -107,21 +107,21 @@ public class SettlementTransactionState
 
   public boolean isSettled()
   {
-    boolean isCommitted = _intent == Intent.COMMIT;
+    boolean isSettled = _intent == Intent.SETTLE;
 
-    isCommitted &= _userSettleState == UserUpdateState.SUCCESS;
+    isSettled &= _userSettleState == UserUpdateState.SUCCESS;
 
-    isCommitted &= _auctionWinnerUpdateState
+    isSettled &= _auctionWinnerUpdateState
                    == AuctionWinnerUpdateState.SUCCESS;
 
-    isCommitted &= _paymentState == PaymentTxState.SUCCESS;
+    isSettled &= _paymentState == PaymentTxState.SUCCESS;
 
-    return isCommitted;
+    return isSettled;
   }
 
   public boolean isCommitting()
   {
-    return _intent == Intent.COMMIT;
+    return _intent == Intent.SETTLE;
   }
 
   public boolean isRefunded()
@@ -202,7 +202,7 @@ public class SettlementTransactionState
 
   enum Intent
   {
-    COMMIT,
+    SETTLE,
     REFUND
   }
 

@@ -158,19 +158,28 @@ public class AuctionSettlementImpl implements AuctionSettlement
     else {
       _inProgress = true;
 
-      settlePending(status.from((x, r) -> processSettle(x, r)));
+      settlePending(Result.ignore(), status);
     }
   }
 
-  public void settlePending(Result<Boolean> status)
+  public void settlePending(Result<Boolean> result, Result<Status> status)
   {
-    Result.Fork<Boolean,Boolean> fork = status.newFork();
+    Result.Fork<Boolean,Boolean> fork = result.newFork();
+
+    fork.fail((l, t, r) -> {
+      _settlement.refund(status);
+      r.complete(false);
+    });
 
     updateUser(fork.fork());
     updateAuction(fork.fork());
     chargeUser(fork.fork());
 
-    fork.join(l -> l.get(0) && l.get(1) && l.get(2));
+    fork.join((l, r) -> {
+      boolean join = l.get(0) && l.get(1) && l.get(2);
+      processSettle(join, status);
+      r.complete(join);
+    });
   }
 
   public void updateUser(Result<Boolean> status)

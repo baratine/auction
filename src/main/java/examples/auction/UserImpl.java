@@ -41,7 +41,7 @@ public class UserImpl implements User
                      boolean isAdmin,
                      Result<String> userId)
   {
-    _user = new UserData(_id, userName, digest(password), false);
+    _user = new UserData(_id, userName, digest(password), isAdmin);
 
     log.finer("creating new user: " + userName);
 
@@ -106,7 +106,8 @@ public class UserImpl implements User
   }
 
   @Override
-  public void authenticate(String password, Result<Boolean> result)
+  public void authenticate(String password,
+                           boolean isAdmin, Result<Boolean> result)
   {
     if (_user == null) {
       result.complete(false);
@@ -114,7 +115,10 @@ public class UserImpl implements User
       return;
     }
 
-    result.complete(_user.getDigest().equals(digest(password)));
+    boolean isAuthenticated = _user.getDigest().equals(digest(password));
+    isAuthenticated &= (isAdmin == _user.isAdmin());
+
+    result.complete(isAuthenticated);
   }
 
   @Override

@@ -241,7 +241,7 @@ public class AuctionImpl implements Auction
 
     AuctionSettlement settlement = getAuctionSettlement();
 
-    settlement.settle(this._id, bid.getUserId(), bid, Result.ignore());
+    settlement.settle(bid, Result.ignore());
   }
 
   @Modify

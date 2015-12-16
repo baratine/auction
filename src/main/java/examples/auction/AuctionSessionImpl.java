@@ -57,16 +57,23 @@ public class AuctionSessionImpl implements AuctionSession
     _users.create(userName, password, false, result.from(id -> true));
   }
 
-  public void login(String userName, String password, Result<Boolean> result)
+  public void validateLogin(String userName,
+                            String password,
+                            Result<Boolean> result)
   {
-    _users.find(userName, result.from((id, r) -> loginImpl(id, password, r)));
+    _users.find(userName, result.from((id, r) -> validateLoginImpl(id,
+                                                                   password,
+                                                                   r)));
   }
 
-  private void loginImpl(String userId, String password, Result<Boolean> result)
+  private void validateLoginImpl(String userId,
+                                 String password,
+                                 Result<Boolean> result)
   {
     User user = _usersServiceRef.lookup("/" + userId).as(User.class);
 
     user.authenticate(password,
+                      false,
                       result.from(b -> completeLogin(b, userId, user)));
   }
 

@@ -101,7 +101,7 @@
       $scope.login = function ()
       {
         $scope.client.query("/auction-admin-session",
-                            "login",
+                            "validateLogin",
                 [$scope.userName, $scope.userPassword],
                             $scope.onUserLogin);
       };

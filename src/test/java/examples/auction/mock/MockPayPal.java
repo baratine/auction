@@ -17,7 +17,6 @@ public class MockPayPal implements PayPal
   public void settle(AuctionDataPublic auction,
                      AuctionDataPublic.Bid bid,
                      CreditCard creditCard,
-                     String userId,
                      String payPalRequestId,
                      Result<Payment> result)
   {

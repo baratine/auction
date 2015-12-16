@@ -39,9 +39,10 @@ class UserWrapper implements User
 
   @Override
   public void authenticate(String password,
+                           boolean isAdmin,
                            Result<Boolean> result)
   {
-    _user.authenticate(password, result);
+    _user.authenticate(password, false, result);
   }
 
   @Override

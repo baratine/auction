@@ -10,7 +10,7 @@ public interface AuctionAdminSession
 {
   void createUser(String userName, String password, Result<Boolean> result);
 
-  void login(String userName, String password, Result<Boolean> result);
+  void validateLogin(String userName, String password, Result<Boolean> result);
 
   void getUser(Result<UserData> result);
 

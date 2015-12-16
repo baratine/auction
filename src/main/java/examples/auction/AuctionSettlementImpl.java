@@ -29,8 +29,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private BoundState _boundState = BoundState.UNBOUND;
 
   private String _id;
-  private String _auctionId;
-  private String _userId;
   private AuctionDataPublic.Bid _bid;
 
   private SettlementTransactionState _state;
@@ -65,7 +63,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
     _db.findOne("select state from settlement_state where id = ?",
                 fork.fork().from(c -> loadState(c)), _id);
 
-    _db.findOne("select auction_id, user_id, bid from settlement where id = ?",
+    _db.findOne("select bid from settlement where id = ?",
                 fork.fork().from(c -> loadSettlement(c)), _id);
 
     fork.join(l -> l.get(0) && l.get(1));
@@ -74,11 +72,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
   public boolean loadSettlement(Cursor settlement)
   {
     if (settlement != null) {
-      _auctionId = settlement.getString(1);
-
-      _userId = settlement.getString(2);
-
-      _bid = (AuctionDataPublic.Bid) settlement.getObject(3);
+      _bid = (AuctionDataPublic.Bid) settlement.getObject(1);
 
       _boundState = BoundState.BOUND;
     }
@@ -117,9 +111,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   @Override
   @Modify
-  public void settle(String auctionId,
-                     String userId,
-                     AuctionDataPublic.Bid bid,
+  public void settle(AuctionDataPublic.Bid bid,
                      Result<Status> status)
   {
     log.finer(String.format("create %1$s", this));
@@ -127,8 +119,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
     if (_boundState != BoundState.UNBOUND)
       throw new IllegalStateException();
 
-    _auctionId = auctionId;
-    _userId = userId;
     _bid = bid;
 
     _boundState = BoundState.NEW;
@@ -187,7 +177,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
     }
     else {
       getUser(status.from((u, r) -> {
-        u.addWonAuction(_auctionId, r.from(x -> afterUserUpdated(x)));
+        u.addWonAuction(_bid.getAuctionId(), r.from(x -> afterUserUpdated(x)));
       }));
     }
   }
@@ -208,7 +198,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private void getUser(Result<User> user)
   {
-    _settlementManager.getUser(_userId, user);
+    _settlementManager.getUser(_bid.getUserId(), user);
   }
 
   public void updateAuction(Result<Boolean> status)
@@ -219,7 +209,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
     }
     else {
       getAuction(status.from((a, r) -> {
-        a.setAuctionWinner(_userId, r.from(x -> afterAuctionUpdated(x)));
+        a.setAuctionWinner(_bid.getUserId(),
+                           r.from(x -> afterAuctionUpdated(x)));
       }));
     }
   }
@@ -240,7 +231,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private void getAuction(Result<Auction> result)
   {
-    _settlementManager.getAuction(_auctionId, result);
+    _settlementManager.getAuction(_bid.getAuctionId(), result);
   }
 
   public void chargeUser(Result<Boolean> status)
@@ -282,7 +273,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
       p.settle(auctionData,
                _bid,
                creditCard,
-               _userId,
                _id,
                r.from(x -> processPayment(x)));
     }));
@@ -429,7 +419,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
     }
     else {
       getUser(result.from((u, r) -> {
-        u.removeWonAuction(_auctionId, r.from(x -> afterUserReset(x)));
+        u.removeWonAuction(_bid.getAuctionId(), r.from(x -> afterUserReset(x)));
       }));
     }
   }
@@ -459,7 +449,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
     }
     else {
       getAuction((result.from((a, r) -> {
-        a.clearAuctionWinner(_userId, r.from(x -> afterAuctionReset(x)));
+        a.clearAuctionWinner(_bid.getUserId(),
+                             r.from(x -> afterAuctionReset(x)));
       })));
     }
   }
@@ -528,14 +519,12 @@ public class AuctionSettlementImpl implements AuctionSettlement
   {
     log.log(Level.FINER, String.format("saving %1$s", this));
 
-    //id , auction_id , user_id , bid
+    //id , user_id , bid
     if (_boundState == BoundState.NEW) {
       _db.exec(
-        "insert into settlement (id, auction_id, user_id, bid) values (?, ?, ?, ?)",
+        "insert into settlement (id, bid) values (?, ?)",
         x -> _boundState = BoundState.BOUND,
         _id,
-        _auctionId,
-        _userId,
         _bid);
     }
 

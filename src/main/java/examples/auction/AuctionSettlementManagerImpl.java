@@ -61,7 +61,7 @@ public class AuctionSettlementManagerImpl implements AuctionSettlementManager
     });
 
     _db.exec(
-      "create table settlement(id varchar primary key, auction_id varchar, user_id varchar, bid object) with hash '/settlements/$id'",
+      "create table settlement(id varchar primary key, bid object) with hash '/settlements/$id'",
       fork.fork().from(o -> true, (e, r) -> {r.complete(true);})
     );
 

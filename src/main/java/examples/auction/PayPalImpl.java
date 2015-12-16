@@ -27,7 +27,6 @@ public class PayPalImpl implements PayPal
   public void settle(AuctionDataPublic auction,
                      AuctionDataPublic.Bid bid,
                      CreditCard creditCard,
-                     String userId,
                      String payPalRequestId,
                      Result<Payment> result)
   {
@@ -42,7 +41,7 @@ public class PayPalImpl implements PayPal
       _audit.payPalSendPaymentRequest(payPalRequestId,
                                       auction,
                                       bid,
-                                      userId,
+                                      bid.getUserId(),
                                       Result.ignore());
 
       Payment payment = _rest.pay(auth.getToken(),

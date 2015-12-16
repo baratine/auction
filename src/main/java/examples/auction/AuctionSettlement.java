@@ -4,10 +4,7 @@ import io.baratine.core.Result;
 
 public interface AuctionSettlement
 {
-  void settle(String auctionId,
-              String userId,
-              AuctionDataPublic.Bid bid,
-              Result<Status> result);
+  void settle(AuctionDataPublic.Bid bid, Result<Status> result);
 
   void settleResume(Result<Status> result);
 

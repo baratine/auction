@@ -9,7 +9,9 @@ public interface User
               boolean isAdmin,
               Result<String> userId);
 
-  void authenticate(String password, Result<Boolean> result);
+  void authenticate(String password,
+                    boolean isAdmin,
+                    Result<Boolean> result);
 
   void get(Result<UserData> user);
 

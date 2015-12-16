@@ -56,6 +56,6 @@ fi;
 #$BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web /auction-session/foo createUser user pass
 
 #echo "Authenticate User ..."
-#$BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web /auction-session/foo login user pass
+#$BARATINE_HOME/bin/baratine jamp-query $BARATINE_ARGS --pod web /auction-session/foo validateLogin user pass
 
 #$BARATINE_HOME/bin/baratine cat $BARATINE_ARGS /proc/services

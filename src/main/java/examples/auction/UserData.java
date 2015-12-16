@@ -67,11 +67,4 @@ public class UserData
   {
     _wonAuctions.remove(auctionId);
   }
-
-  public UserData mask()
-  {
-    _password = "";
-
-    return this;
-  }
 }

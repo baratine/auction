@@ -89,7 +89,7 @@ public class AuctionDataPublic implements Serializable
     Bid last = getLastBid();
 
     if (last == null || bid > last.getBid()) {
-      BidImpl nextBid = new BidImpl(bidderId, bid);
+      BidImpl nextBid = new BidImpl(bidderId, _id, bid);
 
       _bids.add(nextBid);
 
@@ -196,6 +196,8 @@ public class AuctionDataPublic implements Serializable
 
   public interface Bid
   {
+    String getAuctionId();
+
     String getUserId();
 
     int getBid();
@@ -203,6 +205,7 @@ public class AuctionDataPublic implements Serializable
 
   static class BidImpl implements Bid, Comparable<Bid>, Serializable
   {
+    private String _auctionId;
     private String _userId;
     private int _bid;
 
@@ -211,10 +214,17 @@ public class AuctionDataPublic implements Serializable
 
     }
 
-    BidImpl(String userId, int bid)
+    BidImpl(String userId, String auctionId, int bid)
     {
       _userId = userId;
+      _auctionId = auctionId;
       _bid = bid;
+    }
+
+    @Override
+    public String getAuctionId()
+    {
+      return _auctionId;
     }
 
     @Override

@@ -22,24 +22,31 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private final static Logger log
     = Logger.getLogger(AuctionSettlementImpl.class.getName());
 
-  private DatabaseService _db;
-  private AuctionSettlementManager _settlementManager;
-  private ServiceRef _settlementManagerRef;
-
-  private BoundState _boundState = BoundState.UNBOUND;
+  private final DatabaseService _db;
+  private final ServiceRef _userManager;
+  private final ServiceRef _auctionManager;
+  private final PayPal _paypal;
+  private final AuditService _audit;
 
   private String _id;
   private AuctionDataPublic.Bid _bid;
-
   private SettlementTransactionState _state;
+
+  private BoundState _boundState = BoundState.UNBOUND;
 
   private boolean _inProgress = false;
 
   private AuctionSettlement _settlement;
 
-  public AuctionSettlementImpl(String id)
+  public AuctionSettlementImpl(String id,
+                               AuctionSettlementManagerImpl settlementManager)
   {
     _id = id;
+    _db = settlementManager.getDatabase();
+    _paypal = settlementManager.getPayPal();
+    _audit = settlementManager.getAuditService();
+    _auctionManager = settlementManager.getAuctionManager();
+    _userManager = settlementManager.getUserManager();
   }
 
   //id, auction_id, user_id, bid
@@ -96,15 +103,11 @@ public class AuctionSettlementImpl implements AuctionSettlement
   {
     ServiceManager manager = ServiceManager.current();
 
-    _db = manager.lookup("bardb:///").as(DatabaseService.class);
-
-    _settlementManagerRef = manager.lookup("pod://settlement/settlement");
-
-    _settlementManager
-      = _settlementManagerRef.as(AuctionSettlementManager.class);
+    ServiceRef settlementManagerRef
+      = manager.lookup("pod://settlement/settlement");
 
     _settlement
-      = _settlementManagerRef.lookup('/' + _id).as(AuctionSettlement.class);
+      = settlementManagerRef.lookup('/' + _id).as(AuctionSettlement.class);
 
     result.complete(true);
   }
@@ -176,9 +179,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
       status.complete(true);
     }
     else {
-      getUser(status.from((u, r) -> {
-        u.addWonAuction(_bid.getAuctionId(), r.from(x -> afterUserUpdated(x)));
-      }));
+      getWinner().addWonAuction(_bid.getAuctionId(),
+                                status.from(x -> afterUserUpdated(x)));
     }
   }
 
@@ -196,9 +198,9 @@ public class AuctionSettlementImpl implements AuctionSettlement
     return isAccepted;
   }
 
-  private void getUser(Result<User> user)
+  private User getWinner()
   {
-    _settlementManager.getUser(_bid.getUserId(), user);
+    return _userManager.lookup('/' + _bid.getUserId()).as(User.class);
   }
 
   public void updateAuction(Result<Boolean> status)
@@ -208,10 +210,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
       status.complete(true);
     }
     else {
-      getAuction(status.from((a, r) -> {
-        a.setAuctionWinner(_bid.getUserId(),
-                           r.from(x -> afterAuctionUpdated(x)));
-      }));
+      getAuction().setAuctionWinner(_bid.getUserId(),
+                                    status.from(x -> afterAuctionUpdated(x)));
     }
   }
 
@@ -229,9 +229,9 @@ public class AuctionSettlementImpl implements AuctionSettlement
     return isAccepted;
   }
 
-  private void getAuction(Result<Auction> result)
+  private Auction getAuction()
   {
-    _settlementManager.getAuction(_bid.getAuctionId(), result);
+    return _auctionManager.lookup('/' + _bid.getAuctionId()).as(Auction.class);
   }
 
   public void chargeUser(Result<Boolean> status)
@@ -248,18 +248,14 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
     Result.Fork<Boolean,Boolean> fork = paymentResult.newFork();
 
-    getAuction(fork.fork().from((a, r) -> {
-      a.get(r.from(d -> {
-        auctionData.set(d);
-        return d != null;
-      }));
+    getAuction().get(fork.fork().from(a -> {
+      auctionData.set(a);
+      return a != null;
     }));
 
-    getUser(fork.fork().from((u, r) -> {
-      u.getCreditCard(r.from(c -> {
-        creditCard.set(c);
-        return c != null;
-      }));
+    getWinner().getCreditCard(fork.fork().from(c -> {
+      creditCard.set(c);
+      return c != null;
     }));
 
     fork.join(l -> l.get(0) && l.get(1));
@@ -269,13 +265,11 @@ public class AuctionSettlementImpl implements AuctionSettlement
                          CreditCard creditCard,
                          Result<Boolean> status)
   {
-    _settlementManager.getPayPal(status.from((p, r) -> {
-      p.settle(auctionData,
-               _bid,
-               creditCard,
-               _id,
-               r.from(x -> processPayment(x)));
-    }));
+    _paypal.settle(auctionData,
+                   _bid,
+                   creditCard,
+                   _id,
+                   status.from(x -> processPayment(x)));
   }
 
   private boolean processPayment(Payment payment)
@@ -314,14 +308,11 @@ public class AuctionSettlementImpl implements AuctionSettlement
     Status status = Status.SETTLING;
 
     if (commitResult) {
-
-      getAuction(result.from((a, r) -> {
-        a.setSettled(r.from((x, ri) -> {
-          _state.setAuctionStateUpdateState(AuctionUpdateState.SUCCESS);
-          _state.setSettleStatus(Status.SETTLED);
-          ri.complete(Status.SETTLED);
-          _inProgress = false;
-        }));
+      getAuction().setSettled(result.from((x, r) -> {
+        _state.setAuctionStateUpdateState(AuctionUpdateState.SUCCESS);
+        _state.setSettleStatus(Status.SETTLED);
+        r.complete(Status.SETTLED);
+        _inProgress = false;
       }));
 
       return;
@@ -400,7 +391,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
     if (result) {
       status = Status.ROLLED_BACK;
-      getAuction(a -> a.setRolledBack(b -> _state.setRefundStatus(Status.ROLLED_BACK)));
+      getAuction().setRolledBack(b -> _state.setRefundStatus(Status.ROLLED_BACK));
     }
 
     _state.setRefundStatus(status);
@@ -418,9 +409,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
       result.complete(true);
     }
     else {
-      getUser(result.from((u, r) -> {
-        u.removeWonAuction(_bid.getAuctionId(), r.from(x -> afterUserReset(x)));
-      }));
+      getWinner().removeWonAuction(_bid.getAuctionId(),
+                                   result.from(x -> afterUserReset(x)));
     }
   }
 
@@ -448,10 +438,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
       result.complete(true);
     }
     else {
-      getAuction((result.from((a, r) -> {
-        a.clearAuctionWinner(_bid.getUserId(),
-                             r.from(x -> afterAuctionReset(x)));
-      })));
+      getAuction().clearAuctionWinner(_bid.getUserId(),
+                                      result.from(x -> afterAuctionReset(x)));
     }
   }
 
@@ -492,10 +480,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private void payPalRefund(Payment payment, Result<Boolean> result)
   {
-    _settlementManager.getPayPal(result.from((p, r) -> {
-      p.refund(_id, payment.getSaleId(), payment.getSaleId(), r.from(
-        refund -> processRefund(refund)));
-    }));
+    _paypal.refund(_id, payment.getSaleId(), payment.getSaleId(),
+                   result.from(refund -> processRefund(refund)));
   }
 
   private boolean processRefund(Refund refund)

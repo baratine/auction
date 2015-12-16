@@ -51,15 +51,6 @@ public class AuctionSettlementManagerImpl implements AuctionSettlementManager
 
     Result.Fork<Boolean,Boolean> fork = result.newFork();
 
-    fork.fail((l, e, r) -> {
-      for (Throwable t : e) {
-        if (t != null) {
-          r.fail(t);
-          break;
-        }
-      }
-    });
-
     _db.exec(
       "create table settlement(id varchar primary key, bid object) with hash '/settlements/$id'",
       fork.fork().from(o -> true, (e, r) -> {r.complete(true);})
@@ -124,30 +115,31 @@ public class AuctionSettlementManagerImpl implements AuctionSettlementManager
   {
     String id = path.substring(1);
 
-    return new AuctionSettlementImpl(id);
+    return new AuctionSettlementImpl(id, this);
   }
 
-  @Override
-  public void getAuction(String id, Result<Auction> result)
+  public ServiceRef getAuctionManager()
   {
-    result.complete(_auctionManager.lookup('/' + id).as(Auction.class));
+    return _auctionManager;
   }
 
-  @Override
-  public void getUser(String id, Result<User> result)
+  public ServiceRef getUserManager()
   {
-    result.complete(_userManager.lookup('/' + id).as(User.class));
+    return _userManager;
   }
 
-  @Override
-  public void getPayPal(Result<PayPal> result)
+  public PayPal getPayPal()
   {
-    result.complete(_payPal);
+    return _payPal;
   }
 
-  @Override
-  public void getAuditService(Result<AuditService> result)
+  public AuditService getAuditService()
   {
-    result.complete(_auditService);
+    return _auditService;
+  }
+
+  public DatabaseService getDatabase()
+  {
+    return _db;
   }
 }

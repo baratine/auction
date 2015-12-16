@@ -140,19 +140,15 @@ public class AuctionSettlementImpl implements AuctionSettlement
     else {
       _inProgress = true;
 
-      settlePending(Result.ignore(), status);
+      settlePending(status);
     }
   }
 
-  public void settlePending(Result<Boolean> result, Result<Status> status)
+  public void settlePending(Result<Status> status)
   {
-    Result.Fork<Boolean,Boolean> fork = result.newFork();
+    Result.Fork<Boolean,Status> fork = status.newFork();
 
-    fork.fail((l, t, r) -> {
-      this.settleFail(status);
-
-      r.complete(false);
-    });
+    fork.fail((l, t, r) -> this.settleFail(r));
 
     updateUser(fork.fork());
     updateAuction(fork.fork());
@@ -162,13 +158,11 @@ public class AuctionSettlementImpl implements AuctionSettlement
       boolean isSuccess = l.get(0) && l.get(1) && l.get(2);
 
       if (isSuccess) {
-        settleComplete(status);
+        settleComplete(r);
       }
       else {
-        settleFail(status);
+        settleFail(r);
       }
-
-      r.complete(isSuccess);
     });
   }
 

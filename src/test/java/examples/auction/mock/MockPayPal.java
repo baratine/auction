@@ -5,10 +5,10 @@ import examples.auction.CreditCard;
 import examples.auction.PayPal;
 import examples.auction.Payment;
 import examples.auction.Refund;
-import io.baratine.core.Result;
-import io.baratine.core.Service;
+import io.baratine.service.Result;
+import io.baratine.service.Service;
 
-@Service("pod://auction/paypal")
+@Service("public:///paypal")
 public class MockPayPal implements PayPal
 {
   private Payment _payment;
@@ -20,7 +20,7 @@ public class MockPayPal implements PayPal
                      String payPalRequestId,
                      Result<Payment> result)
   {
-    result.complete(_payment);
+    result.ok(_payment);
   }
 
   @Override
@@ -31,13 +31,13 @@ public class MockPayPal implements PayPal
   {
     Refund refund = new MockRefund(Refund.RefundState.completed);
 
-    result.complete(refund);
+    result.ok(refund);
   }
 
   public void setPaymentResult(Payment payment, Result<Void> result)
   {
     _payment = payment;
 
-    result.complete(null);
+    result.ok(null);
   }
 }

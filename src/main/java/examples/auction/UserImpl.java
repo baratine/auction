@@ -1,9 +1,9 @@
 package examples.auction;
 
-import io.baratine.core.Modify;
-import io.baratine.core.OnLoad;
-import io.baratine.core.OnSave;
-import io.baratine.core.Result;
+import io.baratine.service.Modify;
+import io.baratine.service.OnLoad;
+import io.baratine.service.OnSave;
+import io.baratine.service.Result;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 
@@ -46,7 +46,7 @@ public class UserImpl implements User
     log.finer("creating new user: " + userName);
 
     _db.exec("insert into users(id, name, value) values(?,?,?)",
-             userId.from(o -> _id),
+             userId.of(o -> _id),
              _id,
              _user.getName(),
              _user);
@@ -80,7 +80,7 @@ public class UserImpl implements User
     log.finer("loading user: " + _id + " ...");
 
     _db.findOne("select value from users where id=?",
-                result.from(c -> setUser(c)), _id);
+                result.of(c -> setUser(c)), _id);
   }
 
   private boolean setUser(Cursor c)
@@ -99,7 +99,7 @@ public class UserImpl implements User
     log.finer("saving user: " + _user);
 
     _db.exec("insert into users(id, name, value) values(?,?,?)",
-             result.from(o -> (Boolean) o),
+             result.of(o -> (Boolean) o),
              _id,
              _user.getName(),
              _user);
@@ -110,7 +110,7 @@ public class UserImpl implements User
                            boolean isAdmin, Result<Boolean> result)
   {
     if (_user == null) {
-      result.complete(false);
+      result.ok(false);
 
       return;
     }
@@ -118,13 +118,13 @@ public class UserImpl implements User
     boolean isAuthenticated = _user.getDigest().equals(digest(password));
     isAuthenticated &= (isAdmin == _user.isAdmin());
 
-    result.complete(isAuthenticated);
+    result.ok(isAuthenticated);
   }
 
   @Override
   public void get(Result<UserData> user)
   {
-    user.complete(_user);
+    user.ok(_user);
   }
 
   @Override
@@ -134,7 +134,7 @@ public class UserImpl implements User
     if (cc == null)
       cc = new CreditCard("visa", "4214020540356393", "222", 10, 2020);
 
-    creditCard.complete(cc);
+    creditCard.ok(cc);
   }
 
   @Override
@@ -143,7 +143,7 @@ public class UserImpl implements User
   {
     _user.addWonAuction(auctionId);
 
-    result.complete(true);
+    result.ok(true);
   }
 
   @Override
@@ -152,6 +152,6 @@ public class UserImpl implements User
   {
     _user.removeWonAuction(auctionId);
 
-    result.complete(true);
+    result.ok(true);
   }
 }

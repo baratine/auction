@@ -1,17 +1,17 @@
 package examples.auction;
 
 import com.caucho.lucene.LuceneEntry;
-import io.baratine.core.Journal;
-import io.baratine.core.Lookup;
-import io.baratine.core.OnInit;
-import io.baratine.core.OnLookup;
-import io.baratine.core.Result;
-import io.baratine.core.ResultStream;
-import io.baratine.core.Service;
-import io.baratine.core.ServiceManager;
-import io.baratine.core.ServiceRef;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
+import io.baratine.service.Journal;
+import io.baratine.service.Lookup;
+import io.baratine.service.OnInit;
+import io.baratine.service.OnLookup;
+import io.baratine.service.Result;
+import io.baratine.service.ResultStream;
+import io.baratine.service.Service;
+import io.baratine.service.ServiceManager;
+import io.baratine.service.ServiceRef;
 import io.baratine.stream.ResultStreamBuilder;
 
 import javax.inject.Inject;
@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 /**
  *
  */
-@Service("pod://auction/auction")
+@Service("public:///auction")
 @Journal()
 public class AuctionManagerImpl implements AuctionManager
 {
@@ -39,12 +39,14 @@ public class AuctionManagerImpl implements AuctionManager
   @Lookup("/identity-manager")
   private IdentityManager _identityManager;
 
+/*
   @Inject
   @Lookup("pod://lucene/service")
   private com.caucho.lucene.LuceneFacade _lucene;
 
+*/
   @Inject
-  @Lookup("pod://audit/audit")
+  @Lookup("public:///audit")
   private AuditService _audit;
 
   public AuctionManagerImpl()
@@ -59,11 +61,11 @@ public class AuctionManagerImpl implements AuctionManager
     try {
       _db.exec(
         "create table auction (id varchar primary key, title varchar, value object) with hash '/auction/$id'",
-        result.from(o -> o != null));
+        result.of(o -> o != null));
     } catch (Exception e) {
       log.log(Level.FINE, e.getMessage(), e);
       //assume that exception is due to existing table and complete with true
-      result.complete(true);
+      result.ok(true);
     }
   }
 
@@ -81,10 +83,10 @@ public class AuctionManagerImpl implements AuctionManager
   public void create(AuctionDataInit initData,
                      Result<String> auctionId)
   {
-    _identityManager.nextId(auctionId.from((id, r)
-                                             -> createWithId(id,
-                                                             initData,
-                                                             r)));
+    _identityManager.nextId(auctionId.of((id, r)
+                                           -> createWithId(id,
+                                                           initData,
+                                                           r)));
   }
 
   private void createWithId(String id,
@@ -93,20 +95,20 @@ public class AuctionManagerImpl implements AuctionManager
   {
     Auction auction = _self.lookup("/" + id).as(Auction.class);
 
-    auction.create(initData, auctionId.from((x, r) -> {
+    auction.create(initData, auctionId.of((x, r) -> {
       index(x, initData.getTitle(), r);
     }));
   }
 
   private void index(String id, String title, Result<String> auctionId)
   {
-    auctionId.complete(id);
+    auctionId.ok(id);
 
     log.info(String.format("index %1$s %2$s", id, title));
 
-    log.warning(String.format("lucene: " + _lucene));
+    //log.warning(String.format("lucene: " + _lucene));
 
-    _lucene.indexText("auction", id, title, Result.ignore());
+    //_lucene.indexText("auction", id, title, (b, t)->{});
   }
 
   public void find(String title, Result<String> result)
@@ -114,7 +116,7 @@ public class AuctionManagerImpl implements AuctionManager
     _self.save(Result.ignore());
 
     _db.findOne("select id from auction where title=?",
-                result.from(c -> toAuctionId(c)),
+                result.of(c -> toAuctionId(c)),
                 title);
   }
 
@@ -135,16 +137,21 @@ public class AuctionManagerImpl implements AuctionManager
   {
     log.info(String.format("search %1$s", query));
 
+    results.ok();
+/*
     _lucene.search("auction", query, 255,
-                   results.from((l, r) -> searchImp(l, r)));
+                   results.of((l, r) -> searchImp(l, r)));
+*/
   }
 
+/*
   public void searchImp(List<LuceneEntry> entries, ResultStream<String> stream)
   {
     for (LuceneEntry l : entries) {
       stream.accept(l.getExternalId());
     }
 
-    stream.complete();
+    stream.ok();
   }
+*/
 }

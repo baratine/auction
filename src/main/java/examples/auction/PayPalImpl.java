@@ -1,15 +1,15 @@
 package examples.auction;
 
-import io.baratine.core.Lookup;
-import io.baratine.core.Result;
-import io.baratine.core.Service;
-import io.baratine.core.Workers;
+import io.baratine.service.Lookup;
+import io.baratine.service.Result;
+import io.baratine.service.Service;
+import io.baratine.service.Workers;
 
 import javax.inject.Inject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@Service("pod://auction/paypal")
+@Service("public:///paypal")
 @Workers(20)
 public class PayPalImpl implements PayPal
 {
@@ -20,7 +20,7 @@ public class PayPalImpl implements PayPal
   PayPalRestLink _rest;
 
   @Inject
-  @Lookup("pod://audit/audit")
+  @Lookup("public:///audit")
   AuditService _audit;
 
   @Override
@@ -67,7 +67,7 @@ public class PayPalImpl implements PayPal
         auction.getId(),
         payment));
 
-      result.complete(payment);
+      result.ok(payment);
     } catch (Throwable t) {
       log.log(Level.WARNING, t.getMessage(), t);
 
@@ -86,7 +86,7 @@ public class PayPalImpl implements PayPal
       PayPalAuth auth = _rest.auth();
       Refund refund = _rest.refund(auth.getToken(), payPalRequestId, salesId);
 
-      result.complete(refund);
+      result.ok(refund);
 
       _audit.payPalReceiveRefundResponse(settlementId,
                                          salesId,

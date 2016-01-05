@@ -4,11 +4,11 @@ import examples.auction.CreditCard;
 import examples.auction.User;
 import examples.auction.UserData;
 import examples.auction.UserManagerImpl;
-import io.baratine.core.Journal;
-import io.baratine.core.Result;
-import io.baratine.core.Service;
+import io.baratine.service.Journal;
+import io.baratine.service.Result;
+import io.baratine.service.Service;
 
-@Service("pod://user/user")
+@Service("public:///user")
 @Journal()
 public class MockUserManager extends UserManagerImpl
 {
@@ -61,7 +61,7 @@ class UserWrapper implements User
   public void addWonAuction(String auction,
                             Result<Boolean> result)
   {
-    result.complete(false);
+    result.ok(false);
     //_user.addWonAuction(auction, result);
   }
 

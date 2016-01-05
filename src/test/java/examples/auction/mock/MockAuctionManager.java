@@ -5,11 +5,11 @@ import examples.auction.AuctionDataInit;
 import examples.auction.AuctionDataPublic;
 import examples.auction.AuctionManagerImpl;
 import examples.auction.Bid;
-import io.baratine.core.Journal;
-import io.baratine.core.Result;
-import io.baratine.core.Service;
+import io.baratine.service.Journal;
+import io.baratine.service.Result;
+import io.baratine.service.Service;
 
-@Service("pod://auction/auction")
+@Service("public:///auction")
 @Journal()
 public class MockAuctionManager extends AuctionManagerImpl
 {
@@ -53,7 +53,7 @@ class AuctionWrapper implements Auction
   public void setAuctionWinner(String user,
                                Result<Boolean> result)
   {
-    result.complete(false);
+    result.ok(false);
     //_auction.setAuctionWinner(user, result);
   }
 

@@ -1,12 +1,12 @@
 package examples.auction;
 
-import io.baratine.core.CancelHandle;
-import io.baratine.core.Lookup;
-import io.baratine.core.OnDestroy;
-import io.baratine.core.Result;
-import io.baratine.core.Service;
-import io.baratine.core.ServiceManager;
-import io.baratine.core.ServiceRef;
+import io.baratine.service.Cancel;
+import io.baratine.service.Lookup;
+import io.baratine.service.OnDestroy;
+import io.baratine.service.Result;
+import io.baratine.service.Service;
+import io.baratine.service.ServiceManager;
+import io.baratine.service.ServiceRef;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 /**
  * User visible channel facade at session://web/auction-admin-session.
  */
-@Service("session://web/auction-admin-session")
+@Service("session:///auction-admin-session")
 public class AuctionAdminSessionImpl implements AuctionAdminSession
 {
   private final static Logger log
@@ -30,23 +30,23 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
   private ServiceManager _manager;
 
   @Inject
-  @Lookup("pod://user/user")
+  @Lookup("public:///user")
   private UserManager _users;
 
   @Inject
-  @Lookup("pod://user/user")
+  @Lookup("public:///user")
   private ServiceRef _usersServiceRef;
 
   @Inject
-  @Lookup("pod://auction/auction")
+  @Lookup("public:///auction")
   private AuctionManager _auctions;
 
   @Inject
-  @Lookup("pod://auction/auction")
+  @Lookup("public:///auction")
   private ServiceRef _auctionsServiceRef;
 
   @Inject
-  @Lookup("pod://settlement/settlement")
+  @Lookup("public:///settlement")
   private ServiceRef _settlementsServiceRef;
 
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
@@ -59,14 +59,14 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
                          String password,
                          final Result<Boolean> result)
   {
-    _users.create(userName, password, true, result.from(id -> true));
+    _users.create(userName, password, true, result.of(id -> true));
   }
 
   public void validateLogin(String userName,
                             String password,
                             Result<Boolean> result)
   {
-    _users.find(userName, result.from((id, r) -> validateLoginImpl(id,
+    _users.find(userName, result.of((id, r) -> validateLoginImpl(id,
                                                                    password,
                                                                    r)));
   }
@@ -79,7 +79,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
 
     user.authenticate(password,
                       true,
-                      result.from(b -> completeLogin(b, userId,user)));
+                      result.of(b -> completeLogin(b, userId,user)));
   }
 
   private boolean completeLogin(boolean isLoggedIn, String userId, User user)
@@ -109,9 +109,9 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
   {
     Auction auction = getAuctionService(auctionId);
 
-    auction.get(result.from((a, r) -> {
+    auction.get(result.of((a, r) -> {
       getUserService(a.getLastBidder()).get(
-        r.from(u -> new UserDataPublic(u)));
+        r.of(u -> new UserDataPublic(u)));
     }));
   }
 
@@ -120,7 +120,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
                                  Result<SettlementTransactionState> result)
   {
     getAuctionSettlementService(auctionId,
-                                result.from((s, r) -> s.getTransactionState(r)));
+                                result.of((s, r) -> s.getTransactionState(r)));
   }
 
   public void getAuction(String id, Result<AuctionDataPublic> result)
@@ -139,7 +139,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
   private void getAuctionSettlementService(String auctionId,
                                            Result<AuctionSettlement> result)
   {
-    getAuctionService(auctionId).getSettlementId(result.from(sid -> {
+    getAuctionService(auctionId).getSettlementId(result.of(sid -> {
       return _settlementsServiceRef.lookup('/' + sid)
                                    .as(AuctionSettlement.class);
     }));
@@ -168,7 +168,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     _auctions.search(query).collect(ArrayList<String>::new,
                                     (l, e) -> l.add(e),
                                     (a, b) -> a.addAll(b))
-             .result(result.from(l -> l.toArray(new String[l.size()])));
+             .result(result.of(l -> l.toArray(new String[l.size()])));
   }
 
   public void setListener(@Service ChannelListener listener,
@@ -180,7 +180,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
 
     _listener = listener;
 
-    result.complete(true);
+    result.ok(true);
   }
 
   public void addAuctionListener(String id, Result<Boolean> result)
@@ -189,7 +189,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     try {
       addAuctionListenerImpl(id);
 
-      result.complete(true);
+      result.ok(true);
     } catch (Throwable t) {
       log.log(Level.WARNING, t.getMessage(), t);
 
@@ -210,7 +210,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
 
   private void addAuctionListenerImpl(String id)
   {
-    String url = "event://auction/auction/" + id;
+    String url = "event:///auction/" + id;
 
     ServiceRef eventRef = _manager.lookup(url);
 
@@ -229,7 +229,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
 
     unsubscribe();
 
-    result.complete(true);
+    result.ok(true);
   }
 
   private void unsubscribe()
@@ -263,7 +263,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
   private class AuctionEventsImpl implements AuctionEvents
   {
     private final ServiceRef _eventRef;
-    private CancelHandle _cancelHandle;
+    private Cancel _Cancel;
 
     AuctionEventsImpl(ServiceRef eventRef)
     {
@@ -272,12 +272,12 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
 
     public void subscribe()
     {
-      _cancelHandle = _eventRef.subscribe(this);
+      _Cancel = _eventRef.subscribe(this);
     }
 
     public void unsubscribe()
     {
-      _cancelHandle.cancel();
+      _Cancel.cancel();
     }
 
     @Override

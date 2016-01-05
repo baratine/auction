@@ -1,11 +1,11 @@
 package examples.auction;
 
-import io.baratine.core.Result;
-import io.baratine.core.Service;
+import io.baratine.service.Result;
+import io.baratine.service.Service;
 
 import java.util.logging.Logger;
 
-@Service("pod://audit/audit")
+@Service("public:///audit")
 public class AuditServiceImpl implements AuditService
 {
   public final static Logger log
@@ -17,7 +17,7 @@ public class AuditServiceImpl implements AuditService
     String message = String.format("auction create %1$s", initData);
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
   }
 
   @Override
@@ -26,7 +26,7 @@ public class AuditServiceImpl implements AuditService
     String message = String.format("auction load %1$s", auction);
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
   }
 
   @Override
@@ -35,7 +35,7 @@ public class AuditServiceImpl implements AuditService
     String message = String.format("auction save %1$s", auction);
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
   }
 
   @Override
@@ -44,7 +44,7 @@ public class AuditServiceImpl implements AuditService
     String message = String.format("auction open %1$s", auction);
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
   }
 
   @Override
@@ -53,7 +53,7 @@ public class AuditServiceImpl implements AuditService
     String message = String.format("auction close %1$s", auction);
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
   }
 
   @Override
@@ -64,7 +64,7 @@ public class AuditServiceImpl implements AuditService
     String message = String.format("auction %1$s bid %2$s", auction, bid);
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
   }
 
   @Override
@@ -73,7 +73,7 @@ public class AuditServiceImpl implements AuditService
     String message = String.format("bid accepted %1$s", bid);
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
   }
 
   @Override
@@ -82,7 +82,7 @@ public class AuditServiceImpl implements AuditService
     String message = String.format("bid rejected %1$s", bid);
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
   }
 
   @Override
@@ -93,7 +93,7 @@ public class AuditServiceImpl implements AuditService
 
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
   }
 
   @Override
@@ -108,7 +108,7 @@ public class AuditServiceImpl implements AuditService
 
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
 
   }
 
@@ -126,7 +126,7 @@ public class AuditServiceImpl implements AuditService
 
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
   }
 
   @Override
@@ -144,7 +144,7 @@ public class AuditServiceImpl implements AuditService
 
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
   }
 
   @Override
@@ -162,7 +162,7 @@ public class AuditServiceImpl implements AuditService
 
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
 
   }
 
@@ -183,7 +183,7 @@ public class AuditServiceImpl implements AuditService
 
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
   }
 
   @Override
@@ -198,7 +198,7 @@ public class AuditServiceImpl implements AuditService
 
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
   }
 
   @Override
@@ -215,6 +215,6 @@ public class AuditServiceImpl implements AuditService
 
     log.info(message);
 
-    ignore.complete(null);
+    ignore.ok(null);
   }
 }

@@ -1,7 +1,7 @@
 package examples.auction;
 
-import io.baratine.core.Result;
-import io.baratine.core.Service;
+import io.baratine.service.Result;
+import io.baratine.service.Service;
 
 /**
  * Admin visible channel facade at session://web/auction-session

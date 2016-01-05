@@ -1,12 +1,12 @@
 package examples.auction;
 
 import examples.auction.AuctionSettlement.Status;
-import io.baratine.core.Modify;
-import io.baratine.core.OnLoad;
-import io.baratine.core.OnSave;
-import io.baratine.core.Result;
-import io.baratine.core.ServiceManager;
-import io.baratine.core.ServiceRef;
+import io.baratine.service.Modify;
+import io.baratine.service.OnLoad;
+import io.baratine.service.OnSave;
+import io.baratine.service.Result;
+import io.baratine.service.ServiceManager;
+import io.baratine.service.ServiceRef;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 import io.baratine.timer.TimerService;
@@ -49,11 +49,11 @@ public class AuctionImpl implements Auction
     _db = db;
     _id = id;
 
-    ServiceRef auditRef = manager.lookup("pod://audit/audit");
+    ServiceRef auditRef = manager.lookup("public:///audit");
 
     _audit = auditRef.as(AuditService.class);
 
-    _settlement = manager.lookup("pod://settlement/settlement");
+    _settlement = manager.lookup("public:///settlement");
 
     _state = State.UNBOUND;
   }
@@ -78,7 +78,7 @@ public class AuctionImpl implements Auction
 
     _state = State.BOUND;
 
-    result.complete(_id);
+    result.ok(_id);
   }
 
   @OnSave
@@ -90,7 +90,7 @@ public class AuctionImpl implements Auction
     _audit.auctionSave(_auctionData, Result.<Void>ignore());
 
     _db.exec("insert into auction (id, title, value) values (?,?,?)",
-             result.from(o -> resultFromSave(o)),
+             result.of(o -> resultFromSave(o)),
              _id,
              _auctionData.getTitle(),
              _auctionData);
@@ -113,7 +113,7 @@ public class AuctionImpl implements Auction
       throw new IllegalStateException();
 
     _db.findOne("select value from auction where id=?",
-                result.from(c -> loadComplete(c)),
+                result.of(c -> loadComplete(c)),
                 _id);
   }
 
@@ -143,7 +143,7 @@ public class AuctionImpl implements Auction
 
       startCloseTimer();
 
-      result.complete(true);
+      result.ok(true);
     }
     else {
       throw new IllegalStateException(
@@ -172,7 +172,7 @@ public class AuctionImpl implements Auction
     if (_auctionData.getState() == AuctionDataPublic.State.OPEN)
       close(result);
     else
-      result.complete(true);
+      result.ok(true);
   }
 
   @Modify
@@ -190,7 +190,7 @@ public class AuctionImpl implements Auction
 
       settle();
 
-      result.complete(true);
+      result.ok(true);
     }
     else {
       throw new IllegalStateException(
@@ -208,13 +208,13 @@ public class AuctionImpl implements Auction
       throw new IllegalStateException();
 
     getAuctionSettlement()
-      .refund(result.from(s -> s.equals(Status.ROLLED_BACK)));
+      .refund(result.of(s -> s.equals(Status.ROLLED_BACK)));
   }
 
   private AuctionEvents getEvents()
   {
     if (_events == null) {
-      String url = "event://auction/auction/" + _auctionData.getId();
+      String url = "event:///auction/" + _auctionData.getId();
 
       _events = _manager.lookup(url).as(AuctionEvents.class);
     }
@@ -260,12 +260,12 @@ public class AuctionImpl implements Auction
 
       getEvents().onBid(_auctionData);
 
-      result.complete(true);
+      result.ok(true);
     }
     else {
       _audit.auctionBidReject(bid, Result.ignore());
 
-      result.complete(false);
+      result.ok(false);
     }
   }
 
@@ -281,7 +281,7 @@ public class AuctionImpl implements Auction
     //TODO:
     getEvents().onSettled(_auctionData);
 
-    result.complete(true);
+    result.ok(true);
   }
 
   @Override
@@ -292,7 +292,7 @@ public class AuctionImpl implements Auction
 
     _auctionData.setWinner(null);
 
-    result.complete(true);
+    result.ok(true);
   }
 
   @Override
@@ -301,7 +301,7 @@ public class AuctionImpl implements Auction
   {
     _auctionData.toSettled();
 
-    result.complete(true);
+    result.ok(true);
 
     getEvents().onSettled(_auctionData);
   }
@@ -322,13 +322,13 @@ public class AuctionImpl implements Auction
               + " : "
               + _auctionData);
 
-    result.complete(_auctionData);
+    result.ok(_auctionData);
   }
 
   @Override
   public void getSettlementId(Result<String> result)
   {
-    result.complete(_auctionData.getSettlementId());
+    result.ok(_auctionData.getSettlementId());
   }
 
   @Override

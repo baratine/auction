@@ -2,9 +2,9 @@ package examples.auction;
 
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
-import io.baratine.core.Lookup;
-import io.baratine.core.ServiceManager;
-import io.baratine.core.ServiceRef;
+import io.baratine.service.Lookup;
+import io.baratine.service.ServiceManager;
+import io.baratine.service.ServiceRef;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,26 +59,26 @@ public class AuctionTest
     = Logger.getLogger(AuctionTest.class.getName());
 
   @Inject
-  @Lookup("pod://user/user")
+  @Lookup("public:///user")
   UserManagerSync _users;
 
   @Inject
-  @Lookup("pod://user/user")
+  @Lookup("public:///user")
   ServiceRef _usersRef;
 
   @Inject
-  @Lookup("pod://auction/auction")
+  @Lookup("public:///auction")
   AuctionManagerSync _auctions;
 
   @Inject
-  @Lookup("pod://auction/auction")
+  @Lookup("public:///auction")
   ServiceRef _auctionsRef;
 
   @Inject
   RunnerBaratine _testContext;
 
   @Inject
-  @Lookup("pod://auction/")
+  @Lookup("public:///")
   ServiceManager _auctionPod;
 
   /**
@@ -289,7 +289,7 @@ public class AuctionTest
     AuctionDataPublic data = auction.get();
     String id = data.getId();
 
-    String url = "event://auction/auction/" + id;
+    String url = "event:///auction/" + id;
 
     ServiceRef eventRef = _auctionPod.lookup(url);
 
@@ -347,7 +347,7 @@ public class AuctionTest
 
     String id = auction.get().getId();
 
-    String url = "event://auction/auction/" + id;
+    String url = "event:///auction/" + id;
     ServiceRef eventRef = _auctionPod.lookup(url);
     AuctionListenerImpl auctionCallback = new AuctionListenerImpl("book");
     ServiceRef callbackRef

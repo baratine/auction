@@ -1,6 +1,6 @@
 package examples.auction;
 
-import io.baratine.core.Service;
+import io.baratine.service.Service;
 
 public interface AuctionSessionSync extends AuctionSession
 {

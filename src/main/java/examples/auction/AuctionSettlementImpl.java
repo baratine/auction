@@ -4,13 +4,13 @@ import examples.auction.SettlementTransactionState.AuctionUpdateState;
 import examples.auction.SettlementTransactionState.AuctionWinnerUpdateState;
 import examples.auction.SettlementTransactionState.PaymentTxState;
 import examples.auction.SettlementTransactionState.UserUpdateState;
-import io.baratine.core.Modify;
-import io.baratine.core.OnLoad;
-import io.baratine.core.OnSave;
-import io.baratine.core.Result;
-import io.baratine.core.ServiceRef;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
+import io.baratine.service.Modify;
+import io.baratine.service.OnLoad;
+import io.baratine.service.OnSave;
+import io.baratine.service.Result;
+import io.baratine.service.ServiceRef;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -52,22 +52,22 @@ public class AuctionSettlementImpl implements AuctionSettlement
     if (_boundState != BoundState.UNBOUND)
       throw new IllegalStateException();
 
-    Result.Fork<Boolean,Boolean> fork = result.newFork();
+    Result.Fork<Boolean,Boolean> fork = result.fork();
 
 /*
     _db.findLocal(
       "select auction_id, user_id, bid from settlement where id = ?",
-      _id).first().result(fork.fork().from(c -> loadSettlement(c)));
+      _id).first().result(fork.fork().of(c -> loadSettlement(c)));
 
     _db.findLocal("select state from settlement_state where id = ?",
-                  _id).first().result(fork.fork().from(c -> loadState(c)));
+                  _id).first().result(fork.fork().of(c -> loadState(c)));
 */
 
     _db.findOne("select state from settlement_state where id = ?",
-                fork.fork().from(c -> loadState(c)), _id);
+                fork.branch().of(c -> loadState(c)), _id);
 
     _db.findOne("select bid from settlement where id = ?",
-                fork.fork().from(c -> loadSettlement(c)), _id);
+                fork.branch().of(c -> loadSettlement(c)), _id);
 
     fork.join(l -> l.get(0) && l.get(1));
   }
@@ -117,7 +117,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
   public void settleResume(Result<Status> status)
   {
     if (_state.isSettled()) {
-      status.complete(Status.SETTLED);
+      status.ok(Status.SETTLED);
     }
     else if (_state.isRefunded()) {
       throw new IllegalStateException();
@@ -132,10 +132,10 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private void settleImpl(Result<Status> status)
   {
     if (_state.getSettleStatus() == Status.SETTLE_FAILED) {
-      status.complete(_state.getSettleStatus());
+      status.ok(_state.getSettleStatus());
     }
     else if (_inProgress) {
-      status.complete(_state.getSettleStatus());
+      status.ok(_state.getSettleStatus());
     }
     else {
       _inProgress = true;
@@ -146,13 +146,13 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   public void settlePending(Result<Status> status)
   {
-    Result.Fork<Boolean,Status> fork = status.newFork();
+    Result.Fork<Boolean,Status> fork = status.fork();
 
     fork.fail((l, t, r) -> this.settleFail(r));
 
-    updateUser(fork.fork());
-    updateAuction(fork.fork());
-    chargeUser(fork.fork());
+    updateUser(fork.branch());
+    updateAuction(fork.branch());
+    chargeUser(fork.branch());
 
     fork.join((l, r) -> {
       boolean isSuccess = l.get(0) && l.get(1) && l.get(2);
@@ -169,11 +169,11 @@ public class AuctionSettlementImpl implements AuctionSettlement
   public void updateUser(Result<Boolean> status)
   {
     if (_state.getUserSettleState() == UserUpdateState.SUCCESS) {
-      status.complete(true);
+      status.ok(true);
     }
     else {
       getWinner().addWonAuction(_bid.getAuctionId(),
-                                status.from(x -> afterUserUpdated(x)));
+                                status.of(x -> afterUserUpdated(x)));
     }
   }
 
@@ -200,11 +200,11 @@ public class AuctionSettlementImpl implements AuctionSettlement
   {
     if (_state.getAuctionWinnerUpdateState()
         == AuctionWinnerUpdateState.SUCCESS) {
-      status.complete(true);
+      status.ok(true);
     }
     else {
       getAuction().setAuctionWinner(_bid.getUserId(),
-                                    status.from(x -> afterAuctionUpdated(x)));
+                                    status.of(x -> afterAuctionUpdated(x)));
     }
   }
 
@@ -232,21 +232,21 @@ public class AuctionSettlementImpl implements AuctionSettlement
     final ValueRef<AuctionDataPublic> auctionData = new ValueRef();
     final ValueRef<CreditCard> creditCard = new ValueRef();
 
-    Result<Boolean> paymentResult = Result.from(x ->
-                                                  chargeUser(auctionData.get(),
-                                                             creditCard.get(),
-                                                             status),
-                                                e -> status.complete(false)
+    Result<Boolean> paymentResult = Result.of(x ->
+                                                chargeUser(auctionData.get(),
+                                                           creditCard.get(),
+                                                           status),
+                                              e -> status.ok(false)
     );
 
-    Result.Fork<Boolean,Boolean> fork = paymentResult.newFork();
+    Result.Fork<Boolean,Boolean> fork = paymentResult.fork();
 
-    getAuction().get(fork.fork().from(a -> {
+    getAuction().get(fork.branch().of(a -> {
       auctionData.set(a);
       return a != null;
     }));
 
-    getWinner().getCreditCard(fork.fork().from(c -> {
+    getWinner().getCreditCard(fork.branch().of(c -> {
       creditCard.set(c);
       return c != null;
     }));
@@ -262,7 +262,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
                    _bid,
                    creditCard,
                    _id,
-                   status.from(x -> processPayment(x)));
+                   status.of(x -> processPayment(x)));
   }
 
   private boolean processPayment(Payment payment)
@@ -298,10 +298,10 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private void settleComplete(Result<Status> result)
   {
-    getAuction().setSettled(result.from((x, r) -> {
+    getAuction().setSettled(result.of((x, r) -> {
       _state.setAuctionStateUpdateState(AuctionUpdateState.SUCCESS);
       _state.setSettleStatus(Status.SETTLED);
-      r.complete(Status.SETTLED);
+      r.ok(Status.SETTLED);
       _inProgress = false;
     }));
   }
@@ -333,7 +333,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
       refund(result);
     }
     else {
-      result.complete(status);
+      result.ok(status);
     }
   }
 
@@ -345,7 +345,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
       throw new IllegalStateException();
 
     if (_state.isRefunded()) {
-      status.complete(Status.ROLLED_BACK);
+      status.ok(Status.ROLLED_BACK);
     }
     else if (_state.isCommitting() && _inProgress) {
       throw new IllegalStateException();
@@ -359,20 +359,20 @@ public class AuctionSettlementImpl implements AuctionSettlement
   public void refundImpl(Result<Status> status)
   {
     if (_inProgress) {
-      status.complete(_state.getRefundStatus());
+      status.ok(_state.getRefundStatus());
     }
     else {
-      refundPending(status.from(x -> processRefund(x)));
+      refundPending(status.of(x -> processRefund(x)));
     }
   }
 
   public void refundPending(Result<Boolean> status)
   {
-    Result.Fork<Boolean,Boolean> fork = status.newFork();
+    Result.Fork<Boolean,Boolean> fork = status.fork();
 
-    resetUser(fork.fork());
-    resetAuction(fork.fork());
-    refundUser(fork.fork());
+    resetUser(fork.branch());
+    resetAuction(fork.branch());
+    refundUser(fork.branch());
 
     fork.join(l -> l.get(0) && l.get(1) && l.get(2));
   }
@@ -383,7 +383,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
     if (result) {
       status = Status.ROLLED_BACK;
-      getAuction().setRolledBack(b -> _state.setRefundStatus(Status.ROLLED_BACK));
+      getAuction().setRolledBack((b, t) -> _state.setRefundStatus(Status.ROLLED_BACK));
     }
 
     _state.setRefundStatus(status);
@@ -395,14 +395,14 @@ public class AuctionSettlementImpl implements AuctionSettlement
   {
     if (_state.getUserSettleState()
         == UserUpdateState.REJECTED) {
-      result.complete(true);
+      result.ok(true);
     }
     else if (_state.getUserResetState() == UserUpdateState.ROLLED_BACK) {
-      result.complete(true);
+      result.ok(true);
     }
     else {
       getWinner().removeWonAuction(_bid.getAuctionId(),
-                                   result.from(x -> afterUserReset(x)));
+                                   result.of(x -> afterUserReset(x)));
     }
   }
 
@@ -423,15 +423,15 @@ public class AuctionSettlementImpl implements AuctionSettlement
   {
     if (_state.getAuctionWinnerUpdateState()
         == AuctionWinnerUpdateState.REJECTED) {
-      result.complete(true);
+      result.ok(true);
     }
     else if (_state.getAuctionWinnerResetState()
              == AuctionWinnerUpdateState.ROLLED_BACK) {
-      result.complete(true);
+      result.ok(true);
     }
     else {
       getAuction().clearAuctionWinner(_bid.getUserId(),
-                                      result.from(x -> afterAuctionReset(x)));
+                                      result.of(x -> afterAuctionReset(x)));
     }
   }
 
@@ -452,17 +452,17 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private void refundUser(Result<Boolean> result)
   {
     if (_state.getPaymentState() == PaymentTxState.FAILED) {
-      result.complete(true);
+      result.ok(true);
     }
     else if (_state.getRefundState() == PaymentTxState.REFUNDED) {
-      result.complete(true);
+      result.ok(true);
     }
     else {
       Payment payment = _state.getPayment();
 
       if (payment == null) {
 
-        result.complete(true);
+        result.ok(true);
       }
       else {
         payPalRefund(payment, result);
@@ -473,7 +473,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private void payPalRefund(Payment payment, Result<Boolean> result)
   {
     _paypal.refund(_id, payment.getSaleId(), payment.getSaleId(),
-                   result.from(refund -> processRefund(refund)));
+                   result.of(refund -> processRefund(refund)));
   }
 
   private boolean processRefund(Refund refund)
@@ -501,7 +501,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
     if (_boundState == BoundState.NEW) {
       _db.exec(
         "insert into settlement (id, bid) values (?, ?)",
-        x -> _boundState = BoundState.BOUND,
+        (x, t) -> _boundState = BoundState.BOUND,
         _id,
         _bid);
     }
@@ -515,19 +515,19 @@ public class AuctionSettlementImpl implements AuctionSettlement
   @Override
   public void getTransactionState(Result<SettlementTransactionState> result)
   {
-    result.complete(_state);
+    result.ok(_state);
   }
 
   @Override
   public void settleStatus(Result<Status> result)
   {
-    result.complete(_state.getSettleStatus());
+    result.ok(_state.getSettleStatus());
   }
 
   @Override
   public void refundStatus(Result<Status> result)
   {
-    result.complete(_state.getRefundStatus());
+    result.ok(_state.getRefundStatus());
   }
 
   @Override

@@ -2,8 +2,8 @@ package examples.auction;
 
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
-import io.baratine.core.Lookup;
-import io.baratine.core.ServiceRef;
+import io.baratine.service.Lookup;
+import io.baratine.service.ServiceRef;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,11 +27,11 @@ import javax.inject.Inject;
 public class UserReplayTest
 {
   @Inject
-  @Lookup("pod://user/user")
+  @Lookup("public:///user")
   UserManagerSync _userManager;
 
   @Inject
-  @Lookup("pod://user/user")
+  @Lookup("public:///user")
   ServiceRef _userManagerRef;
 
   @Inject

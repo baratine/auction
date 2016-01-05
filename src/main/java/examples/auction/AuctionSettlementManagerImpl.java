@@ -1,13 +1,13 @@
 package examples.auction;
 
-import io.baratine.core.Journal;
-import io.baratine.core.Lookup;
-import io.baratine.core.OnInit;
-import io.baratine.core.OnLookup;
-import io.baratine.core.Result;
-import io.baratine.core.Service;
-import io.baratine.core.ServiceRef;
-import io.baratine.core.Startup;
+import io.baratine.service.Journal;
+import io.baratine.service.Lookup;
+import io.baratine.service.OnInit;
+import io.baratine.service.OnLookup;
+import io.baratine.service.Result;
+import io.baratine.service.Service;
+import io.baratine.service.ServiceRef;
+import io.baratine.service.Startup;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 import io.baratine.stream.ResultStreamBuilder;
@@ -16,7 +16,7 @@ import javax.inject.Inject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@Service("pod://settlement/settlement")
+@Service("public:///settlement")
 @Startup
 @Journal()
 public class AuctionSettlementManagerImpl implements AuctionSettlementManager
@@ -29,19 +29,19 @@ public class AuctionSettlementManagerImpl implements AuctionSettlementManager
   DatabaseService _db;
 
   @Inject
-  @Lookup("pod://auction/paypal")
+  @Lookup("public:///paypal")
   PayPal _payPal;
 
   @Inject
-  @Lookup("pod://user/user")
+  @Lookup("public:///user")
   ServiceRef _userManager;
 
   @Inject
-  @Lookup("pod://auction/auction")
+  @Lookup("public:///auction")
   ServiceRef _auctionManager;
 
   @Inject
-  @Lookup("pod://audit/audit")
+  @Lookup("public:///audit")
   AuditService _auditService;
 
   private ServiceRef _selfRef;
@@ -51,16 +51,16 @@ public class AuctionSettlementManagerImpl implements AuctionSettlementManager
   {
     _selfRef = ServiceRef.current();
 
-    Result.Fork<Boolean,Boolean> fork = result.newFork();
+    Result.Fork<Boolean,Boolean> fork = result.fork();
 
     _db.exec(
       "create table settlement(id varchar primary key, bid object) with hash '/settlements/$id'",
-      fork.fork().from(o -> true, (e, r) -> {r.complete(true);})
+      fork.branch().of(o -> true, (e, r) -> {r.ok(true);})
     );
 
     _db.exec(
       "create table settlement_state(id varchar primary key, state object) with hash '/settlements/$id'",
-      fork.fork().from(o -> true, (e, r) -> {r.complete(true);})
+      fork.branch().of(o -> true, (e, r) -> {r.ok(true);})
     );
 
     fork.join((l, r) -> load(l.get(0) && l.get(1), r));
@@ -83,7 +83,7 @@ public class AuctionSettlementManagerImpl implements AuctionSettlementManager
 
     r.forEach(c -> resume(c)).exec();
 
-    result.complete(true);
+    result.ok(true);
   }
 
   private void resume(Cursor cursor)
@@ -93,7 +93,7 @@ public class AuctionSettlementManagerImpl implements AuctionSettlementManager
 
     log.log(Level.FINER, String.format("resume settlement %1$s", settlement));
 
-    settlement.getTransactionState(t -> {
+    settlement.getTransactionState((t, e) -> {
       log.log(Level.FINER, String.format(
         "resume settlement %1$s with state %2$s",
         settlement,

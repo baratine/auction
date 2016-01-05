@@ -2,8 +2,8 @@ package examples.auction;
 
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
-import io.baratine.core.Lookup;
-import io.baratine.core.ServiceManager;
+import io.baratine.service.Lookup;
+import io.baratine.service.ServiceManager;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,7 +63,7 @@ import java.util.concurrent.TimeUnit;
 public class AuctionSessionTest
 {
   @Inject
-  @Lookup("pod://web/")
+  @Lookup("public:///")
   ServiceManager _auctionPod;
 
   @Inject
@@ -94,7 +94,7 @@ public class AuctionSessionTest
   AuctionSessionSync getSession()
   {
     AuctionSessionSync session
-      = _auctionPod.lookup("session://web/auction-session")
+      = _auctionPod.lookup("session:///auction-session")
                    .as(AuctionSessionSync.class);
 
     return session;

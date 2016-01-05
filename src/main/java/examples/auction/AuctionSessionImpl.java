@@ -1,12 +1,12 @@
 package examples.auction;
 
-import io.baratine.core.CancelHandle;
-import io.baratine.core.Lookup;
-import io.baratine.core.OnDestroy;
-import io.baratine.core.Result;
-import io.baratine.core.Service;
-import io.baratine.core.ServiceManager;
-import io.baratine.core.ServiceRef;
+import io.baratine.service.Cancel;
+import io.baratine.service.Lookup;
+import io.baratine.service.OnDestroy;
+import io.baratine.service.Result;
+import io.baratine.service.Service;
+import io.baratine.service.ServiceManager;
+import io.baratine.service.ServiceRef;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 /**
  * User visible channel facade at session:///auction-session.
  */
-@Service("session://web/auction-session")
+@Service("session:///auction-session")
 public class AuctionSessionImpl implements AuctionSession
 {
   private final static Logger log
@@ -30,19 +30,19 @@ public class AuctionSessionImpl implements AuctionSession
   private ServiceManager _manager;
 
   @Inject
-  @Lookup("pod://user/user")
+  @Lookup("public:///user")
   private UserManager _users;
 
   @Inject
-  @Lookup("pod://user/user")
+  @Lookup("public:///user")
   private ServiceRef _usersServiceRef;
 
   @Inject
-  @Lookup("pod://auction/auction")
+  @Lookup("public:///auction")
   private AuctionManager _auctions;
 
   @Inject
-  @Lookup("pod://auction/auction")
+  @Lookup("public:///auction")
   private ServiceRef _auctionsServiceRef;
 
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
@@ -54,14 +54,14 @@ public class AuctionSessionImpl implements AuctionSession
   public void createUser(String userName, String password,
                          final Result<Boolean> result)
   {
-    _users.create(userName, password, false, result.from(id -> true));
+    _users.create(userName, password, false, result.of(id -> true));
   }
 
   public void validateLogin(String userName,
                             String password,
                             Result<Boolean> result)
   {
-    _users.find(userName, result.from((id, r) -> validateLoginImpl(id,
+    _users.find(userName, result.of((id, r) -> validateLoginImpl(id,
                                                                    password,
                                                                    r)));
   }
@@ -74,7 +74,7 @@ public class AuctionSessionImpl implements AuctionSession
 
     user.authenticate(password,
                       false,
-                      result.from(b -> completeLogin(b, userId, user)));
+                      result.of(b -> completeLogin(b, userId, user)));
   }
 
   private boolean completeLogin(boolean isLoggedIn, String userId, User user)
@@ -108,7 +108,7 @@ public class AuctionSessionImpl implements AuctionSession
     }
 
     _auctions.create(new AuctionDataInit(_userId, title, bid),
-                     result.from((x, r) -> afterCreateAuction(x, title, r)));
+                     result.of((x, r) -> afterCreateAuction(x, title, r)));
   }
 
   private void afterCreateAuction(String id, String title,
@@ -116,7 +116,7 @@ public class AuctionSessionImpl implements AuctionSession
   {
     Auction auction = _auctionsServiceRef.lookup("/" + id).as(Auction.class);
 
-    auction.open(result.from(b -> id));
+    auction.open(result.of(b -> id));
   }
 
   public void getAuction(String id, Result<AuctionDataPublic> result)
@@ -158,7 +158,7 @@ public class AuctionSessionImpl implements AuctionSession
     _auctions.search(query).collect(ArrayList<String>::new,
                                     (l, e) -> l.add(e),
                                     (a, b) -> a.addAll(b))
-             .result(result.from(l -> l.toArray(new String[l.size()])));
+             .result(result.of(l -> l.toArray(new String[l.size()])));
   }
 
   /**
@@ -188,7 +188,7 @@ public class AuctionSessionImpl implements AuctionSession
 
     _listener = listener;
 
-    result.complete(true);
+    result.ok(true);
   }
 
   public void addAuctionListener(String id, Result<Boolean> result)
@@ -197,7 +197,7 @@ public class AuctionSessionImpl implements AuctionSession
     try {
       addAuctionListenerImpl(id);
 
-      result.complete(true);
+      result.ok(true);
     } catch (Throwable t) {
       log.log(Level.WARNING, t.getMessage(), t);
 
@@ -210,7 +210,7 @@ public class AuctionSessionImpl implements AuctionSession
 
   private void addAuctionListenerImpl(String id)
   {
-    String url = "event://auction/auction/" + id;
+    String url = "event:///auction/" + id;
 
     ServiceRef eventRef = _manager.lookup(url);
 
@@ -229,7 +229,7 @@ public class AuctionSessionImpl implements AuctionSession
 
     unsubscribe();
 
-    result.complete(true);
+    result.ok(true);
   }
 
   private void unsubscribe()
@@ -263,7 +263,7 @@ public class AuctionSessionImpl implements AuctionSession
   private class AuctionEventsImpl implements AuctionEvents
   {
     private final ServiceRef _eventRef;
-    private CancelHandle _cancelHandle;
+    private Cancel _Cancel;
 
     AuctionEventsImpl(ServiceRef eventRef)
     {
@@ -272,12 +272,12 @@ public class AuctionSessionImpl implements AuctionSession
 
     public void subscribe()
     {
-      _cancelHandle = _eventRef.subscribe(this);
+      _Cancel = _eventRef.subscribe(this);
     }
 
     public void unsubscribe()
     {
-      _cancelHandle.cancel();
+      _Cancel.cancel();
     }
 
     @Override

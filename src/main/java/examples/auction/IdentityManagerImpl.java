@@ -1,13 +1,13 @@
 package examples.auction;
 
-import io.baratine.core.Lookup;
-import io.baratine.core.Modify;
-import io.baratine.core.OnLoad;
-import io.baratine.core.OnSave;
-import io.baratine.core.Result;
-import io.baratine.core.Service;
-import io.baratine.core.ServiceManager;
-import io.baratine.store.Store;
+import io.baratine.service.Lookup;
+import io.baratine.service.Modify;
+import io.baratine.service.OnLoad;
+import io.baratine.service.OnSave;
+import io.baratine.service.Result;
+import io.baratine.service.Service;
+import io.baratine.service.ServiceManager;
+import io.baratine.keyvalue.Store;
 
 import javax.inject.Inject;
 import java.util.logging.Logger;
@@ -28,7 +28,7 @@ public class IdentityManagerImpl implements IdentityManager
   @OnLoad
   public void load(Result<Boolean> result)
   {
-    _store.get("/id", result.from(o -> {
+    _store.get("/id", result.of(o -> {
       _nextId = o != null ? (Long) o : 0;
       return true;
     }));
@@ -38,7 +38,7 @@ public class IdentityManagerImpl implements IdentityManager
   @Modify
   public void nextId(Result<String> result)
   {
-    result.complete(Long.toString(_nextId++));
+    result.ok(Long.toString(_nextId++));
   }
 
   @OnSave
@@ -46,6 +46,6 @@ public class IdentityManagerImpl implements IdentityManager
   {
     _store.put("/id", _nextId);
 
-    result.complete(true);
+    result.ok(true);
   }
 }

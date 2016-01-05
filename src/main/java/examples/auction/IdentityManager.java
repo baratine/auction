@@ -1,6 +1,6 @@
 package examples.auction;
 
-import io.baratine.core.Result;
+import io.baratine.service.Result;
 
 public interface IdentityManager
 {

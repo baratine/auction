@@ -1,6 +1,6 @@
 package examples.auction;
 
-import io.baratine.core.Result;
+import io.baratine.service.Result;
 import io.baratine.stream.ResultStreamBuilder;
 
 public interface AuctionManager

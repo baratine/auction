@@ -16,6 +16,6 @@ pod user {
 
 pod web {
   archive "/usr/lib/pods/auction.bar";
-
+  type web;
   web "/" "web";
 }

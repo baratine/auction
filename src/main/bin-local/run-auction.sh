@@ -27,12 +27,14 @@ $BARATINE_HOME/bin/baratine start $BARATINE_ARGS
 $BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS lucene-plugin-service.bar
 $BARATINE_HOME/bin/baratine deploy $BARATINE_ARGS auction.bar
 
+sleep 3
+
 echo "Create User ..."
 $BARATINE_HOME/bin/baratine jamp $BARATINE_ARGS --pod web /auction-session/foo createUser user pass
-$BARATINE_HOME/bin/baratine jamp $BARATINE_ARGS --pod web /auction-admin-session/foo createUser admin pass
+$BARATINE_HOME/bin/baratine jamp $BARATINE_ARGS --pod web /auction-admin-session createUser admin pass
 
 echo "Authenticate User ..."
-$BARATINE_HOME/bin/baratine jamp $BARATINE_ARGS --pod web /auction-session/foo login user pass
+$BARATINE_HOME/bin/baratine jamp $BARATINE_ARGS --pod web /auction-session/foo validateLogin user pass
 
 $BARATINE_HOME/bin/baratine --verbose cat $BARATINE_ARGS /proc/services
 

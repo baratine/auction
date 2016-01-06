@@ -157,23 +157,18 @@ public class RepositoryImpl<T, ID extends Serializable>
 
       List<FieldDesc> fields = new ArrayList<>();
 
+      boolean hasPk = false;
       for (Field field : _class.getDeclaredFields()) {
         Column column = field.getAnnotation(Column.class);
         if (column == null)
           continue;
 
-        fields.add(new FieldDesc(field, column));
-      }
+        FieldDesc f = new FieldReflected(field, column);
 
-      _fields = fields.toArray(new FieldDesc[fields.size()]);
-
-      boolean hasPk = false;
-
-      for (FieldDesc field : _fields) {
-        if (field.isPk()) {
+        if (f.isPk())
           hasPk = true;
-          break;
-        }
+
+        fields.add(f);
       }
 
       if (!hasPk) {
@@ -181,6 +176,12 @@ public class RepositoryImpl<T, ID extends Serializable>
           "%1$s must define a primary key",
           type));
       }
+
+      if (fields.size() == 1) {
+        fields.add(new FieldObject());
+      }
+
+      _fields = fields.toArray(new FieldDesc[fields.size()]);
     }
 
     public FieldDesc[] getFields()
@@ -204,22 +205,26 @@ public class RepositoryImpl<T, ID extends Serializable>
     }
   }
 
-  static class FieldDesc
+  static class FieldReflected implements FieldDesc
   {
     private final Field _field;
     private final Column _column;
 
-    public FieldDesc(Field field, Column column)
+    public FieldReflected(Field field, Column column)
     {
       _field = field;
       _column = column;
+
+      _field.setAccessible(true);
     }
 
+    @Override
     public boolean isPk()
     {
       return _column.pk();
     }
 
+    @Override
     public String getName()
     {
       String name = _column.name();
@@ -231,9 +236,20 @@ public class RepositoryImpl<T, ID extends Serializable>
       return name;
     }
 
+    @Override
     public String getSqlType()
     {
       return getColumnType(_field.getType());
+    }
+
+    @Override
+    public Object getValue(Object t)
+    {
+      try {
+        return _field.get(t);
+      } catch (IllegalAccessException e) {
+        throw new IllegalStateException();
+      }
     }
   }
 

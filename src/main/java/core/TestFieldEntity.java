@@ -1,7 +1,7 @@
 package core;
 
 @Table(name = "TEST_ENTITY")
-public class TestEntity
+public class TestFieldEntity
 {
   @Column(name = "id", pk = true)
   private String _id;
@@ -9,7 +9,7 @@ public class TestEntity
   @Column(name = "data")
   private String _data;
 
-  public TestEntity()
+  public TestFieldEntity()
   {
   }
 

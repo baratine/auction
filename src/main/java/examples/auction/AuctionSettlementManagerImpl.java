@@ -6,6 +6,7 @@ import io.baratine.service.OnInit;
 import io.baratine.service.OnLookup;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
+import io.baratine.service.ServiceManager;
 import io.baratine.service.ServiceRef;
 import io.baratine.service.Startup;
 import io.baratine.db.Cursor;

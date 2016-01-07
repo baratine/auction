@@ -1,5 +1,7 @@
 package core;
 
+import io.baratine.db.Cursor;
+
 import java.util.Objects;
 
 public class FieldObject implements FieldDesc
@@ -44,5 +46,11 @@ public class FieldObject implements FieldDesc
   public Object getValue(Object t)
   {
     return t;
+  }
+
+  @Override
+  public void setValue(Object target, Cursor cursor, int index)
+  {
+    throw new IllegalStateException();
   }
 }

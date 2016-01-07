@@ -1,5 +1,7 @@
 package core;
 
+import io.baratine.db.Cursor;
+
 public interface FieldDesc
 {
   boolean isPk();
@@ -9,4 +11,6 @@ public interface FieldDesc
   String getSqlType();
 
   Object getValue(Object t);
+
+  void setValue(Object target, Cursor cursor, int index);
 }

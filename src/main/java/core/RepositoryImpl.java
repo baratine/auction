@@ -1,7 +1,10 @@
 package core;
 
+import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 import io.baratine.service.Result;
+import io.baratine.service.ServiceManager;
+import io.baratine.stream.ResultStreamBuilder;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -35,15 +38,13 @@ public class RepositoryImpl<T, ID extends Serializable>
 
     _entityDesc = new EntityDesc<>(_entityClass, table);
 
-/*
     _db = ServiceManager.current()
                         .lookup("bardb:///")
                         .as(DatabaseService.class);
-*/
   }
 
   @Override
-  public <S extends T> S save(S entity)
+  public <S extends T> void save(S entity, Result<Boolean> result)
   {
     Object[] values = new Object[_entityDesc.getSize()];
 
@@ -58,42 +59,57 @@ public class RepositoryImpl<T, ID extends Serializable>
                        + ": "
                        + Arrays.asList(values));
 
-    //_db.exec(getInsertSql(), Result.ignore(), values);
+    _db.exec(getInsertSql(), Result.ignore(), values);
 
-    return entity;
+    result.ok(true);
   }
 
   @Override
-  public T findOne(ID id)
+  public void findOne(ID id, Result<T> result)
   {
-    _db.findOne(getSelectOneSql(), Result.ignore(), id);
+    _db.findOne(getSelectOneSql(), result.of((c, r) -> readObject(c, r)), id);
+  }
 
+  private void readObject(Cursor c, Result<T> result)
+  {
+    if (c == null)
+      result.ok(null);
+
+    try {
+
+      T t = _entityDesc.readObject(c);
+
+      result.ok(t);
+    } catch (ReflectiveOperationException e) {
+
+      //TODO log.log()
+      result.fail(e);
+    }
+  }
+
+  @Override
+  public ResultStreamBuilder<T> find(Iterable<ID> ids)
+  {
     return null;
   }
 
   @Override
-  public Iterable<T> find(Iterable<ID> ids)
+  public ResultStreamBuilder<T> findAll()
   {
     return null;
   }
 
   @Override
-  public Iterable<T> findAll()
-  {
-    return null;
-  }
-
-  @Override
-  public void delete(ID id)
+  public void delete(ID id, Result<Boolean> result)
   {
     _db.exec(getDeleteSql(), Result.ignore(), id);
   }
 
   @Override
-  public void delete(Iterable<ID> ids)
+  public void delete(Iterable<ID> ids, Result<Boolean> result)
   {
     for (ID entity : ids) {
-      delete(entity);
+      delete(entity, null);
     }
   }
 
@@ -261,6 +277,64 @@ public class RepositoryImpl<T, ID extends Serializable>
     {
       return _fields[index].getValue(t);
     }
+
+    public T readObject(Cursor cursor) throws ReflectiveOperationException
+    {
+      FieldObject fieldObject = null;
+
+      int index = 0;
+      for (int i = 0; i < _fields.length; i++) {
+        FieldDesc field = _fields[i];
+
+        if (!field.isPk())
+          index++;
+
+        if (field instanceof FieldObject) {
+          fieldObject = (FieldObject) field;
+          break;
+        }
+      }
+
+      T t;
+
+      if (fieldObject == null) {
+        t = createFromClass();
+        fillIn(cursor, t);
+      }
+      else {
+        t = createFromCursor(cursor, index);
+      }
+
+      return t;
+    }
+
+    private void fillIn(Cursor cursor, T t)
+    {
+      int index = 0;
+      for (int i = 0; i < _fields.length; i++) {
+        FieldDesc field = _fields[i];
+
+        if (field.isPk()) {
+          continue;
+        }
+        else {
+          index++;
+        }
+
+        field.setValue(t, cursor, index);
+      }
+    }
+
+    private T createFromClass()
+      throws ReflectiveOperationException
+    {
+      return _class.newInstance();
+    }
+
+    private T createFromCursor(Cursor cursor, int index)
+    {
+      return (T) cursor.getObject(index);
+    }
   }
 
   static class FieldReflected implements FieldDesc
@@ -308,6 +382,12 @@ public class RepositoryImpl<T, ID extends Serializable>
       } catch (IllegalAccessException e) {
         throw new IllegalStateException();
       }
+    }
+
+    @Override
+    public void setValue(Object target, Cursor cursor, int index)
+    {
+
     }
   }
 

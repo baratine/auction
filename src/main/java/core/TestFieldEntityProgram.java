@@ -18,6 +18,6 @@ public class TestFieldEntityProgram
     System.out.println(r.getInsertSql());
     System.out.println(r.getSelectOneSql());
 
-    r.save(e);
+    r.save(e, null);
   }
 }

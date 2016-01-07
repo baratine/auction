@@ -1,18 +1,21 @@
 package core;
 
+import io.baratine.service.Result;
+import io.baratine.stream.ResultStreamBuilder;
+
 import java.io.Serializable;
 
 public interface Repository<T, ID extends Serializable>
 {
-  <S extends T> S save(S entity);
+  <S extends T> void save(S entity, Result<Boolean> result);
 
-  T findOne(ID id);
+  void findOne(ID id, Result<T> result);
 
-  Iterable<T> find(Iterable<ID> ids);
+  ResultStreamBuilder<T> find(Iterable<ID> ids);
 
-  Iterable<T> findAll();
+  ResultStreamBuilder<T> findAll();
 
-  void delete(ID id);
+  void delete(ID id, Result<Boolean> result);
 
-  void delete(Iterable<ID> ids);
+  void delete(Iterable<ID> ids, Result<Boolean> result);
 }

@@ -1,5 +1,7 @@
 package examples.auction;
 
+import com.caucho.v5.ramp.jamp.RouteJampPodsImpl;
+import com.caucho.v5.ramp.jamp.WebJamp;
 import io.baratine.web.HttpStatus;
 import io.baratine.web.RequestWeb;
 import io.baratine.web.WebView;
@@ -13,7 +15,7 @@ public class Main
 {
   public static void main(String[] args)
   {
-/*
+
     service(AuctionAdminSessionImpl.class);
     service(AuctionSessionImpl.class).address("public:///auction-session");
     service(AuctionManagerImpl.class);
@@ -22,17 +24,8 @@ public class Main
     service(IdentityManagerImpl.class);
     service(PayPalImpl.class);
     service(UserManagerImpl.class);
-*/
 
-    view(new InputStreamView());
-
-    get("/index.html").to(req -> req.ok(getIndexHtmlInputStream("/index.html")));
-    get("/").to(req -> req.ok(getIndexHtmlInputStream("/index.html")));
-
-/*
-    get("/baratine-js.js").to(req -> req.ok(getIndexHtmlInputStream(
-      "/baratine-js.js")));
-*/
+    route("/jamp").to(WebJamp.class);
 
     start();
   }

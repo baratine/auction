@@ -14,5 +14,5 @@ public interface Repository<T, ID extends Serializable>
 
   void delete(ID id);
 
-  void delete(Iterable<ID> entities);
+  void delete(Iterable<ID> ids);
 }

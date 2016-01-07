@@ -286,8 +286,8 @@
 
       var host = window.location.host;
 
-      var url = "ws://" + host + "/s/web";
-      $scope.client = new Jamp.BaratineClient(url);
+      var url = "http://" + host + "/jamp";
+      $scope.client = new Jamp.BaratineClient(url, true);
 
       var listener = $scope.client.createListener();
 

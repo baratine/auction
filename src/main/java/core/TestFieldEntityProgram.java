@@ -12,9 +12,12 @@ public class TestFieldEntityProgram
 
     TestFieldEntity e = new TestFieldEntity();
 
-    r.save(e);
+
 
     System.out.println(r.createDdl());
     System.out.println(r.getInsertSql());
+    System.out.println(r.getSelectOneSql());
+
+    r.save(e);
   }
 }

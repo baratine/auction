@@ -2,11 +2,11 @@ package core;
 
 import io.baratine.db.DatabaseService;
 import io.baratine.service.Result;
-import io.baratine.service.ServiceManager;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,9 +35,11 @@ public class RepositoryImpl<T, ID extends Serializable>
 
     _entityDesc = new EntityDesc<>(_entityClass, table);
 
+/*
     _db = ServiceManager.current()
                         .lookup("bardb:///")
                         .as(DatabaseService.class);
+*/
   }
 
   @Override
@@ -51,7 +53,12 @@ public class RepositoryImpl<T, ID extends Serializable>
       values[i] = value;
     }
 
-    _db.exec(getInsertSql(), Result.ignore(), values);
+    System.out.println("RepositoryImpl.save: "
+                       + getInsertSql()
+                       + ": "
+                       + Arrays.asList(values));
+
+    //_db.exec(getInsertSql(), Result.ignore(), values);
 
     return entity;
   }
@@ -59,6 +66,8 @@ public class RepositoryImpl<T, ID extends Serializable>
   @Override
   public T findOne(ID id)
   {
+    _db.findOne(getSelectOneSql(), Result.ignore(), id);
+
     return null;
   }
 
@@ -77,13 +86,15 @@ public class RepositoryImpl<T, ID extends Serializable>
   @Override
   public void delete(ID id)
   {
-
+    _db.exec(getDeleteSql(), Result.ignore(), id);
   }
 
   @Override
-  public void delete(Iterable<ID> entities)
+  public void delete(Iterable<ID> ids)
   {
-
+    for (ID entity : ids) {
+      delete(entity);
+    }
   }
 
   public String getInsertSql()
@@ -111,6 +122,51 @@ public class RepositoryImpl<T, ID extends Serializable>
     head.append(tail);
 
     return head.toString();
+  }
+
+  public String getSelectOneSql()
+  {
+    StringBuilder head = new StringBuilder("select ");
+    StringBuilder where = new StringBuilder(" where ");
+
+    FieldDesc[] fields = _entityDesc.getFields();
+
+    for (int i = 0; i < fields.length; i++) {
+      FieldDesc field = fields[i];
+
+      if (field.isPk()) {
+        where.append(field.getName()).append(" = ?");
+        continue;
+      }
+
+      head.append(field.getName());
+
+      if ((i + 1) < fields.length && !fields[i + 1].isPk())
+        head.append(", ");
+    }
+
+    head.append(where);
+
+    return head.toString();
+  }
+
+  public String getDeleteSql()
+  {
+    StringBuilder sql = new StringBuilder("delete from ")
+      .append(_entityDesc.getTableName())
+      .append(" where ");
+
+    for (FieldDesc field : _entityDesc.getFields()) {
+      if (field.isPk()) {
+        sql.append(field.getName());
+        break;
+      }
+
+    }
+
+    sql.append(" = ?");
+
+    return sql.toString();
   }
 
   public String createDdl()
@@ -177,8 +233,10 @@ public class RepositoryImpl<T, ID extends Serializable>
           type));
       }
 
-      if (fields.size() == 1) {
-        fields.add(new FieldObject());
+      Column objColumn = type.getAnnotation(Column.class);
+
+      if (objColumn != null) {
+        fields.add(new FieldObject(type, objColumn));
       }
 
       _fields = fields.toArray(new FieldDesc[fields.size()]);
@@ -199,9 +257,9 @@ public class RepositoryImpl<T, ID extends Serializable>
       return _fields.length;
     }
 
-    public Object getValue(int field, T t)
+    public Object getValue(int index, T t)
     {
-      throw new IllegalStateException();
+      return _fields[index].getValue(t);
     }
   }
 
@@ -290,4 +348,3 @@ public class RepositoryImpl<T, ID extends Serializable>
     typeMap.put(String.class, "varchar");
   }
 }
-

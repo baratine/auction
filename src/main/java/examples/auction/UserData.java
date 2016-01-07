@@ -1,11 +1,18 @@
 package examples.auction;
 
+import core.db.Column;
+import core.db.Table;
+
 import java.util.HashSet;
 import java.util.Set;
 
+@Table(name = "user")
+@Column(name = "value")
 public class UserData
 {
+  @Column(name = "id", pk = true)
   private String _id;
+  @Column(name = "name", pk = false)
   private String _name;
   private String _password;
   private boolean _isAdmin;

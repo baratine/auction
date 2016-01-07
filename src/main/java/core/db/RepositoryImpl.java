@@ -9,7 +9,6 @@ import io.baratine.stream.ResultStreamBuilder;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +38,8 @@ public class RepositoryImpl<T, ID extends Serializable>
     Table table = _entityClass.getAnnotation(Table.class);
 
     _entityDesc = new EntityDesc<>(_entityClass, table);
+
+    _db.exec(createDdl(), Result.ignore());
   }
 
   @Override
@@ -52,14 +53,7 @@ public class RepositoryImpl<T, ID extends Serializable>
       values[i] = value;
     }
 
-    System.out.println("RepositoryImpl.save: "
-                       + getInsertSql()
-                       + ": "
-                       + Arrays.asList(values));
-
-    _db.exec(getInsertSql(), Result.ignore(), values);
-
-    result.ok(true);
+    _db.exec(getInsertSql(), result.of(o -> true), values);
   }
 
   @Override
@@ -74,6 +68,12 @@ public class RepositoryImpl<T, ID extends Serializable>
     throw new AbstractMethodError();
   }
 
+  /**
+   * @param columns
+   * @param values
+   * @param stream
+   * @see #findMatch(String[], Object[])
+   */
   public void findMatch(String[] columns,
                         Object[] values,
                         ResultStream<T> stream)
@@ -215,6 +215,8 @@ public class RepositoryImpl<T, ID extends Serializable>
       if ((i + 1) < fields.length && !fields[i + 1].isPk())
         head.append(", ");
     }
+
+    head.append(" from ").append(_entityDesc.getTableName());
 
     head.append(where);
 
@@ -413,7 +415,12 @@ public class RepositoryImpl<T, ID extends Serializable>
 
     private T createFromCursor(Cursor cursor, int index)
     {
-      return (T) cursor.getObject(index);
+      T t = null;
+
+      if (cursor != null)
+        t = (T) cursor.getObject(index);
+
+      return t;
     }
   }
 

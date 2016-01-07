@@ -1,11 +1,10 @@
 package examples.auction;
 
+import core.db.Repository;
 import io.baratine.service.Modify;
 import io.baratine.service.OnLoad;
 import io.baratine.service.OnSave;
 import io.baratine.service.Result;
-import io.baratine.db.Cursor;
-import io.baratine.db.DatabaseService;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -17,20 +16,21 @@ public class UserImpl implements User
 {
   private static final Logger log = Logger.getLogger(UserImpl.class.getName());
 
-  private DatabaseService _db;
   private MessageDigest _digest;
 
   private String _id;
   private UserData _user;
   private CreditCard _creditCard;
 
+  private Repository<UserData,String> _repository;
+
   public UserImpl()
   {
   }
 
-  public UserImpl(DatabaseService db, String id)
+  public UserImpl(Repository<UserData,String> repository, String id)
   {
-    _db = db;
+    _repository = repository;
     _id = id;
   }
 
@@ -45,11 +45,7 @@ public class UserImpl implements User
 
     log.finer("creating new user: " + userName);
 
-    _db.exec("insert into users(id, name, value) values(?,?,?)",
-             userId.of(o -> _id),
-             _id,
-             _user.getName(),
-             _user);
+    _repository.save(_user, userId.of(o -> _id));
   }
 
   public String digest(String password)
@@ -79,16 +75,14 @@ public class UserImpl implements User
   {
     log.finer("loading user: " + _id + " ...");
 
-    _db.findOne("select value from users where id=?",
-                result.of(c -> setUser(c)), _id);
+    _repository.findOne(_id, result.of(u -> setUser(u)));
   }
 
-  private boolean setUser(Cursor c)
+  private boolean setUser(UserData u)
   {
-    if (c != null)
-      _user = (UserData) c.getObject(1);
-
     log.finer("loading user: " + _id + " ->" + _user);
+
+    _user = u;
 
     return _user != null;
   }
@@ -98,11 +92,7 @@ public class UserImpl implements User
   {
     log.finer("saving user: " + _user);
 
-    _db.exec("insert into users(id, name, value) values(?,?,?)",
-             result.of(o -> (Boolean) o),
-             _id,
-             _user.getName(),
-             _user);
+    _repository.save(_user, result.of(b -> b));
   }
 
   @Override

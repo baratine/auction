@@ -1,5 +1,8 @@
 package examples.auction;
 
+import core.db.Repository;
+import core.db.RepositoryImpl;
+import io.baratine.db.DatabaseService;
 import io.baratine.service.Journal;
 import io.baratine.service.Lookup;
 import io.baratine.service.OnInit;
@@ -7,10 +10,9 @@ import io.baratine.service.OnLookup;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.ServiceRef;
-import io.baratine.db.DatabaseService;
+import io.baratine.stream.ResultStreamBuilder;
 
 import javax.inject.Inject;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -33,6 +35,8 @@ public class UserManagerImpl implements UserManager
 
   private ServiceRef _self;
 
+  private Repository<UserData,String> _userRepository;
+
   public UserManagerImpl()
   {
   }
@@ -42,16 +46,8 @@ public class UserManagerImpl implements UserManager
   {
     _self = ServiceRef.current();
 
-    try {
-      // for production add salt
-      _db.exec(
-        "create table users(id varchar primary key, name varchar, value object) with hash '/user/$id'",
-        result.of(o -> o != null));
-    } catch (Throwable t) {
-      log.log(Level.FINE, t.getMessage(), t);
-      //assume that exception is due to existing table and complete with true
-      result.ok(true);
-    }
+    _userRepository = new RepositoryImpl<>(UserData.class, String.class, _db);
+    ((RepositoryImpl) _userRepository).init();
   }
 
   @OnLookup
@@ -61,7 +57,7 @@ public class UserManagerImpl implements UserManager
 
     log.finer("lookup user: " + id);
 
-    return new UserImpl(_db, id);
+    return new UserImpl(_userRepository, id);
   }
 
   @Override
@@ -73,11 +69,11 @@ public class UserManagerImpl implements UserManager
     log.finer("create new user: " + userName);
 
     _identityManager.nextId(userId.of((id, r)
-                                          -> createWithId(id,
-                                                          userName,
-                                                          password,
-                                                          isAdmin,
-                                                          r)));
+                                        -> createWithId(id,
+                                                        userName,
+                                                        password,
+                                                        isAdmin,
+                                                        r)));
   }
 
   private void createWithId(String id,
@@ -96,7 +92,9 @@ public class UserManagerImpl implements UserManager
   {
     _self.save(Result.ignore());
 
-    _db.findOne("select id from users where name=?",
-                userId.of(c -> c != null ? c.getString(1) : null), name);
+    ResultStreamBuilder<UserData> stream
+      = _userRepository.findMatch(new String[]{"name"}, new Object[]{name});
+
+    stream.first().result(userId.of(UserData::getId));
   }
 }

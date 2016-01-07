@@ -8,6 +8,8 @@ import io.baratine.web.WebView;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static io.baratine.web.Web.*;
 
@@ -26,7 +28,16 @@ public class Main
 
     route("/jamp").to(WebJamp.class);
 
+    Logger.getLogger("com.caucho").setLevel(Level.FINER);
+    Logger.getLogger("examples").setLevel(Level.FINER);
+    Logger.getLogger("core").setLevel(Level.FINER);
+
     start();
+
+    Logger.getLogger("com.caucho").setLevel(Level.FINER);
+    Logger.getLogger("examples").setLevel(Level.FINER);
+    Logger.getLogger("core").setLevel(Level.FINER);
+
   }
 
   public static InputStream getIndexHtmlInputStream(String path)

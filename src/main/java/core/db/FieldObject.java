@@ -1,4 +1,4 @@
-package core;
+package core.db;
 
 import io.baratine.db.Cursor;
 

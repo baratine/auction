@@ -1,4 +1,4 @@
-package core;
+package core.db;
 
 import io.baratine.service.Result;
 import io.baratine.stream.ResultStreamBuilder;
@@ -10,6 +10,8 @@ public interface Repository<T, ID extends Serializable>
   <S extends T> void save(S entity, Result<Boolean> result);
 
   void findOne(ID id, Result<T> result);
+
+  ResultStreamBuilder<T> findMatch(String[] columns, Object[] values);
 
   ResultStreamBuilder<T> find(Iterable<ID> ids);
 

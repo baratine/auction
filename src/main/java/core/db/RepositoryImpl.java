@@ -1,9 +1,9 @@
-package core;
+package core.db;
 
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 import io.baratine.service.Result;
-import io.baratine.service.ServiceManager;
+import io.baratine.service.ResultStream;
 import io.baratine.stream.ResultStreamBuilder;
 
 import java.io.Serializable;
@@ -25,11 +25,13 @@ public class RepositoryImpl<T, ID extends Serializable>
 
   private DatabaseService _db;
 
-  public RepositoryImpl(Class<T> entityClass, Class<ID> idClass)
-    throws ClassNotFoundException
+  public RepositoryImpl(Class<T> entityClass,
+                        Class<ID> idClass,
+                        DatabaseService db)
   {
     _entityClass = entityClass;
     _idClass = idClass;
+    _db = db;
   }
 
   public void init()
@@ -37,10 +39,6 @@ public class RepositoryImpl<T, ID extends Serializable>
     Table table = _entityClass.getAnnotation(Table.class);
 
     _entityDesc = new EntityDesc<>(_entityClass, table);
-
-    _db = ServiceManager.current()
-                        .lookup("bardb:///")
-                        .as(DatabaseService.class);
   }
 
   @Override
@@ -70,14 +68,59 @@ public class RepositoryImpl<T, ID extends Serializable>
     _db.findOne(getSelectOneSql(), result.of((c, r) -> readObject(c, r)), id);
   }
 
+  @Override
+  public ResultStreamBuilder<T> findMatch(String[] columns, Object[] values)
+  {
+    throw new AbstractMethodError();
+  }
+
+  public void findMatch(String[] columns,
+                        Object[] values,
+                        ResultStream<T> stream)
+  {
+    if (columns.length != values.length)
+      throw new IllegalArgumentException();
+
+    StringBuilder sql = getWildSelect();
+
+    sql.append(" where ");
+
+    for (int i = 0; i < columns.length; i++) {
+      String column = columns[i];
+      sql.append(column).append("=?");
+
+      if ((i + 1) < columns.length)
+        sql.append(" and ");
+    }
+
+    _db.findAll(sql.toString(),
+                stream.of((i, r) -> {readObjects(i, r);}),
+                values);
+  }
+
+  private void readObjects(Iterable<Cursor> it, ResultStream<T> r)
+  {
+    try {
+      for (Cursor c : it) {
+        T t = _entityDesc.readObject(c, true);
+
+        r.accept(t);
+      }
+
+      r.ok();
+    } catch (ReflectiveOperationException e) {
+      //TODO log
+      r.fail(e);
+    }
+  }
+
   private void readObject(Cursor c, Result<T> result)
   {
     if (c == null)
       result.ok(null);
 
     try {
-
-      T t = _entityDesc.readObject(c);
+      T t = _entityDesc.readObject(c, false);
 
       result.ok(t);
     } catch (ReflectiveOperationException e) {
@@ -90,13 +133,25 @@ public class RepositoryImpl<T, ID extends Serializable>
   @Override
   public ResultStreamBuilder<T> find(Iterable<ID> ids)
   {
-    return null;
+    throw new AbstractMethodError();
+  }
+
+  public void find(Iterable<ID> ids, ResultStream<T> stream)
+  {
+    //TODO
   }
 
   @Override
   public ResultStreamBuilder<T> findAll()
   {
-    return null;
+    throw new AbstractMethodError();
+  }
+
+  public void findAll(ResultStream<T> stream)
+  {
+    StringBuilder sql = getWildSelect();
+
+    _db.findAll(sql.toString(), stream.of(this::readObjects));
   }
 
   @Override
@@ -166,6 +221,23 @@ public class RepositoryImpl<T, ID extends Serializable>
     return head.toString();
   }
 
+  public StringBuilder getWildSelect()
+  {
+    StringBuilder sql = new StringBuilder("select ");
+
+    FieldDesc[] fields = _entityDesc.getFields();
+
+    for (int i = 0; i < fields.length; i++) {
+      FieldDesc field = fields[i];
+      sql.append(field.getName());
+
+      if ((i + 1) < fields.length)
+        sql.append(", ");
+    }
+
+    return sql;
+  }
+
   public String getDeleteSql()
   {
     StringBuilder sql = new StringBuilder("delete from ")
@@ -229,7 +301,6 @@ public class RepositoryImpl<T, ID extends Serializable>
 
       List<FieldDesc> fields = new ArrayList<>();
 
-      boolean hasPk = false;
       for (Field field : _class.getDeclaredFields()) {
         Column column = field.getAnnotation(Column.class);
         if (column == null)
@@ -237,17 +308,25 @@ public class RepositoryImpl<T, ID extends Serializable>
 
         FieldDesc f = new FieldReflected(field, column);
 
-        if (f.isPk())
-          hasPk = true;
-
         fields.add(f);
       }
 
-      if (!hasPk) {
+      List<FieldDesc> pks = new ArrayList<>();
+
+      for (FieldDesc field : fields) {
+        if (field.isPk())
+          pks.add(field);
+      }
+
+      if (pks.size() == 0) {
         throw new IllegalStateException(String.format(
           "%1$s must define a primary key",
           type));
       }
+      else if (pks.size() > 1)
+        throw new IllegalStateException(String.format(
+          "too many fields declare primary key",
+          pks.toString()));
 
       Column objColumn = type.getAnnotation(Column.class);
 
@@ -278,7 +357,8 @@ public class RepositoryImpl<T, ID extends Serializable>
       return _fields[index].getValue(t);
     }
 
-    public T readObject(Cursor cursor) throws ReflectiveOperationException
+    public T readObject(Cursor cursor, boolean isInitPk)
+      throws ReflectiveOperationException
     {
       FieldObject fieldObject = null;
 
@@ -299,7 +379,7 @@ public class RepositoryImpl<T, ID extends Serializable>
 
       if (fieldObject == null) {
         t = createFromClass();
-        fillIn(cursor, t);
+        fillIn(cursor, t, isInitPk);
       }
       else {
         t = createFromCursor(cursor, index);
@@ -308,13 +388,13 @@ public class RepositoryImpl<T, ID extends Serializable>
       return t;
     }
 
-    private void fillIn(Cursor cursor, T t)
+    private void fillIn(Cursor cursor, T t, boolean isInitPk)
     {
       int index = 0;
       for (int i = 0; i < _fields.length; i++) {
         FieldDesc field = _fields[i];
 
-        if (field.isPk()) {
+        if (!isInitPk && field.isPk()) {
           continue;
         }
         else {
@@ -334,60 +414,6 @@ public class RepositoryImpl<T, ID extends Serializable>
     private T createFromCursor(Cursor cursor, int index)
     {
       return (T) cursor.getObject(index);
-    }
-  }
-
-  static class FieldReflected implements FieldDesc
-  {
-    private final Field _field;
-    private final Column _column;
-
-    public FieldReflected(Field field, Column column)
-    {
-      _field = field;
-      _column = column;
-
-      _field.setAccessible(true);
-    }
-
-    @Override
-    public boolean isPk()
-    {
-      return _column.pk();
-    }
-
-    @Override
-    public String getName()
-    {
-      String name = _column.name();
-
-      if (name == null) {
-
-      }
-
-      return name;
-    }
-
-    @Override
-    public String getSqlType()
-    {
-      return getColumnType(_field.getType());
-    }
-
-    @Override
-    public Object getValue(Object t)
-    {
-      try {
-        return _field.get(t);
-      } catch (IllegalAccessException e) {
-        throw new IllegalStateException();
-      }
-    }
-
-    @Override
-    public void setValue(Object target, Cursor cursor, int index)
-    {
-
     }
   }
 

@@ -15,7 +15,6 @@ public class Main
 {
   public static void main(String[] args)
   {
-
     service(AuctionAdminSessionImpl.class);
     service(AuctionSessionImpl.class).address("public:///auction-session");
     service(AuctionManagerImpl.class);

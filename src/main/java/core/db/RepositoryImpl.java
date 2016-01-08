@@ -65,7 +65,7 @@ public class RepositoryImpl<T, ID extends Serializable>
   @Override
   public ResultStreamBuilder<T> findMatch(String[] columns, Object[] values)
   {
-    throw new AbstractMethodError();
+    throw new UnsupportedOperationException();
   }
 
   /**
@@ -133,7 +133,7 @@ public class RepositoryImpl<T, ID extends Serializable>
   @Override
   public ResultStreamBuilder<T> find(Iterable<ID> ids)
   {
-    throw new AbstractMethodError();
+    throw new UnsupportedOperationException();
   }
 
   public void find(Iterable<ID> ids, ResultStream<T> stream)
@@ -144,7 +144,7 @@ public class RepositoryImpl<T, ID extends Serializable>
   @Override
   public ResultStreamBuilder<T> findAll()
   {
-    throw new AbstractMethodError();
+    throw new UnsupportedOperationException();
   }
 
   public void findAll(ResultStream<T> stream)
@@ -327,7 +327,7 @@ public class RepositoryImpl<T, ID extends Serializable>
       }
       else if (pks.size() > 1)
         throw new IllegalStateException(String.format(
-          "too many fields declare primary key",
+          "too many fields declare primary key %1$s",
           pks.toString()));
 
       Column objColumn = type.getAnnotation(Column.class);

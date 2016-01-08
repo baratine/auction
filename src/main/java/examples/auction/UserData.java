@@ -1,6 +1,7 @@
 package examples.auction;
 
 import core.db.Column;
+import core.db.Id;
 import core.db.Table;
 
 import java.util.HashSet;
@@ -10,10 +11,13 @@ import java.util.Set;
 @Column(name = "value")
 public class UserData
 {
-  @Column(name = "id", pk = true)
+  @Id
+  @Column(name = "id")
   private String _id;
-  @Column(name = "name", pk = false)
+
+  @Column(name = "name")
   private String _name;
+
   private String _password;
   private boolean _isAdmin;
 

@@ -20,7 +20,7 @@ class FieldReflected implements FieldDesc
   @Override
   public boolean isPk()
   {
-    return _column.pk();
+    return _field.getAnnotation(Id.class) != null;
   }
 
   @Override

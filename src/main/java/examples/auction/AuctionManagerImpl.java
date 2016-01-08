@@ -1,6 +1,5 @@
 package examples.auction;
 
-import com.caucho.lucene.LuceneEntry;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 import io.baratine.service.Journal;
@@ -15,7 +14,6 @@ import io.baratine.service.ServiceRef;
 import io.baratine.stream.ResultStreamBuilder;
 
 import javax.inject.Inject;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,12 +37,12 @@ public class AuctionManagerImpl implements AuctionManager
   @Lookup("/identity-manager")
   private IdentityManager _identityManager;
 
-/*
-  @Inject
-  @Lookup("pod://lucene/service")
-  private com.caucho.lucene.LuceneFacade _lucene;
+  /*
+    @Inject
+    @Lookup("pod://lucene/service")
+    private com.caucho.lucene.LuceneFacade _lucene;
 
-*/
+  */
   @Inject
   @Lookup("public:///audit")
   private AuditService _audit;
@@ -130,7 +128,7 @@ public class AuctionManagerImpl implements AuctionManager
   @Override
   public ResultStreamBuilder<String> search(String query)
   {
-    throw new AbstractMethodError();
+    throw new UnsupportedOperationException();
   }
 
   public void search(String query, ResultStream<String> results)

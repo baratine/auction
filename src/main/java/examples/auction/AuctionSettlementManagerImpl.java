@@ -1,5 +1,7 @@
 package examples.auction;
 
+import io.baratine.db.Cursor;
+import io.baratine.db.DatabaseService;
 import io.baratine.service.Journal;
 import io.baratine.service.Lookup;
 import io.baratine.service.OnInit;
@@ -9,8 +11,6 @@ import io.baratine.service.Service;
 import io.baratine.service.ServiceManager;
 import io.baratine.service.ServiceRef;
 import io.baratine.service.Startup;
-import io.baratine.db.Cursor;
-import io.baratine.db.DatabaseService;
 import io.baratine.stream.ResultStreamBuilder;
 
 import javax.inject.Inject;

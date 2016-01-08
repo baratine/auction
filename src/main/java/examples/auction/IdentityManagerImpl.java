@@ -1,5 +1,6 @@
 package examples.auction;
 
+import io.baratine.keyvalue.Store;
 import io.baratine.service.Lookup;
 import io.baratine.service.Modify;
 import io.baratine.service.OnLoad;
@@ -7,9 +8,9 @@ import io.baratine.service.OnSave;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.ServiceManager;
-import io.baratine.keyvalue.Store;
 
 import javax.inject.Inject;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Service("/identity-manager")
@@ -38,7 +39,11 @@ public class IdentityManagerImpl implements IdentityManager
   @Modify
   public void nextId(Result<String> result)
   {
-    result.ok(Long.toString(_nextId++));
+    long nextId = _nextId++;
+
+    log.log(Level.FINER, String.format("dealing new id %1$d", nextId));
+
+    result.ok(Long.toString(nextId));
   }
 
   @OnSave

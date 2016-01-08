@@ -1,6 +1,5 @@
 package examples.auction;
 
-import com.caucho.v5.ramp.jamp.RouteJampPodsImpl;
 import com.caucho.v5.ramp.jamp.WebJamp;
 import io.baratine.web.HttpStatus;
 import io.baratine.web.RequestWeb;
@@ -32,7 +31,12 @@ public class Main
     Logger.getLogger("examples").setLevel(Level.FINER);
     Logger.getLogger("core").setLevel(Level.FINER);
 
-    start();
+    try {
+      start();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
 
     Logger.getLogger("com.caucho").setLevel(Level.FINER);
     Logger.getLogger("examples").setLevel(Level.FINER);

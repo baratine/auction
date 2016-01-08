@@ -41,9 +41,9 @@ public class UserImpl implements User
                      boolean isAdmin,
                      Result<String> userId)
   {
-    _user = new UserData(_id, userName, digest(password), isAdmin);
+    log.finer(String.format("create new user: %1$s", userName));
 
-    log.finer("creating new user: " + userName);
+    _user = new UserData(_id, userName, digest(password), isAdmin);
 
     _repository.save(_user, userId.of(o -> _id));
   }

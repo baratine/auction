@@ -4,7 +4,7 @@ import io.baratine.db.Cursor;
 
 import java.util.Objects;
 
-public class FieldObject implements FieldDesc
+class FieldObject implements FieldDesc
 {
   private Column _column;
   private Class<?> _type;

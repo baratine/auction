@@ -2,7 +2,7 @@ package core.db;
 
 import io.baratine.db.Cursor;
 
-public interface FieldDesc
+interface FieldDesc
 {
   boolean isPk();
 

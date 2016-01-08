@@ -84,7 +84,13 @@ public class UserManagerImpl implements UserManager
   {
     User user = _self.lookup("/" + id).as(User.class);
 
-    user.create(userName, password, isAdmin, userId);
+    System.out.println("UserManagerImpl.createWithId " + user);
+
+    try {
+      user.create(userName, password, isAdmin, userId);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @Override

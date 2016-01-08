@@ -8,6 +8,7 @@ import io.baratine.stream.ResultStreamBuilder;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -304,7 +305,11 @@ public class RepositoryImpl<T, ID extends Serializable>
       List<FieldDesc> fields = new ArrayList<>();
 
       for (Field field : _class.getDeclaredFields()) {
+        if (!isPersistent(field))
+          continue;
+
         Column column = field.getAnnotation(Column.class);
+
         if (column == null)
           continue;
 
@@ -337,6 +342,17 @@ public class RepositoryImpl<T, ID extends Serializable>
       }
 
       _fields = fields.toArray(new FieldDesc[fields.size()]);
+    }
+
+    private boolean isPersistent(Field field)
+    {
+      int mod = field.getModifiers();
+
+      if (Modifier.isStatic(mod))
+        return false;
+      else if (Modifier.isTransient(mod))
+        return false;
+      return true;
     }
 
     public FieldDesc[] getFields()

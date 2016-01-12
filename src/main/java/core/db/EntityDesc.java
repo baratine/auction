@@ -98,6 +98,8 @@ class EntityDesc<T>
   public T readObject(Cursor cursor, boolean isInitPk)
     throws ReflectiveOperationException
   {
+    Objects.requireNonNull(cursor);
+
     FieldObject fieldObject = null;
 
     int index = 0;

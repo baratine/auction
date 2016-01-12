@@ -41,7 +41,7 @@ public class UserImpl implements User
                      boolean isAdmin,
                      Result<String> userId)
   {
-    log.finer(String.format("create new user: %1$s", userName));
+    log.finer(String.format("UserImpl: create new user: %1$s", userName));
 
     _user = new UserData(_id, userName, digest(password), isAdmin);
 
@@ -80,7 +80,7 @@ public class UserImpl implements User
 
   private boolean setUser(UserData u)
   {
-    log.finer("loading user: " + _id + " ->" + _user);
+    log.finer("setting user: " + _id + " ->" + _user);
 
     _user = u;
 

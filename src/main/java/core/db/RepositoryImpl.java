@@ -131,17 +131,18 @@ public class RepositoryImpl<T, ID extends Serializable>
 
       result.ok(null);
     }
+    else {
+      try {
+        T t = _entityDesc.readObject(c, false);
 
-    try {
-      T t = _entityDesc.readObject(c, false);
+        log.log(Level.FINER, String.format("loaded %1$s", t));
 
-      log.log(Level.FINER, String.format("loaded %1$s", t));
-
-      result.ok(t);
-    } catch (ReflectiveOperationException e) {
-
-      //TODO log.log()
-      result.fail(e);
+        result.ok(t);
+      } catch (ReflectiveOperationException e) {
+        e.printStackTrace();
+        //TODO log.log()
+        result.fail(e);
+      }
     }
   }
 

@@ -54,11 +54,7 @@ public class AuctionSessionImpl implements AuctionSession
   public void createUser(String userName, String password,
                          final Result<Boolean> result)
   {
-    log.log(Level.FINER, String.format("create user %1$s", userName));
-    System.out.println("AuctionSessionImpl.createUser");
-    System.out.println("AuctionSessionImpl.createUser");
-    System.out.println("AuctionSessionImpl.createUser");
-    System.out.println("AuctionSessionImpl.createUser");
+    log.log(Level.FINER, String.format("AuctionSessionImpl: create user %1$s", userName));
 
     _users.create(userName, password, false, result.of(id -> true));
   }

@@ -65,7 +65,7 @@ public class UserManagerImpl implements UserManager
                      boolean isAdmin,
                      Result<String> userId)
   {
-    log.finer("create new user: " + userName);
+    log.finer("UserManagerImpl: create new user: " + userName);
 
     _identityManager.nextId(userId.of((id, r)
                                         -> createWithId(id,
@@ -81,13 +81,14 @@ public class UserManagerImpl implements UserManager
                             boolean isAdmin,
                             Result<String> userId)
   {
-    User user = _self.lookup("/" + id).as(User.class);
-
-    System.out.println("UserManagerImpl.createWithId " + user);
+    log.finer("UserManagerImpl: create witId 0: " + id);
 
     try {
+      User user = _self.lookup("/" + id).as(User.class);
+
+      log.finer("UserManagerImpl: create witId 1: " + id);
       user.create(userName, password, isAdmin, userId);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       e.printStackTrace();
     }
   }

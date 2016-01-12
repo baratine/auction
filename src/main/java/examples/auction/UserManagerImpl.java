@@ -4,7 +4,6 @@ import core.db.Repository;
 import core.db.RepositoryImpl;
 import io.baratine.db.DatabaseService;
 import io.baratine.service.Journal;
-import io.baratine.service.Lookup;
 import io.baratine.service.OnInit;
 import io.baratine.service.OnLookup;
 import io.baratine.service.Result;
@@ -18,7 +17,7 @@ import java.util.logging.Logger;
 /**
  *
  */
-@Service("public:///user")
+@Service("/user")
 @Journal()
 public class UserManagerImpl implements UserManager
 {
@@ -26,11 +25,11 @@ public class UserManagerImpl implements UserManager
     = Logger.getLogger(UserManagerImpl.class.getName());
 
   @Inject
-  @Lookup("bardb:///")
+  @Service("bardb:///")
   private DatabaseService _db;
 
   @Inject
-  @Lookup("/identity-manager")
+  @Service("/identity-manager")
   private IdentityManager _identityManager;
 
   private ServiceRef _self;

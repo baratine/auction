@@ -30,23 +30,23 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
   private ServiceManager _manager;
 
   @Inject
-  @Lookup("public:///user")
+  @Service("/user")
   private UserManager _users;
 
   @Inject
-  @Lookup("public:///user")
+  @Service("/user")
   private ServiceRef _usersServiceRef;
 
   @Inject
-  @Lookup("public:///auction")
+  @Service("/auction")
   private AuctionManager _auctions;
 
   @Inject
-  @Lookup("public:///auction")
+  @Service("/auction")
   private ServiceRef _auctionsServiceRef;
 
   @Inject
-  @Lookup("public:///settlement")
+  @Service("/settlement")
   private ServiceRef _settlementsServiceRef;
 
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();

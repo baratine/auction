@@ -49,11 +49,11 @@ public class AuctionImpl implements Auction
     _db = db;
     _id = id;
 
-    ServiceRef auditRef = manager.lookup("public:///audit");
+    ServiceRef auditRef = manager.lookup("/audit");
 
     _audit = auditRef.as(AuditService.class);
 
-    _settlement = manager.lookup("public:///settlement");
+    _settlement = manager.lookup("/settlement");
 
     _state = State.UNBOUND;
   }

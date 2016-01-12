@@ -30,19 +30,19 @@ public class AuctionSessionImpl implements AuctionSession
   private ServiceManager _manager;
 
   @Inject
-  @Lookup("public:///user")
+  @Service("/user")
   private UserManager _users;
 
   @Inject
-  @Lookup("public:///user")
+  @Service("/user")
   private ServiceRef _usersServiceRef;
 
   @Inject
-  @Lookup("public:///auction")
+  @Service("/auction")
   private AuctionManager _auctions;
 
   @Inject
-  @Lookup("public:///auction")
+  @Service("/auction")
   private ServiceRef _auctionsServiceRef;
 
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
@@ -54,6 +54,12 @@ public class AuctionSessionImpl implements AuctionSession
   public void createUser(String userName, String password,
                          final Result<Boolean> result)
   {
+    log.log(Level.FINER, String.format("create user %1$s", userName));
+    System.out.println("AuctionSessionImpl.createUser");
+    System.out.println("AuctionSessionImpl.createUser");
+    System.out.println("AuctionSessionImpl.createUser");
+    System.out.println("AuctionSessionImpl.createUser");
+
     _users.create(userName, password, false, result.of(id -> true));
   }
 

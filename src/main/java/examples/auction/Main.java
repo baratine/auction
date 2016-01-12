@@ -3,7 +3,7 @@ package examples.auction;
 import com.caucho.v5.ramp.jamp.WebJamp;
 import io.baratine.web.HttpStatus;
 import io.baratine.web.RequestWeb;
-import io.baratine.web.WebView;
+import io.baratine.web.ViewWeb;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +17,7 @@ public class Main
   public static void main(String[] args)
   {
     service(AuctionAdminSessionImpl.class);
-    service(AuctionSessionImpl.class).address("public:///auction-session");
+    service(AuctionSessionImpl.class);
     service(AuctionManagerImpl.class);
     service(AuctionSettlementManagerImpl.class);
     service(AuditServiceImpl.class);
@@ -27,9 +27,11 @@ public class Main
 
     route("/jamp").to(WebJamp.class);
 
-    Logger.getLogger("com.caucho").setLevel(Level.FINER);
-    Logger.getLogger("examples").setLevel(Level.FINER);
-    Logger.getLogger("core").setLevel(Level.FINER);
+    Level level = Level.FINEST;
+
+    Logger.getLogger("com.caucho").setLevel(level);
+    Logger.getLogger("examples").setLevel(level);
+    Logger.getLogger("core").setLevel(level);
 
     try {
       start();
@@ -37,11 +39,9 @@ public class Main
       e.printStackTrace();
     }
 
-
-    Logger.getLogger("com.caucho").setLevel(Level.FINER);
-    Logger.getLogger("examples").setLevel(Level.FINER);
-    Logger.getLogger("core").setLevel(Level.FINER);
-
+    Logger.getLogger("com.caucho").setLevel(level);
+    Logger.getLogger("examples").setLevel(level);
+    Logger.getLogger("core").setLevel(level);
   }
 
   public static InputStream getIndexHtmlInputStream(String path)
@@ -53,7 +53,7 @@ public class Main
     return in;
   }
 
-  static class InputStreamView implements WebView<InputStream>
+  static class InputStreamView implements ViewWeb<InputStream>
   {
     @Override
     public boolean render(RequestWeb requestWeb, InputStream in)

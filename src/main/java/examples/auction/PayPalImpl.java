@@ -9,7 +9,7 @@ import javax.inject.Inject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@Service("public:///paypal")
+@Service("/paypal")
 @Workers(20)
 public class PayPalImpl implements PayPal
 {
@@ -20,7 +20,7 @@ public class PayPalImpl implements PayPal
   PayPalRestLink _rest;
 
   @Inject
-  @Lookup("public:///audit")
+  @Service("/audit")
   AuditService _audit;
 
   @Override

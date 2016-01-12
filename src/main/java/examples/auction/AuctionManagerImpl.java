@@ -3,7 +3,6 @@ package examples.auction;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
 import io.baratine.service.Journal;
-import io.baratine.service.Lookup;
 import io.baratine.service.OnInit;
 import io.baratine.service.OnLookup;
 import io.baratine.service.Result;
@@ -20,7 +19,7 @@ import java.util.logging.Logger;
 /**
  *
  */
-@Service("public:///auction")
+@Service("/auction")
 @Journal()
 public class AuctionManagerImpl implements AuctionManager
 {
@@ -30,21 +29,21 @@ public class AuctionManagerImpl implements AuctionManager
   ServiceRef _self;
 
   @Inject
-  @Lookup("bardb:///")
+  @Service("bardb:///")
   private DatabaseService _db;
 
   @Inject
-  @Lookup("/identity-manager")
+  @Service("/identity-manager")
   private IdentityManager _identityManager;
 
   /*
     @Inject
-    @Lookup("pod://lucene/service")
+    @Service("pod://lucene/service")
     private com.caucho.lucene.LuceneFacade _lucene;
 
   */
   @Inject
-  @Lookup("public:///audit")
+  @Service("/audit")
   private AuditService _audit;
 
   public AuctionManagerImpl()

@@ -22,7 +22,7 @@ public class IdentityManagerImpl implements IdentityManager
   @Inject
   ServiceManager _manager;
   @Inject
-  @Lookup("store:///identity")
+  @Service("store:///identity")
   private Store _store;
   private long _nextId;
 

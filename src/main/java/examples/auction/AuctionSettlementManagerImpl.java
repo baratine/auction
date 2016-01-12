@@ -17,7 +17,7 @@ import javax.inject.Inject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@Service("public:///settlement")
+@Service("/settlement")
 @Startup
 @Journal()
 public class AuctionSettlementManagerImpl implements AuctionSettlementManager
@@ -26,23 +26,23 @@ public class AuctionSettlementManagerImpl implements AuctionSettlementManager
     = Logger.getLogger(AuctionSettlementManagerImpl.class.getName());
 
   @Inject
-  @Lookup("bardb:///")
+  @Service("bardb:///")
   DatabaseService _db;
 
   @Inject
-  @Lookup("public:///paypal")
+  @Service("/paypal")
   PayPal _payPal;
 
   @Inject
-  @Lookup("public:///user")
+  @Service("/user")
   ServiceRef _userManager;
 
   @Inject
-  @Lookup("public:///auction")
+  @Service("/auction")
   ServiceRef _auctionManager;
 
   @Inject
-  @Lookup("public:///audit")
+  @Service("/audit")
   AuditService _auditService;
 
   private ServiceRef _selfRef;

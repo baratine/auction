@@ -87,6 +87,7 @@ public class UserManagerImpl implements UserManager
       User user = _self.lookup("/" + id).as(User.class);
 
       log.finer("UserManagerImpl: create witId 1: " + id);
+      System.out.println("UserManagerImpl.createWithId " + id);
       user.create(userName, password, isAdmin, userId);
     } catch (Throwable e) {
       e.printStackTrace();

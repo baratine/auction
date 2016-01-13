@@ -304,11 +304,11 @@
       $scope.client.onSession = function ()
       {
         console.log("on-session:");
-        $scope.client.query("/auction-session", "setListener", [listener]);
+        //$scope.client.query("/auction-session", "setListener", [listener]);
       };
 
       if (url.search("http") === 0) {
-        $scope.client.query("/auction-session", "setListener", [listener]);
+        //$scope.client.query("/auction-session", "setListener", [listener]);
       }
     });
 

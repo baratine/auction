@@ -1,6 +1,6 @@
 package examples.auction;
 
-import core.db.Repository;
+import com.caucho.v5.data.Repository;
 import io.baratine.service.Modify;
 import io.baratine.service.OnLoad;
 import io.baratine.service.OnSave;
@@ -42,7 +42,8 @@ public class UserImpl implements User
                      Result<String> userId)
   {
     log.finer(String.format("UserImpl: create new user: %1$s", userName));
-    System.out.println(String.format("UserImpl: create new user: %1$s", userName));
+    System.out.println(String.format("UserImpl: create new user: %1$s",
+                                     userName));
 
     _user = new UserData(_id, userName, digest(password), isAdmin);
 

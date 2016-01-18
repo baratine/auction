@@ -1,8 +1,8 @@
 package examples.auction;
 
-import core.db.Column;
-import core.db.Id;
-import core.db.Table;
+import com.caucho.v5.data.Column;
+import com.caucho.v5.data.Id;
+import com.caucho.v5.data.Table;
 
 import java.util.HashSet;
 import java.util.Set;

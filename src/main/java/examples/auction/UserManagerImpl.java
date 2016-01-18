@@ -1,13 +1,14 @@
 package examples.auction;
 
-import core.db.Repository;
-import core.db.RepositoryImpl;
+import com.caucho.v5.data.Repository;
+import com.caucho.v5.data.RepositoryImpl;
 import io.baratine.db.DatabaseService;
 import io.baratine.service.Journal;
 import io.baratine.service.OnInit;
 import io.baratine.service.OnLookup;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
+import io.baratine.service.ServiceManager;
 import io.baratine.service.ServiceRef;
 import io.baratine.stream.ResultStreamBuilder;
 
@@ -45,8 +46,15 @@ public class UserManagerImpl implements UserManager
   {
     _self = ServiceRef.current();
 
-    _userRepository = new RepositoryImpl<>(UserData.class, String.class, _db);
-    ((RepositoryImpl) _userRepository).init();
+    RepositoryImpl rep = new RepositoryImpl<>(UserData.class,
+                                              String.class,
+                                              _db);
+
+    ServiceManager manager = ServiceManager.current();
+
+    _userRepository = manager.newService(rep).as(Repository.class);
+
+    result.ok(true);
   }
 
   @OnLookup

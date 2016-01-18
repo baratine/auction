@@ -27,7 +27,7 @@ public class Main
 
     route("/jamp").to(WebJamp.class);
 
-    Level level = Level.INFO;
+    Level level = Level.FINER;
 
     Logger.getLogger("com.caucho").setLevel(level);
     Logger.getLogger("examples").setLevel(level);

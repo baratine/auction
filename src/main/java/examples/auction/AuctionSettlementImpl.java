@@ -1,5 +1,8 @@
 package examples.auction;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import examples.auction.SettlementTransactionState.AuctionUpdateState;
 import examples.auction.SettlementTransactionState.AuctionWinnerUpdateState;
 import examples.auction.SettlementTransactionState.PaymentTxState;
@@ -11,9 +14,6 @@ import io.baratine.service.OnLoad;
 import io.baratine.service.OnSave;
 import io.baratine.service.Result;
 import io.baratine.service.ServiceRef;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class AuctionSettlementImpl implements AuctionSettlement
 {
@@ -193,7 +193,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private User getWinner()
   {
-    return _userManager.lookup('/' + _bid.getUserId()).as(User.class);
+    return _userManager.lookup("/" + _bid.getUserId()).as(User.class);
   }
 
   public void updateAuction(Result<Boolean> status)

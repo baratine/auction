@@ -16,7 +16,7 @@ public class AuctionDataPublic implements Serializable
 
   private ZonedDateTime _dateToClose;
 
-  private String _ownerId;
+  private long _ownerId;
 
   private ArrayList<Bid> _bids = new ArrayList<>();
 
@@ -25,7 +25,7 @@ public class AuctionDataPublic implements Serializable
   private State _state = State.INIT;
 
   //user id
-  private String _winner;
+  private long _winner = -1;
   private String _settlementId;
 
   public AuctionDataPublic()
@@ -74,12 +74,12 @@ public class AuctionDataPublic implements Serializable
     return _dateToClose;
   }
 
-  public String getOwnerId()
+  public long getOwnerId()
   {
     return _ownerId;
   }
 
-  public boolean bid(String bidderId, int bid)
+  public boolean bid(long bidderId, int bid)
     throws IllegalStateException
   {
     if (_state != State.OPEN) {
@@ -107,7 +107,7 @@ public class AuctionDataPublic implements Serializable
     return _lastBid;
   }
 
-  public String getLastBidder()
+  public long getLastBidder()
   {
     Bid lastBid = getLastBid();
 
@@ -115,16 +115,16 @@ public class AuctionDataPublic implements Serializable
       return lastBid.getUserId();
     }
     else {
-      return null;
+      return -1;
     }
   }
 
-  public String getWinner()
+  public long getWinner()
   {
     return _winner;
   }
 
-  public void setWinner(String winner)
+  public void setWinner(long winner)
   {
     _winner = winner;
   }
@@ -198,7 +198,7 @@ public class AuctionDataPublic implements Serializable
   {
     String getAuctionId();
 
-    String getUserId();
+    long getUserId();
 
     int getBid();
   }
@@ -206,7 +206,7 @@ public class AuctionDataPublic implements Serializable
   static class BidImpl implements Bid, Comparable<Bid>, Serializable
   {
     private String _auctionId;
-    private String _userId;
+    private long _userId;
     private int _bid;
 
     public BidImpl()
@@ -214,7 +214,7 @@ public class AuctionDataPublic implements Serializable
 
     }
 
-    BidImpl(String userId, String auctionId, int bid)
+    BidImpl(long userId, String auctionId, int bid)
     {
       _userId = userId;
       _auctionId = auctionId;
@@ -234,7 +234,7 @@ public class AuctionDataPublic implements Serializable
     }
 
     @Override
-    public String getUserId()
+    public long getUserId()
     {
       return _userId;
     }

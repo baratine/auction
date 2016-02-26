@@ -32,10 +32,6 @@ public class AuctionManagerImpl implements AuctionManager
   @Service("bardb:///")
   private DatabaseService _db;
 
-  @Inject
-  @Service("/identity-manager")
-  private IdentityManager _identityManager;
-
   /*
     @Inject
     @Service("pod://lucene/service")
@@ -80,10 +76,12 @@ public class AuctionManagerImpl implements AuctionManager
   public void create(AuctionDataInit initData,
                      Result<String> auctionId)
   {
+/*
     _identityManager.nextId(auctionId.of((id, r)
                                            -> createWithId(id,
                                                            initData,
                                                            r)));
+*/
   }
 
   private void createWithId(String id,

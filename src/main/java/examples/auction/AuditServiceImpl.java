@@ -1,9 +1,9 @@
 package examples.auction;
 
+import java.util.logging.Logger;
+
 import io.baratine.service.Result;
 import io.baratine.service.Service;
-
-import java.util.logging.Logger;
 
 @Service("/audit")
 public class AuditServiceImpl implements AuditService
@@ -170,7 +170,7 @@ public class AuditServiceImpl implements AuditService
   public void payPalSendPaymentRequest(String settlementId,
                                        AuctionDataPublic auction,
                                        AuctionDataPublic.Bid bid,
-                                       String userId,
+                                       long userId,
                                        Result<Void> ignore)
   {
     String message

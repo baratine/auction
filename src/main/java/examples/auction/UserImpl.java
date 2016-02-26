@@ -1,37 +1,30 @@
 package examples.auction;
 
-import com.caucho.v5.data.Repository;
-import io.baratine.service.Modify;
-import io.baratine.service.OnLoad;
-import io.baratine.service.OnSave;
-import io.baratine.service.Result;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.logging.Logger;
 
+import io.baratine.service.Data;
+import io.baratine.service.Id;
+import io.baratine.service.Modify;
+import io.baratine.service.Result;
+
+@Data
 public class UserImpl implements User
 {
   private static final Logger log = Logger.getLogger(UserImpl.class.getName());
 
-  private MessageDigest _digest;
+  private transient MessageDigest _digest;
 
-  private String _id;
+  @Id
+  private long _id;
   private UserData _user;
   private CreditCard _creditCard;
 
-  private Repository<UserData,String> _repository;
-
   public UserImpl()
   {
-  }
-
-  public UserImpl(Repository<UserData,String> repository, String id)
-  {
-    _repository = repository;
-    _id = id;
   }
 
   @Override
@@ -39,15 +32,13 @@ public class UserImpl implements User
   public void create(String userName,
                      String password,
                      boolean isAdmin,
-                     Result<String> userId)
+                     Result<Long> id)
   {
     log.finer(String.format("UserImpl: create new user: %1$s", userName));
-    System.out.println(String.format("UserImpl: create new user: %1$s",
-                                     userName));
 
     _user = new UserData(_id, userName, digest(password), isAdmin);
 
-    _repository.save(_user, userId.of(o -> _id));
+    id.ok(_id);
   }
 
   public String digest(String password)
@@ -72,14 +63,6 @@ public class UserImpl implements User
     }
   }
 
-  @OnLoad
-  public void load(Result<Boolean> result)
-  {
-    log.finer("loading user: " + _id + " ...");
-
-    _repository.findOne(_id, result.of(u -> setUser(u)));
-  }
-
   private boolean setUser(UserData u)
   {
     log.finer("setting user: " + _id + " ->" + _user);
@@ -89,17 +72,10 @@ public class UserImpl implements User
     return _user != null;
   }
 
-  @OnSave
-  public void save(Result<Boolean> result)
-  {
-    log.finer("saving user: " + _user);
-
-    _repository.save(_user, result.of(b -> b));
-  }
-
   @Override
   public void authenticate(String password,
-                           boolean isAdmin, Result<Boolean> result)
+                           boolean isAdmin,
+                           Result<Boolean> result)
   {
     if (_user == null) {
       result.ok(false);

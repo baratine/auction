@@ -7,7 +7,7 @@ public interface User
   void create(String userName,
               String password,
               boolean isAdmin,
-              Result<String> userId);
+              Result<Long> userId);
 
   void authenticate(String password,
                     boolean isAdmin,

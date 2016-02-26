@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class AuctionDataInit implements Serializable
 {
-  private String _userId;
+  private long _userId;
   private String _title;
   private int _startingBid;
 
@@ -12,14 +12,14 @@ public class AuctionDataInit implements Serializable
   {
   }
 
-  public AuctionDataInit(String userId, String title, int startingBid)
+  public AuctionDataInit(long userId, String title, int startingBid)
   {
     _userId = userId;
     _title = title;
     _startingBid = startingBid;
   }
 
-  public String getUserId()
+  public long getUserId()
   {
     return _userId;
   }

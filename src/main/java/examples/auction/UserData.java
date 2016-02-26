@@ -1,21 +1,12 @@
 package examples.auction;
 
-import com.caucho.v5.data.Column;
-import com.caucho.v5.data.Id;
-import com.caucho.v5.data.Table;
-
 import java.util.HashSet;
 import java.util.Set;
 
-@Table(name = "user")
-@Column(name = "value")
 public class UserData
 {
-  @Id
-  @Column(name = "id")
-  private String _id;
+  private long _id;
 
-  @Column(name = "name")
   private String _name;
 
   private String _password;
@@ -27,7 +18,7 @@ public class UserData
   {
   }
 
-  public UserData(String id,
+  public UserData(long id,
                   String name,
                   String password,
                   boolean isAdmin)
@@ -38,7 +29,7 @@ public class UserData
     _isAdmin = isAdmin;
   }
 
-  public String getId()
+  public long getId()
   {
     return _id;
   }

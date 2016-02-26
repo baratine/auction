@@ -1,18 +1,18 @@
 package examples.auction;
 
+import java.time.ZonedDateTime;
+import java.util.logging.Logger;
+
 import examples.auction.AuctionSettlement.Status;
+import io.baratine.db.Cursor;
+import io.baratine.db.DatabaseService;
 import io.baratine.service.Modify;
 import io.baratine.service.OnLoad;
 import io.baratine.service.OnSave;
 import io.baratine.service.Result;
 import io.baratine.service.ServiceManager;
 import io.baratine.service.ServiceRef;
-import io.baratine.db.Cursor;
-import io.baratine.db.DatabaseService;
 import io.baratine.timer.TimerService;
-
-import java.time.ZonedDateTime;
-import java.util.logging.Logger;
 
 public class AuctionImpl implements Auction
 {
@@ -271,7 +271,7 @@ public class AuctionImpl implements Auction
 
   @Override
   @Modify
-  public void setAuctionWinner(String user, Result<Boolean> result)
+  public void setAuctionWinner(long user, Result<Boolean> result)
   {
     if (_state != State.BOUND)
       throw new IllegalStateException();
@@ -286,11 +286,11 @@ public class AuctionImpl implements Auction
 
   @Override
   @Modify
-  public void clearAuctionWinner(String user, Result<Boolean> result)
+  public void clearAuctionWinner(long user, Result<Boolean> result)
   {
     System.out.println("AuctionImpl.clearAuctionWinner");
 
-    _auctionData.setWinner(null);
+    _auctionData.setWinner(-1);
 
     result.ok(true);
   }

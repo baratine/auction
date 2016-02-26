@@ -1,19 +1,18 @@
 package examples.auction;
 
-import io.baratine.service.Cancel;
-import io.baratine.service.Lookup;
-import io.baratine.service.OnDestroy;
-import io.baratine.service.Result;
-import io.baratine.service.Service;
-import io.baratine.service.ServiceManager;
-import io.baratine.service.ServiceRef;
-
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import io.baratine.service.Cancel;
+import io.baratine.service.OnDestroy;
+import io.baratine.service.Result;
+import io.baratine.service.Service;
+import io.baratine.service.ServiceManager;
+import io.baratine.service.ServiceRef;
 
 /**
  * User visible channel facade at session:///auction-session.
@@ -31,10 +30,6 @@ public class AuctionSessionImpl implements AuctionSession
 
   @Inject
   @Service("/user")
-  private UserManager _users;
-
-  @Inject
-  @Service("/user")
   private ServiceRef _usersServiceRef;
 
   @Inject
@@ -45,16 +40,21 @@ public class AuctionSessionImpl implements AuctionSession
   @Service("/auction")
   private ServiceRef _auctionsServiceRef;
 
+  @Inject
+  @Service("/user")
+  private UserVault _users;
+
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
   private ChannelListener _listener;
 
   private User _user;
-  private String _userId;
+  private long _userId = -1;
 
   public void createUser(String userName, String password,
                          final Result<Boolean> result)
   {
-    log.log(Level.FINER, String.format("AuctionSessionImpl: create user %1$s", userName));
+    log.log(Level.FINER,
+            String.format("AuctionSessionImpl: create user %1$s", userName));
 
     _users.create(userName, password, false, result.of(id -> true));
   }
@@ -63,30 +63,35 @@ public class AuctionSessionImpl implements AuctionSession
                             String password,
                             Result<Boolean> result)
   {
-    _users.find(userName, result.of((id, r) -> validateLoginImpl(id,
-                                                                   password,
-                                                                   r)));
+    _users.findByName(userName,
+                      result.of((u, r) -> authenticate(u, password, r)));
   }
 
-  private void validateLoginImpl(String userId,
-                                 String password,
-                                 Result<Boolean> result)
+  private void authenticate(User user, String password, Result<Boolean> result)
   {
-    User user = _usersServiceRef.lookup("/" + userId).as(User.class);
-
-    user.authenticate(password,
-                      false,
-                      result.of(b -> completeLogin(b, userId, user)));
+    if (user == null) {
+      result.ok(false);
+    }
+    else {
+      user.authenticate(password,
+                        false,
+                        result.of((x, r) -> completeLogin(x, user, r)));
+    }
   }
 
-  private boolean completeLogin(boolean isLoggedIn, String userId, User user)
+  private void completeLogin(boolean isLoggedIn,
+                             User user,
+                             Result<Boolean> result)
   {
     if (isLoggedIn) {
       _user = user;
-      _userId = userId;
+      user.get(result.of(u -> {
+        _userId = u.getId();
+        return true;
+      }));
     }
 
-    return isLoggedIn;
+    result.ok(false);
   }
 
   /**
@@ -227,7 +232,7 @@ public class AuctionSessionImpl implements AuctionSession
   public void logout(Result<Boolean> result)
   {
     _user = null;
-    _userId = null;
+    _userId = -1;
 
     unsubscribe();
 

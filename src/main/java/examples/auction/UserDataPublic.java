@@ -5,7 +5,7 @@ import java.util.Set;
 
 public class UserDataPublic
 {
-  private String _id;
+  private long _id;
   private String _name;
 
   private Set<String> _wonAuctions = new HashSet<>();
@@ -21,7 +21,7 @@ public class UserDataPublic
     _wonAuctions = new HashSet<>(userData.getWonAuctions());
   }
 
-  public String getId()
+  public long getId()
   {
     return _id;
   }

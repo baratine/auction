@@ -1,19 +1,18 @@
 package examples.auction;
 
-import io.baratine.service.Cancel;
-import io.baratine.service.Lookup;
-import io.baratine.service.OnDestroy;
-import io.baratine.service.Result;
-import io.baratine.service.Service;
-import io.baratine.service.ServiceManager;
-import io.baratine.service.ServiceRef;
-
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import io.baratine.service.Cancel;
+import io.baratine.service.OnDestroy;
+import io.baratine.service.Result;
+import io.baratine.service.Service;
+import io.baratine.service.ServiceManager;
+import io.baratine.service.ServiceRef;
 
 /**
  * User visible channel facade at session://web/auction-admin-session.
@@ -31,7 +30,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
 
   @Inject
   @Service("/user")
-  private UserManager _users;
+  private UserVault _users;
 
   @Inject
   @Service("/user")
@@ -59,16 +58,18 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
                          String password,
                          final Result<Boolean> result)
   {
-    _users.create(userName, password, true, result.of(id -> true));
+    //_users.create(userName, password, true, result.of(id -> true));
   }
 
   public void validateLogin(String userName,
                             String password,
                             Result<Boolean> result)
   {
+/*
     _users.find(userName, result.of((id, r) -> validateLoginImpl(id,
                                                                    password,
                                                                    r)));
+*/
   }
 
   private void validateLoginImpl(String userId,
@@ -79,7 +80,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
 
     user.authenticate(password,
                       true,
-                      result.of(b -> completeLogin(b, userId,user)));
+                      result.of(b -> completeLogin(b, userId, user)));
   }
 
   private boolean completeLogin(boolean isLoggedIn, String userId, User user)
@@ -153,9 +154,9 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     return auction;
   }
 
-  private User getUserService(String id)
+  private User getUserService(long id)
   {
-    User user = _usersServiceRef.lookup('/' + id).as(User.class);
+    User user = _usersServiceRef.lookup("/" + id).as(User.class);
 
     return user;
   }

@@ -46,7 +46,7 @@ public interface AuditService
   void payPalSendPaymentRequest(String settlementId,
                                 AuctionDataPublic auction,
                                 AuctionDataPublic.Bid bid,
-                                String userId,
+                                long userId,
                                 Result<Void> ignore);
 
   void payPalSendRefund(String settlementId,

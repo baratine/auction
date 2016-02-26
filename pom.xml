@@ -33,11 +33,11 @@
       <version>4.8</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
+    <!--dependency>
       <groupId>io.baratine</groupId>
       <artifactId>baratine</artifactId>
-      <version>0.11-SNAPSHOT</version>
-    </dependency>
+      <version>0.11.2</version>
+    </dependency-->
   </dependencies>
 
   <build>

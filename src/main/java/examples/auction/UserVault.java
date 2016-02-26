@@ -10,7 +10,7 @@ public interface UserVault extends Vault<Long,UserImpl>
 {
   void create(String userName, String password, boolean b, Result<Long> result);
 
-  //@Sql("where __doc._name=?")
+  //@Sql("where __doc.name=?")
   @Sql("")
   void findByName(String name, Result<User> result);
 }

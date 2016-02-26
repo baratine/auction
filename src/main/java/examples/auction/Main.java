@@ -1,16 +1,17 @@
 package examples.auction;
 
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.caucho.v5.ramp.jamp.WebJamp;
 import static io.baratine.web.Web.*;
-import static io.baratine.web.Web.service;
 
 public class Main
 {
   public static void main(String[] args)
   {
+
     property("server.file", "classpath:/public");
 
     include(AuctionAdminSessionImpl.class);

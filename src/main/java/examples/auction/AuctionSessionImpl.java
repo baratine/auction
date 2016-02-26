@@ -56,7 +56,7 @@ public class AuctionSessionImpl implements AuctionSession
     log.log(Level.FINER,
             String.format("AuctionSessionImpl: create user %1$s", userName));
 
-    _users.create(userName, password, false, result.of(id -> true));
+    _users.create(userName, password, false, result.of(id -> id > -1));
   }
 
   public void validateLogin(String userName,
@@ -90,8 +90,9 @@ public class AuctionSessionImpl implements AuctionSession
         return true;
       }));
     }
-
-    result.ok(false);
+    else {
+      result.ok(false);
+    }
   }
 
   /**

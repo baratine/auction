@@ -1,8 +1,8 @@
 package examples.auction;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +34,7 @@ public class AuctionSessionImpl implements AuctionSession
 
   @Inject
   @Service("/auction")
-  private AuctionManager _auctions;
+  private AuctionVault _auctions;
 
   @Inject
   @Service("/auction")
@@ -109,18 +109,17 @@ public class AuctionSessionImpl implements AuctionSession
 
   public void createAuction(String title,
                             int bid,
-                            Result<String> result)
+                            Result<Long> result)
   {
     if (_user == null) {
       throw new IllegalStateException("No user is logged in");
     }
 
     _auctions.create(new AuctionDataInit(_userId, title, bid),
-                     result.of((x, r) -> afterCreateAuction(x, title, r)));
+                     result.of((x, r) -> afterCreateAuction(x, r)));
   }
 
-  private void afterCreateAuction(String id, String title,
-                                  Result<String> result)
+  private void afterCreateAuction(long id, Result<Long> result)
   {
     Auction auction = _auctionsServiceRef.lookup("/" + id).as(Auction.class);
 
@@ -149,24 +148,21 @@ public class AuctionSessionImpl implements AuctionSession
   }
 
   public void findAuction(String title,
-                          Result<String> result)
+                          Result<Auction> result)
   {
     if (_user == null) {
       throw new IllegalStateException("No user is logged in");
     }
 
-    _auctions.find(title, result);
+    _auctions.findByTitle(title, result);
   }
 
   @Override
-  public void search(String query, Result<String[]> result)
+  public void search(String query, Result<List<Long>> result)
   {
     log.info(String.format("search %1$s", query));
 
-    _auctions.search(query).collect(ArrayList<String>::new,
-                                    (l, e) -> l.add(e),
-                                    (a, b) -> a.addAll(b))
-             .result(result.of(l -> l.toArray(new String[l.size()])));
+    _auctions.findIdsByTitle(query, result);
   }
 
   /**

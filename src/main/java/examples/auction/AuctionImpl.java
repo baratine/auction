@@ -6,23 +6,26 @@ import java.util.logging.Logger;
 import examples.auction.AuctionSettlement.Status;
 import io.baratine.db.Cursor;
 import io.baratine.db.DatabaseService;
+import io.baratine.service.Data;
+import io.baratine.service.Id;
 import io.baratine.service.Modify;
-import io.baratine.service.OnLoad;
-import io.baratine.service.OnSave;
 import io.baratine.service.Result;
 import io.baratine.service.ServiceManager;
 import io.baratine.service.ServiceRef;
 import io.baratine.timer.TimerService;
 
+@Data
 public class AuctionImpl implements Auction
 {
   private final static Logger log
     = Logger.getLogger(AuctionImpl.class.getName());
 
+  @Id
+  private long _id;
+
   private ServiceManager _manager;
   private DatabaseService _db;
 
-  private String _id;
   private AuctionDataPublic _auctionData;
 
   private AuctionEvents _events;
@@ -42,7 +45,7 @@ public class AuctionImpl implements Auction
   public AuctionImpl(ServiceManager manager,
                      ServiceRef auctionManager,
                      DatabaseService db,
-                     String id)
+                     long id)
   {
     _manager = manager;
     _auctionManager = auctionManager;
@@ -51,7 +54,7 @@ public class AuctionImpl implements Auction
 
     ServiceRef auditRef = manager.lookup("/audit");
 
-    _audit = auditRef.as(AuditService.class);
+    //_audit = auditRef.as(AuditService.class);
 
     _settlement = manager.lookup("/settlement");
 
@@ -60,16 +63,18 @@ public class AuctionImpl implements Auction
 
   @Modify
   public void create(AuctionDataInit initData,
-                     Result<String> result)
+                     Result<Long> result)
   {
+/*
     if (_state != State.UNBOUND)
       throw new IllegalStateException();
+*/
 
     ZonedDateTime date = ZonedDateTime.now();
     date = date.plusSeconds(15);
     ZonedDateTime closingDate = date;
 
-    _audit.auctionCreate(initData, Result.<Void>ignore());
+    //_audit.auctionCreate(initData, Result.<Void>ignore());
 
     AuctionDataPublic auctionData
       = new AuctionDataPublic(_id, initData, closingDate);
@@ -81,23 +86,25 @@ public class AuctionImpl implements Auction
     result.ok(_id);
   }
 
-  @OnSave
-  public void save(Result<Boolean> result)
-  {
-    if (_state == State.UNBOUND)
-      throw new IllegalStateException();
+  /*
+    @OnSave
+    public void save(Result<Boolean> result)
+    {
+      if (_state == State.UNBOUND)
+        throw new IllegalStateException();
 
-    _audit.auctionSave(_auctionData, Result.<Void>ignore());
+      _audit.auctionSave(_auctionData, Result.<Void>ignore());
 
-    _db.exec("insert into auction (id, title, value) values (?,?,?)",
-             result.of(o -> resultFromSave(o)),
-             _id,
-             _auctionData.getTitle(),
-             _auctionData);
+      _db.exec("insert into auction (id, title, value) values (?,?,?)",
+               result.of(o -> resultFromSave(o)),
+               _id,
+               _auctionData.getTitle(),
+               _auctionData);
 
-    log.finer(String.format("async-saved auction %1$s to db", _auctionData));
-  }
+      log.finer(String.format("async-saved auction %1$s to db", _auctionData));
+    }
 
+  */
   private boolean resultFromSave(Object obj)
   {
     log.finer(String.format("executed save auction to db with result %1$s",
@@ -106,6 +113,7 @@ public class AuctionImpl implements Auction
     return obj != null;
   }
 
+/*
   @OnLoad
   public void load(Result<Boolean> result)
   {
@@ -116,6 +124,7 @@ public class AuctionImpl implements Auction
                 result.of(c -> loadComplete(c)),
                 _id);
   }
+*/
 
   boolean loadComplete(Cursor c)
   {
@@ -125,7 +134,7 @@ public class AuctionImpl implements Auction
       _state = State.BOUND;
     }
 
-    _audit.auctionLoad(_auctionData, Result.<Void>ignore());
+    //_audit.auctionLoad(_auctionData, Result.<Void>ignore());
 
     return _auctionData != null;
   }
@@ -137,7 +146,7 @@ public class AuctionImpl implements Auction
       throw new IllegalStateException("can't open auction %1$s in state ");
 
     if (_auctionData.getState() == AuctionDataPublic.State.INIT) {
-      _audit.auctionToOpen(_auctionData, Result.<Void>ignore());
+      //_audit.auctionToOpen(_auctionData, Result.<Void>ignore());
 
       _auctionData.toOpen();
 
@@ -182,7 +191,7 @@ public class AuctionImpl implements Auction
       throw new IllegalStateException();
 
     if (_auctionData.getState() == AuctionDataPublic.State.OPEN) {
-      _audit.auctionToClose(_auctionData, Result.ignore());
+      //_audit.auctionToClose(_auctionData, Result.ignore());
 
       _auctionData.toClose();
 
@@ -251,19 +260,19 @@ public class AuctionImpl implements Auction
     if (_state == State.UNBOUND)
       throw new IllegalStateException();
 
-    _audit.auctionBid(_auctionData, bid, Result.<Void>ignore());
+    //_audit.auctionBid(_auctionData, bid, Result.<Void>ignore());
 
     boolean isAccepted = _auctionData.bid(bid.getUser(), bid.getBid());
 
     if (isAccepted) {
-      _audit.auctionBidAccept(bid, Result.ignore());
+      //_audit.auctionBidAccept(bid, Result.ignore());
 
       getEvents().onBid(_auctionData);
 
       result.ok(true);
     }
     else {
-      _audit.auctionBidReject(bid, Result.ignore());
+      //_audit.auctionBidReject(bid, Result.ignore());
 
       result.ok(false);
     }

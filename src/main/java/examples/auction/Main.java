@@ -16,12 +16,13 @@ public class Main
 
     include(AuctionAdminSessionImpl.class);
     include(AuctionSessionImpl.class);
-    include(AuctionManagerImpl.class);
+
     include(AuctionSettlementManagerImpl.class);
     include(AuditServiceImpl.class);
     include(PayPalImpl.class);
 
     include(UserVault.class);
+    include(AuctionVault.class);
 
     route("/jamp").to(WebJamp.class);
 

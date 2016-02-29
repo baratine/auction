@@ -1,8 +1,8 @@
 package examples.auction;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,7 +38,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
 
   @Inject
   @Service("/auction")
-  private AuctionManager _auctions;
+  private AuctionVault _auctions;
 
   @Inject
   @Service("/auction")
@@ -162,14 +162,11 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
   }
 
   @Override
-  public void search(String query, Result<String[]> result)
+  public void search(String query, Result<List<Long>> result)
   {
     log.info(String.format("search %1$s", query));
 
-    _auctions.search(query).collect(ArrayList<String>::new,
-                                    (l, e) -> l.add(e),
-                                    (a, b) -> a.addAll(b))
-             .result(result.of(l -> l.toArray(new String[l.size()])));
+    _auctions.findIdsByTitle(query, result);
   }
 
   public void setListener(@Service ChannelListener listener,

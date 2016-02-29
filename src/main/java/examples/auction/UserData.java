@@ -12,7 +12,7 @@ public class UserData
   private String _password;
   private boolean _isAdmin;
 
-  private Set<String> _wonAuctions = new HashSet<>();
+  private Set<Long> _wonAuctions = new HashSet<>();
 
   public UserData()
   {
@@ -49,7 +49,7 @@ public class UserData
     return _isAdmin;
   }
 
-  public Set<String> getWonAuctions()
+  public Set<Long> getWonAuctions()
   {
     return _wonAuctions;
   }
@@ -60,12 +60,12 @@ public class UserData
     return getClass().getSimpleName() + "[" + _id + "," + _name + "]";
   }
 
-  public void addWonAuction(String auctionId)
+  public void addWonAuction(long auctionId)
   {
     _wonAuctions.add(auctionId);
   }
 
-  public void removeWonAuction(String auctionId)
+  public void removeWonAuction(long auctionId)
   {
     _wonAuctions.remove(auctionId);
   }

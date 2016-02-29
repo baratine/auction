@@ -224,7 +224,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private Auction getAuction()
   {
-    return _auctionManager.lookup('/' + _bid.getAuctionId()).as(Auction.class);
+    return _auctionManager.lookup("/" + _bid.getAuctionId()).as(Auction.class);
   }
 
   public void chargeUser(Result<Boolean> status)

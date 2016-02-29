@@ -5,7 +5,7 @@ import io.baratine.service.Result;
 public interface Auction
 {
   void create(AuctionDataInit initData,
-              Result<String> result);
+              Result<Long> result);
 
   void open(Result<Boolean> result);
 

@@ -10,7 +10,7 @@ import java.util.UUID;
  */
 public class AuctionDataPublic implements Serializable
 {
-  private String _id;
+  private long _id;
   private String _title;
   private int _startingBid;
 
@@ -18,7 +18,7 @@ public class AuctionDataPublic implements Serializable
 
   private long _ownerId;
 
-  private ArrayList<Bid> _bids = new ArrayList<>();
+  //private ArrayList<Bid> _bids = new ArrayList<>();
 
   private BidImpl _lastBid;
 
@@ -32,7 +32,7 @@ public class AuctionDataPublic implements Serializable
   {
   }
 
-  public AuctionDataPublic(String id,
+  public AuctionDataPublic(long id,
                            AuctionDataInit initData,
                            ZonedDateTime closingDate)
   {
@@ -44,7 +44,7 @@ public class AuctionDataPublic implements Serializable
     _settlementId = UUID.randomUUID().toString();
   }
 
-  public String getId()
+  public long getId()
   {
     return _id;
   }
@@ -91,7 +91,7 @@ public class AuctionDataPublic implements Serializable
     if (last == null || bid > last.getBid()) {
       BidImpl nextBid = new BidImpl(bidderId, _id, bid);
 
-      _bids.add(nextBid);
+      //_bids.add(nextBid);
 
       _lastBid = nextBid;
 
@@ -196,7 +196,7 @@ public class AuctionDataPublic implements Serializable
 
   public interface Bid
   {
-    String getAuctionId();
+    long getAuctionId();
 
     long getUserId();
 
@@ -205,7 +205,7 @@ public class AuctionDataPublic implements Serializable
 
   static class BidImpl implements Bid, Comparable<Bid>, Serializable
   {
-    private String _auctionId;
+    private long _auctionId;
     private long _userId;
     private int _bid;
 
@@ -214,7 +214,7 @@ public class AuctionDataPublic implements Serializable
 
     }
 
-    BidImpl(long userId, String auctionId, int bid)
+    BidImpl(long userId, long auctionId, int bid)
     {
       _userId = userId;
       _auctionId = auctionId;
@@ -222,7 +222,7 @@ public class AuctionDataPublic implements Serializable
     }
 
     @Override
-    public String getAuctionId()
+    public long getAuctionId()
     {
       return _auctionId;
     }

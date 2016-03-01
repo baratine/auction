@@ -18,7 +18,7 @@ public class AuctionDataPublic implements Serializable
 
   private long _ownerId;
 
-  //private ArrayList<Bid> _bids = new ArrayList<>();
+  private ArrayList<Bid> _bids = new ArrayList<>();
 
   private BidImpl _lastBid;
 
@@ -139,6 +139,8 @@ public class AuctionDataPublic implements Serializable
     if (_state != State.INIT) {
       throw new IllegalStateException("Cannot open in " + _state);
     }
+
+    _title = _title + "open";
 
     _state = State.OPEN;
   }

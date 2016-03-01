@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import io.baratine.service.Cancel;
+import io.baratine.service.Ids;
 import io.baratine.service.OnDestroy;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
@@ -109,7 +111,7 @@ public class AuctionSessionImpl implements AuctionSession
 
   public void createAuction(String title,
                             int bid,
-                            Result<Long> result)
+                            Result<String> result)
   {
     if (_user == null) {
       throw new IllegalStateException("No user is logged in");
@@ -119,11 +121,14 @@ public class AuctionSessionImpl implements AuctionSession
                      result.of((x, r) -> afterCreateAuction(x, r)));
   }
 
-  private void afterCreateAuction(long id, Result<Long> result)
+  private void afterCreateAuction(long id, Result<String> result)
   {
-    Auction auction = _auctionsServiceRef.lookup("/" + id).as(Auction.class);
+    String encodedId = Ids.encode(id);
 
-    auction.open(result.of(b -> id));
+    Auction auction =
+      _auctionsServiceRef.lookup('/' + encodedId).as(Auction.class);
+
+    auction.open(result.of(b -> encodedId));
   }
 
   public void getAuction(String id, Result<AuctionDataPublic> result)
@@ -158,11 +163,16 @@ public class AuctionSessionImpl implements AuctionSession
   }
 
   @Override
-  public void search(String query, Result<List<Long>> result)
+  public void search(String query, Result<List<String>> result)
   {
     log.info(String.format("search %1$s", query));
 
-    _auctions.findIdsByTitle(query, result);
+    _auctions.findIdsByTitle(query, result.of(x -> encodeIds(x)));
+  }
+
+  private List<String> encodeIds(List<Long> ids)
+  {
+    return ids.stream().map(x -> Ids.encode(x)).collect(Collectors.toList());
   }
 
   /**

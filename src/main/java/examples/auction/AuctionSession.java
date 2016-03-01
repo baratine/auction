@@ -16,13 +16,13 @@ public interface AuctionSession
 
   void getUser(Result<UserData> result);
 
-  void createAuction(String title, int bid, Result<Long> result);
+  void createAuction(String title, int bid, Result<String> result);
 
   void getAuction(String id, Result<AuctionDataPublic> result);
 
   void findAuction(String title, Result<Auction> result);
 
-  void search(String query, Result<List<Long>> result);
+  void search(String query, Result<List<String>> result);
 
   void bidAuction(String id, int bid, Result<Boolean> result);
 

@@ -10,7 +10,7 @@ import java.util.UUID;
  */
 public class AuctionDataPublic implements Serializable
 {
-  private long _id;
+  private String _id;
   private String _title;
   private int _startingBid;
 
@@ -32,7 +32,7 @@ public class AuctionDataPublic implements Serializable
   {
   }
 
-  public AuctionDataPublic(long id,
+  public AuctionDataPublic(String id,
                            AuctionDataInit initData,
                            ZonedDateTime closingDate)
   {
@@ -44,7 +44,7 @@ public class AuctionDataPublic implements Serializable
     _settlementId = UUID.randomUUID().toString();
   }
 
-  public long getId()
+  public String getId()
   {
     return _id;
   }
@@ -91,7 +91,7 @@ public class AuctionDataPublic implements Serializable
     if (last == null || bid > last.getBid()) {
       BidImpl nextBid = new BidImpl(bidderId, _id, bid);
 
-      //_bids.add(nextBid);
+      _bids.add(nextBid);
 
       _lastBid = nextBid;
 
@@ -139,8 +139,6 @@ public class AuctionDataPublic implements Serializable
     if (_state != State.INIT) {
       throw new IllegalStateException("Cannot open in " + _state);
     }
-
-    _title = _title + "open";
 
     _state = State.OPEN;
   }
@@ -198,7 +196,7 @@ public class AuctionDataPublic implements Serializable
 
   public interface Bid
   {
-    long getAuctionId();
+    String getAuctionId();
 
     long getUserId();
 
@@ -207,7 +205,7 @@ public class AuctionDataPublic implements Serializable
 
   static class BidImpl implements Bid, Comparable<Bid>, Serializable
   {
-    private long _auctionId;
+    private String _auctionId;
     private long _userId;
     private int _bid;
 
@@ -216,7 +214,7 @@ public class AuctionDataPublic implements Serializable
 
     }
 
-    BidImpl(long userId, long auctionId, int bid)
+    BidImpl(long userId, String auctionId, int bid)
     {
       _userId = userId;
       _auctionId = auctionId;
@@ -224,7 +222,7 @@ public class AuctionDataPublic implements Serializable
     }
 
     @Override
-    public long getAuctionId()
+    public String getAuctionId()
     {
       return _auctionId;
     }

@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import examples.auction.AuctionSettlement.Status;
 import io.baratine.service.Data;
 import io.baratine.service.Id;
+import io.baratine.service.Ids;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
@@ -24,6 +25,12 @@ public class AuctionImpl implements Auction
   @Id
   private long _id;
 
+  private String _encodedId;
+
+  private AuctionDataPublic _auctionData;
+
+  private State _state = State.UNBOUND;
+
   @Inject
   private transient ServiceManager _manager;
 
@@ -31,13 +38,9 @@ public class AuctionImpl implements Auction
   @Service("/audit")
   private transient AuditService _audit;
 
-  private AuctionDataPublic _auctionData;
+  private transient AuctionEvents _events;
 
-  private AuctionEvents _events;
-
-  private State _state = State.UNBOUND;
-
-  private ServiceRef _settlement;
+  private transient ServiceRef _settlement;
 
   public AuctionImpl()
   {
@@ -59,13 +62,21 @@ public class AuctionImpl implements Auction
     _audit.auctionCreate(initData, Result.<Void>ignore());
 
     AuctionDataPublic auctionData
-      = new AuctionDataPublic(_id, initData, closingDate);
+      = new AuctionDataPublic(getEncodedId(), initData, closingDate);
 
     _auctionData = auctionData;
 
     _state = State.BOUND;
 
     result.ok(_id);
+  }
+
+  public String getEncodedId()
+  {
+    if (_encodedId == null)
+      _encodedId = Ids.encode(_id);
+
+    return _encodedId;
   }
 
   @Modify
@@ -129,7 +140,8 @@ public class AuctionImpl implements Auction
 
       getEvents().onClose(_auctionData);
 
-      settle();
+      if (_settlement != null)
+        settle();
 
       result.ok(true);
     }
@@ -259,9 +271,9 @@ public class AuctionImpl implements Auction
   public void get(Result<AuctionDataPublic> result)
   {
     if (log.isLoggable(Level.FINER))
-      log.finer(String.format("@%1$d get %2$d %3$s",
+      log.finer(String.format("@%1$d get %2$s %3$s",
                               System.identityHashCode(this),
-                              _id,
+                              getEncodedId(),
                               _auctionData));
 
     result.ok(_auctionData);
@@ -278,7 +290,7 @@ public class AuctionImpl implements Auction
   {
     return AuctionImpl.class.getSimpleName()
            + "["
-           + _id
+           + getEncodedId()
            + ", "
            + _state
            + ", "

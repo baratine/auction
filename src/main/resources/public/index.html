@@ -211,7 +211,7 @@
 
       $scope.onSearchResult = function (auction)
       {
-        console.log("onSearchResult: " + JSON.stringify(auction));
+        console.log("onSearchResult-0: " + JSON.stringify(auction));
 
         var price = auction._startingBid;
 
@@ -226,13 +226,19 @@
           }
         }
 
-        if (myBid === undefined)
-          $scope.myBids.push({
-            'id': auction._id,
-            'title': auction._title,
-            'price': price,
-            'state': auction._state
-          });
+        if (myBid === undefined) {
+        $scope.myBids.push({
+                               'id': auction._id,
+                               'title': auction._title,
+                               'price': price,
+                               'state': auction._state
+                             });
+        }
+        else {
+          myBid.price = price;
+          myBid.title = auction._title;
+          myBid.state = auction._state;
+        }
 
         $scope.apply();
       };

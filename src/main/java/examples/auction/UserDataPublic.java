@@ -8,7 +8,7 @@ public class UserDataPublic
   private long _id;
   private String _name;
 
-  private Set<Long> _wonAuctions = new HashSet<>();
+  private Set<String> _wonAuctions = new HashSet<>();
 
   public UserDataPublic()
   {
@@ -31,7 +31,7 @@ public class UserDataPublic
     return _name;
   }
 
-  public Set<Long> getWonAuctions()
+  public Set<String> getWonAuctions()
   {
     return _wonAuctions;
   }

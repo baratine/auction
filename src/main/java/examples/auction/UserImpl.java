@@ -107,7 +107,7 @@ public class UserImpl implements User
 
   @Override
   @Modify
-  public void addWonAuction(long auctionId, Result<Boolean> result)
+  public void addWonAuction(String auctionId, Result<Boolean> result)
   {
     _user.addWonAuction(auctionId);
 
@@ -116,7 +116,7 @@ public class UserImpl implements User
 
   @Override
   @Modify
-  public void removeWonAuction(long auctionId, Result<Boolean> result)
+  public void removeWonAuction(String auctionId, Result<Boolean> result)
   {
     _user.removeWonAuction(auctionId);
 

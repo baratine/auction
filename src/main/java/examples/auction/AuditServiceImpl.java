@@ -170,7 +170,7 @@ public class AuditServiceImpl implements AuditService
   public void payPalSendPaymentRequest(String settlementId,
                                        AuctionDataPublic auction,
                                        AuctionDataPublic.Bid bid,
-                                       long userId,
+                                       String userId,
                                        Result<Void> ignore)
   {
     String message

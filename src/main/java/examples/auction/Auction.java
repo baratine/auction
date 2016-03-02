@@ -12,9 +12,9 @@ public interface Auction
   void bid(Bid bid, Result<Boolean> result)
     throws IllegalStateException;
 
-  void setAuctionWinner(long user, Result<Boolean> result);
+  void setAuctionWinner(String user, Result<Boolean> result);
 
-  void clearAuctionWinner(long user, Result<Boolean> result);
+  void clearAuctionWinner(String user, Result<Boolean> result);
 
   void setSettled(Result<Boolean> result);
 

@@ -5,7 +5,7 @@ import java.util.Set;
 
 public class UserData
 {
-  private long _id;
+  private String _id;
 
   private String _name;
 
@@ -18,7 +18,7 @@ public class UserData
   {
   }
 
-  public UserData(long id,
+  public UserData(String id,
                   String name,
                   String password,
                   boolean isAdmin)
@@ -29,7 +29,7 @@ public class UserData
     _isAdmin = isAdmin;
   }
 
-  public long getId()
+  public String getId()
   {
     return _id;
   }

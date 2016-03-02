@@ -50,7 +50,7 @@ public class AuctionSessionImpl implements AuctionSession
   private ChannelListener _listener;
 
   private User _user;
-  private long _userId = -1;
+  private String _userId;
 
   public void createUser(String userName, String password,
                          final Result<Boolean> result)
@@ -239,7 +239,7 @@ public class AuctionSessionImpl implements AuctionSession
   public void logout(Result<Boolean> result)
   {
     _user = null;
-    _userId = -1;
+    _userId = null;
 
     unsubscribe();
 

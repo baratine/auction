@@ -4,20 +4,20 @@ import java.io.Serializable;
 
 public class Bid implements Serializable
 {
-  private long _user;
+  private String _user;
   private int _bid;
 
   public Bid()
   {
   }
 
-  public Bid(long user, int bid)
+  public Bid(String user, int bid)
   {
     _user = user;
     _bid = bid;
   }
 
-  public long getUser()
+  public String getUser()
   {
     return _user;
   }

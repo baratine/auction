@@ -154,7 +154,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     return auction;
   }
 
-  private User getUserService(long id)
+  private User getUserService(String id)
   {
     User user = _usersServiceRef.lookup("/" + id).as(User.class);
 

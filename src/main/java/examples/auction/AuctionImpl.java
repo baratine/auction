@@ -224,7 +224,7 @@ public class AuctionImpl implements Auction
 
   @Override
   @Modify
-  public void setAuctionWinner(long user, Result<Boolean> result)
+  public void setAuctionWinner(String user, Result<Boolean> result)
   {
     if (_state != State.BOUND)
       throw new IllegalStateException();
@@ -239,11 +239,9 @@ public class AuctionImpl implements Auction
 
   @Override
   @Modify
-  public void clearAuctionWinner(long user, Result<Boolean> result)
+  public void clearAuctionWinner(String user, Result<Boolean> result)
   {
-    System.out.println("AuctionImpl.clearAuctionWinner");
-
-    _auctionData.setWinner(-1);
+    _auctionData.setWinner(null);
 
     result.ok(true);
   }

@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import io.baratine.service.Data;
 import io.baratine.service.Id;
+import io.baratine.service.Ids;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
 
@@ -20,6 +21,9 @@ public class UserImpl implements User
 
   @Id
   private long _id;
+
+  private String _encodedId;
+
   private UserData _user;
   private CreditCard _creditCard;
 
@@ -36,9 +40,17 @@ public class UserImpl implements User
   {
     log.finer(String.format("UserImpl: create new user: %1$s", userName));
 
-    _user = new UserData(_id, userName, digest(password), isAdmin);
+    _user = new UserData(getEncodedId(), userName, digest(password), isAdmin);
 
     id.ok(_id);
+  }
+
+  private String getEncodedId()
+  {
+    if (_encodedId == null)
+      _encodedId = Ids.encode(_id);
+
+    return _encodedId;
   }
 
   public String digest(String password)
@@ -61,15 +73,6 @@ public class UserImpl implements User
     } catch (NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private boolean setUser(UserData u)
-  {
-    log.finer("setting user: " + _id + " ->" + _user);
-
-    _user = u;
-
-    return _user != null;
   }
 
   @Override

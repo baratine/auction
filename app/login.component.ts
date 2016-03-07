@@ -21,11 +21,7 @@ export class LoginComponent
 
   login(user:string, password:string)
   {
-    console.log("login: " + user + "/" + password);
-
-    let x = this._userService.login(user, password);
-
-    x.subscribe(
+    this._userService.login(user, password).subscribe(
       user =>
       {
         console.log(user)
@@ -34,12 +30,18 @@ export class LoginComponent
       {
         console.error(error)
       });
-
-    console.log(x);
   }
 
   create(user:string, password:string)
   {
-    console.log("create: " + user + "/" + password);
+    this._userService.create(user, password).subscribe(
+      user =>
+      {
+        console.log(user)
+      },
+      error =>
+      {
+        console.error(error)
+      });
   }
 }

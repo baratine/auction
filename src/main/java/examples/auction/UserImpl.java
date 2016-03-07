@@ -33,14 +33,15 @@ public class UserImpl implements User
 
   @Override
   @Modify
-  public void create(String userName,
-                     String password,
-                     boolean isAdmin,
+  public void create(AuctionSession.UserInitData userInitData,
                      Result<Long> id)
   {
-    log.finer(String.format("UserImpl: create new user: %1$s", userName));
+    log.finer(String.format("create new user: %1$s", userInitData.getUser()));
 
-    _user = new UserData(getEncodedId(), userName, digest(password), isAdmin);
+    _user = new UserData(getEncodedId(),
+                         userInitData.getUser(),
+                         digest(userInitData.getPassword()),
+                         userInitData.isAdmin());
 
     id.ok(_id);
   }

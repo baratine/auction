@@ -4,13 +4,14 @@ import java.util.List;
 
 import io.baratine.service.Result;
 import io.baratine.service.Service;
+import io.baratine.web.Body;
 
 /**
  * User visible channel facade at session://web/auction-session
  */
 public interface AuctionSession
 {
-  void createUser(String userName, String password, Result<Boolean> result);
+  void createUser(@Body UserInitData user, Result<WebUser> result);
 
   void validateLogin(String userName, String password, Result<Boolean> result);
 
@@ -33,4 +34,74 @@ public interface AuctionSession
                           Result<Boolean> result);
 
   void logout(Result<Boolean> result);
+
+  class UserInitData
+  {
+    private String user;
+    private String password;
+
+    private boolean isAdmin;
+
+    public UserInitData()
+    {
+    }
+
+    public UserInitData(String user, String password, boolean isAdmin)
+    {
+      this.user = user;
+      this.password = password;
+      this.isAdmin = isAdmin;
+    }
+
+    public String getUser()
+    {
+      return user;
+    }
+
+    public String getPassword()
+    {
+      return password;
+    }
+
+    public boolean isAdmin()
+    {
+      return isAdmin;
+    }
+
+    @Override
+    public String toString()
+    {
+      return this.getClass().getSimpleName() + "["
+             + user
+             + ", "
+             + password
+             + ']';
+    }
+  }
+
+  class WebUser
+  {
+    String id;
+    String user;
+
+    public WebUser()
+    {
+    }
+
+    public WebUser(String id, String user)
+    {
+      this.id = id;
+      this.user = user;
+    }
+
+    @Override
+    public String toString()
+    {
+      return this.getClass().getSimpleName() + "["
+             + user
+             + ", "
+             + id
+             + ']';
+    }
+  }
 }

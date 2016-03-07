@@ -4,9 +4,7 @@ import io.baratine.service.Result;
 
 public interface User
 {
-  void create(String userName,
-              String password,
-              boolean isAdmin,
+  void create(AuctionSessionImpl.UserInitData user,
               Result<Long> userId);
 
   void authenticate(String password,

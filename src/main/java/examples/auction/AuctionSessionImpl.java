@@ -15,6 +15,9 @@ import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.ServiceManager;
 import io.baratine.service.ServiceRef;
+import io.baratine.web.Body;
+import io.baratine.web.CrossOrigin;
+import io.baratine.web.Post;
 
 /**
  * User visible channel facade at session:///auction-session.
@@ -52,13 +55,12 @@ public class AuctionSessionImpl implements AuctionSession
   private User _user;
   private String _userId;
 
-  public void createUser(String userName, String password,
-                         final Result<Boolean> result)
+  @Post("/user/create")
+  @CrossOrigin("*")
+  public void createUser(@Body UserInitData user, Result<WebUser> result)
   {
-    log.log(Level.FINER,
-            String.format("AuctionSessionImpl: create user %1$s", userName));
-
-    _users.create(userName, password, false, result.of(id -> id > -1));
+    _users.create(user,
+                  result.of(id -> new WebUser(Ids.encode(id), user.getUser())));
   }
 
   public void validateLogin(String userName,

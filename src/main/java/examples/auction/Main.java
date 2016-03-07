@@ -10,7 +10,8 @@ public class Main
 {
   public static void main(String[] args)
   {
-    property("server.file", "classpath:/public");
+    //property("server.file", "classpath:/public");
+    property("server.file", "/Users/alex/projects/baratine-github/auction");
 
     include(AuctionAdminSessionImpl.class);
     include(AuctionSessionImpl.class);

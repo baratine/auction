@@ -8,7 +8,8 @@ import io.baratine.service.Vault;
 @Service("/user")
 public interface UserVault extends Vault<Long,UserImpl>
 {
-  void create(String userName, String password, boolean b, Result<Long> result);
+  void create(AuctionSession.UserInitData userInitData,
+              Result<Long> result);
 
   //@Sql("where __doc.name=?")
   @Sql("")

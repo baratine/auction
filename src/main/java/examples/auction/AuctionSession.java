@@ -5,6 +5,7 @@ import java.util.List;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.web.Body;
+import io.baratine.web.Form;
 
 /**
  * User visible channel facade at session://web/auction-session
@@ -13,7 +14,7 @@ public interface AuctionSession
 {
   void createUser(@Body UserInitData user, Result<WebUser> result);
 
-  void validateLogin(String userName, String password, Result<Boolean> result);
+  void login(@Body Form login, Result<Boolean> result);
 
   void getUser(Result<UserData> result);
 

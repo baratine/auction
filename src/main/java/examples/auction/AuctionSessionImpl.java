@@ -17,12 +17,14 @@ import io.baratine.service.ServiceManager;
 import io.baratine.service.ServiceRef;
 import io.baratine.web.Body;
 import io.baratine.web.CrossOrigin;
+import io.baratine.web.Form;
 import io.baratine.web.Post;
 
 /**
  * User visible channel facade at session:///auction-session.
  */
 @Service("session:///auction-session")
+@CrossOrigin("*")
 public class AuctionSessionImpl implements AuctionSession
 {
   private final static Logger log
@@ -56,19 +58,18 @@ public class AuctionSessionImpl implements AuctionSession
   private String _userId;
 
   @Post("/user/create")
-  @CrossOrigin("*")
   public void createUser(@Body UserInitData user, Result<WebUser> result)
   {
     _users.create(user,
                   result.of(id -> new WebUser(Ids.encode(id), user.getUser())));
   }
 
-  public void validateLogin(String userName,
-                            String password,
-                            Result<Boolean> result)
+  @Post("/user/login")
+  public void login(@Body Form login, Result<Boolean> result)
   {
-    _users.findByName(userName,
-                      result.of((u, r) -> authenticate(u, password, r)));
+    String user = login.getFirst("u");
+    String password = login.getFirst("p");
+    _users.findByName(user, result.of((u, r) -> authenticate(u, password, r)));
   }
 
   private void authenticate(User user, String password, Result<Boolean> result)
@@ -228,7 +229,7 @@ public class AuctionSessionImpl implements AuctionSession
   {
     String url = "event:///auction/" + id;
 
-    ServiceRef eventRef = _manager.lookup(url);
+    ServiceRef eventRef = _manager.service(url);
 
     AuctionEventsImpl auctionListener = new AuctionEventsImpl(eventRef);
 

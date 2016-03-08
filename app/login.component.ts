@@ -3,6 +3,7 @@ import {NgForm}    from 'angular2/common';
 
 import {User} from "./user";
 import {UserService} from './user.service'
+import {AppComponent} from "./app.component";
 
 @Component({
              selector: 'login-form',
@@ -16,19 +17,19 @@ export class LoginComponent
 
   constructor(private _userService:UserService)
   {
-
   }
 
   login(user:string, password:string)
   {
+
     this._userService.login(user, password).subscribe(
-      user =>
+      loggedIn =>
       {
-        console.log(user)
+        console.log(loggedIn);
       },
       error =>
       {
-        console.error(error)
+        console.error(error);
       });
   }
 
@@ -37,11 +38,12 @@ export class LoginComponent
     this._userService.create(user, password).subscribe(
       user =>
       {
-        console.log(user)
+        console.log(user);
       },
       error =>
       {
-        console.error(error)
+        console.error(error);
       });
+
   }
 }

@@ -4,6 +4,7 @@ import { HTTP_PROVIDERS } from 'angular2/http';
 import { LoginComponent } from './login.component';
 import {ROUTER_DIRECTIVES} from "angular2/router";
 import {ROUTER_PROVIDERS} from "angular2/router";
+import {User} from "./user";
 
 @Component({
              selector: 'my-app',
@@ -13,11 +14,18 @@ import {ROUTER_PROVIDERS} from "angular2/router";
              `,
              styleUrls: ['./app/app.component.css'],
              directives: [ROUTER_DIRECTIVES, LoginComponent],
+             bindings: [],
              providers: [
                HTTP_PROVIDERS,
                ROUTER_PROVIDERS]
            })
 export class AppComponent
 {
+  constructor()
+  {
+  }
+
   title = 'Baratine™ Auction Application';
+  user:User;
+
 }

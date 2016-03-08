@@ -18,9 +18,12 @@ export class UserService
 
   login(user:string, password:string)
   {
-    let body = Json.stringify({"user": user, "password": password});
+    let body = 'u=' + user + '&' + 'p=' + password;
 
-    return this.http.post(this._loginUrl, body, this.options()).map(
+    let headers = new Headers({'Content-Type': 'application/x-www-form-urlencoded'});
+    let options = new RequestOptions({headers: headers});
+
+    return this.http.post(this._loginUrl, body, options).map(
       res=><User> res.json()).catch(this.handleError);
   }
 
@@ -28,17 +31,11 @@ export class UserService
   {
     let body = Json.stringify({"user": user, "password": password});
 
-    console.log(body);
-    return this.http.post(this._createUrl, body, this.options()).map(
-      res=><User> res.json()).catch(this.handleError);
-  }
-
-  private options()
-  {
     let headers = new Headers({'Content-Type': 'application/json'});
     let options = new RequestOptions({headers: headers});
 
-    return options;
+    return this.http.post(this._createUrl, body, options)
+      .map(res=><User> res.json()).catch(this.handleError);
   }
 
   private handleError(error:Response)

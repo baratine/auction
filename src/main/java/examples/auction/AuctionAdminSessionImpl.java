@@ -210,7 +210,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
   {
     String url = "event:///auction/" + id;
 
-    ServiceRef eventRef = _manager.lookup(url);
+    ServiceRef eventRef = _manager.service(url);
 
     AuctionEventsImpl auctionListener = new AuctionEventsImpl(eventRef);
 

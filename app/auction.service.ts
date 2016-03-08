@@ -11,9 +11,10 @@ export class AuctionService
 {
   constructor(private http:Http)
   {
+    console.log(http);
   }
 
-  private _createUrl = 'http://localhost:8080/auction/create';
+  private _createUrl = 'http://localhost:8080/createAuction';
 
   create(title:string, bid:number)
   {
@@ -24,7 +25,7 @@ export class AuctionService
     let body = urlSearchParams.toString();
 
     let headers = new Headers({'Content-Type': 'application/x-www-form-urlencoded'});
-    let options = new RequestOptions({headers: headers});
+    let options = new RequestOptions({headers: headers, withCredentials:true});
 
     return this.http.post(this._createUrl, body, options)
       .map(res=>res.text()).catch(this.handleError);

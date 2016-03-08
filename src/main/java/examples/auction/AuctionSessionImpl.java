@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import io.baratine.service.Cancel;
+import io.baratine.service.Id;
 import io.baratine.service.Ids;
 import io.baratine.service.OnDestroy;
 import io.baratine.service.Result;
@@ -23,14 +24,15 @@ import io.baratine.web.Post;
 /**
  * User visible channel facade at session:///auction-session.
  */
-@Service("session:///auction-session")
-@CrossOrigin("*")
+@Service("session:")
+@CrossOrigin(value = "*", allowCredentials = true)
 public class AuctionSessionImpl implements AuctionSession
 {
   private final static Logger log
     = Logger.getLogger(AuctionSessionImpl.class.getName());
 
-  private String _sessionId;
+  @Id
+  private String _id;
 
   @Inject
   private ServiceManager _manager;
@@ -57,14 +59,14 @@ public class AuctionSessionImpl implements AuctionSession
   private User _user;
   private String _userId;
 
-  @Post("/user/create")
+  @Post()
   public void createUser(@Body UserInitData user, Result<WebUser> result)
   {
     _users.create(user,
                   result.of(id -> new WebUser(Ids.encode(id), user.getUser())));
   }
 
-  @Post("/user/login")
+  @Post()
   public void login(@Body Form login, Result<Boolean> result)
   {
     String user = login.getFirst("u");
@@ -90,12 +92,16 @@ public class AuctionSessionImpl implements AuctionSession
   {
     if (isLoggedIn) {
       _user = user;
+      log.finer("AuctionSessionImpl.completeLogin: " + this);
+      log.finer("AuctionSessionImpl.completeLogin: " + _user);
+      log.finer("AuctionSessionImpl.completeLogin: " + user);
       user.get(result.of(u -> {
         _userId = u.getId();
         return true;
       }));
     }
     else {
+      log.finer("AuctionSessionImpl.completeLogin fail: " + this);
       result.ok(false);
     }
   }
@@ -112,9 +118,11 @@ public class AuctionSessionImpl implements AuctionSession
     _user.get(userData);
   }
 
-  @Post("/auction/create")
+  @Post()
   public void createAuction(@Body Form form, Result<String> result)
   {
+    log.finer("AuctionSessionImpl.createAuction: " + this);
+
     if (_user == null) {
       throw new IllegalStateException("No user is logged in");
     }
@@ -273,7 +281,7 @@ public class AuctionSessionImpl implements AuctionSession
   {
     return this.getClass().getSimpleName()
            + '['
-           + _sessionId
+           + _id
            + ", "
            + _userId
            + ']';

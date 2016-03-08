@@ -110,7 +110,7 @@ public class AuctionImpl implements Auction
     String url = "timer:///";
 
     ServiceManager manager = ServiceManager.current();
-    TimerService timer = manager.lookup(url).as(TimerService.class);
+    TimerService timer = manager.service(url).as(TimerService.class);
 
     timer.runAt((x) -> closeOnTimer(Result.ignore()),
                 _auctionData.getDateToClose().toInstant().toEpochMilli(),
@@ -169,7 +169,7 @@ public class AuctionImpl implements Auction
     if (_events == null) {
       String url = "event:///auction/" + _auctionData.getId();
 
-      _events = _manager.lookup(url).as(AuctionEvents.class);
+      _events = _manager.service(url).as(AuctionEvents.class);
     }
 
     return _events;

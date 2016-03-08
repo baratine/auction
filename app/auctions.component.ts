@@ -8,7 +8,6 @@ import { RouteConfig, ROUTER_DIRECTIVES, ROUTER_PROVIDERS} from 'angular2/router
              selector: 'my-app',
              templateUrl: 'app/login.html',
              styleUrls: ['app/app.component.css'],
-             directives: [ROUTER_DIRECTIVES],
              providers: [
                HTTP_PROVIDERS,
                ROUTER_PROVIDERS]

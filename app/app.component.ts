@@ -18,7 +18,6 @@ import {NewAuctionComponent} from "./new-auction.component";
              directives: [ROUTER_DIRECTIVES, LoginComponent, NewAuctionComponent],
              bindings: [],
              providers: [
-               HTTP_PROVIDERS,
                ROUTER_PROVIDERS]
            })
 export class AppComponent

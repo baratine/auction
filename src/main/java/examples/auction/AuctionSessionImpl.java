@@ -112,13 +112,15 @@ public class AuctionSessionImpl implements AuctionSession
     _user.get(userData);
   }
 
-  public void createAuction(String title,
-                            int bid,
-                            Result<String> result)
+  @Post("/auction/create")
+  public void createAuction(@Body Form form, Result<String> result)
   {
     if (_user == null) {
       throw new IllegalStateException("No user is logged in");
     }
+
+    String title = form.getFirst("t");
+    Integer bid = Integer.parseInt(form.getFirst("b"));
 
     _auctions.create(new AuctionDataInit(_userId, title, bid),
                      result.of((x, r) -> afterCreateAuction(x, r)));

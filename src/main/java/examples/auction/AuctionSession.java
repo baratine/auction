@@ -18,7 +18,7 @@ public interface AuctionSession
 
   void getUser(Result<UserData> result);
 
-  void createAuction(String title, int bid, Result<String> result);
+  void createAuction(Form form, Result<String> result);
 
   void getAuction(String id, Result<AuctionDataPublic> result);
 

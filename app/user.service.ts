@@ -23,8 +23,8 @@ export class UserService
     let headers = new Headers({'Content-Type': 'application/x-www-form-urlencoded'});
     let options = new RequestOptions({headers: headers});
 
-    return this.http.post(this._loginUrl, body, options).map(
-      res=><User> res.json()).catch(this.handleError);
+    return this.http.post(this._loginUrl, body, options)
+      .map(res=> res.text()).catch(this.handleError);
   }
 
   create(user:string, password:string)

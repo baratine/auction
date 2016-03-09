@@ -40,15 +40,19 @@ public interface AuctionSession
   {
     private String id;
     private String title;
+    private long bid;
+    private String state;
 
     public WebAuction()
     {
     }
 
-    public WebAuction(String id, String title)
+    public WebAuction(String id, String title, long bid, String state)
     {
       this.id = id;
       this.title = title;
+      this.bid = bid;
+      this.state = state;
     }
   }
 

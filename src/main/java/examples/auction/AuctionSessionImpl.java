@@ -156,8 +156,20 @@ public class AuctionSessionImpl implements AuctionSession
       throw new IllegalStateException("No user is logged in");
     }
 
-    getAuctionService(id).get(result.of(a -> new WebAuction(a.getId(),
-                                                            a.getTitle())));
+    getAuctionService(id).get(result.of(a -> asWebAuction(a)));
+  }
+
+  private WebAuction asWebAuction(AuctionDataPublic auction)
+  {
+    AuctionDataPublic.Bid bid = auction.getLastBid();
+    int price = bid != null ? bid.getBid() : auction.getStartingBid();
+
+    WebAuction webAuction = new WebAuction(auction.getId(),
+                                           auction.getTitle(),
+                                           price,
+                                           auction.getState().toString());
+
+    return webAuction;
   }
 
   private Auction getAuctionService(String id)

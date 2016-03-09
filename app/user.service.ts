@@ -11,7 +11,7 @@ export class UserService
 {
   constructor(private http:Http)
   {
-    console.log(http);
+    console.log("creating new UserService: " + http);
   }
 
   private _createUrl = 'http://localhost:8080/createUser';
@@ -33,7 +33,7 @@ export class UserService
     let body = Json.stringify({"user": user, "password": password});
 
     let headers = new Headers({'Content-Type': 'application/json'});
-    let options = new RequestOptions({headers: headers, withCredentials:true});
+    let options = new RequestOptions({headers: headers, withCredentials: true});
 
     return this.http.post(this._createUrl, body, options)
       .map(res=>this.map(res)).catch(this.handleError);

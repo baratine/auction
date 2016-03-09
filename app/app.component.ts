@@ -8,6 +8,8 @@ import {User} from "./user";
 import { LoginComponent } from './login.component';
 import {NewAuctionComponent} from "./new-auction.component";
 import {AuctionsComponent} from "./auctions.component";
+import {UserService} from "./user.service";
+import {AuctionService} from "./auction.service";
 
 @Component({
              selector: 'my-app',
@@ -18,10 +20,13 @@ import {AuctionsComponent} from "./auctions.component";
              <auctions></auctions>
              `,
              styleUrls: ['./app/app.component.css'],
+             providers: [HTTP_PROVIDERS,
+                         ROUTER_PROVIDERS,
+                         UserService,
+                         AuctionService,
+                         AuctionsComponent],
              directives: [ROUTER_DIRECTIVES, LoginComponent, NewAuctionComponent, AuctionsComponent],
              bindings: [],
-             providers: [HTTP_PROVIDERS,
-                         ROUTER_PROVIDERS]
            })
 export class AppComponent
 {

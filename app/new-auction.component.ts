@@ -9,12 +9,11 @@ import {AuctionsComponent} from "./auctions.component";
              selector: 'new-auction',
              templateUrl: 'app/new-auction.component.html',
              styleUrls: [''],
-             bindings: [AuctionService, AuctionsComponent]
+             bindings: []
            })
 export class NewAuctionComponent
 {
-  constructor(private _auctionService:AuctionService,
-              private _auctionsComponent:AuctionsComponent)
+  constructor(private _auctionService:AuctionService)
   {
   }
 
@@ -23,7 +22,7 @@ export class NewAuctionComponent
     this._auctionService.create(title, bid)
       .subscribe(result =>
                  {
-                   this._auctionsComponent.addAuction(result);
+                   this._auctionService.onAuctionCreate(result);
                    console.log("new auction :" + result);
                  },
                  error =>

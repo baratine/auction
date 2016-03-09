@@ -16,7 +16,7 @@ import {OnInit} from "angular2/core";
            })
 export class AuctionsComponent implements AuctionListener, OnInit
 {
-  public auctions:Auction[] = [{"id": "fake", "title": "fake title"}];
+  public auctions:Auction[] = [];
 
   constructor(private _auctionService:AuctionService)
   {

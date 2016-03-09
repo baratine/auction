@@ -22,7 +22,7 @@ export class UserService
     let body = 'u=' + user + '&' + 'p=' + password;
 
     let headers = new Headers({'Content-Type': 'application/x-www-form-urlencoded'});
-    let options = new RequestOptions({headers: headers, withCredentials:true});
+    let options = new RequestOptions({headers: headers});
 
     return this.http.post(this._loginUrl, body, options)
       .map(res=> res.text()).catch(this.handleError);
@@ -43,7 +43,7 @@ export class UserService
   {
     console.log(response);
 
-    console.log(response.headers.get("Set-Cookie"));
+    console.log("Set-Cookie: " + response.headers.get("Set-Cookie"));
 
     return response.json();
   }

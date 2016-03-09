@@ -16,5 +16,9 @@ public interface AuctionVault extends Vault<Long,AuctionImpl>
   void findByTitle(String title, Result<Auction> auction);
 
   @Sql("")
+  void findAuctionDataByTitle(String title,
+                              Result<List<AuctionDataPublic>> auction);
+
+  @Sql("")
   void findIdsByTitle(String title, Result<List<Long>> auction);
 }

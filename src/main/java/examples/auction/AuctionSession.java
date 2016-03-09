@@ -18,13 +18,13 @@ public interface AuctionSession
 
   void getUser(Result<UserData> result);
 
-  void createAuction(Form form, Result<String> result);
+  void createAuction(Form form, Result<WebAuction> result);
 
-  void getAuction(String id, Result<AuctionDataPublic> result);
+  void getAuction(String id, Result<WebAuction> result);
 
   void findAuction(String title, Result<Auction> result);
 
-  void search(String query, Result<List<String>> result);
+  void searchAuctions(String query, Result<List<AuctionDataPublic>> result);
 
   void bidAuction(String id, int bid, Result<Boolean> result);
 
@@ -35,6 +35,22 @@ public interface AuctionSession
                           Result<Boolean> result);
 
   void logout(Result<Boolean> result);
+
+  class WebAuction
+  {
+    private String id;
+    private String title;
+
+    public WebAuction()
+    {
+    }
+
+    public WebAuction(String id, String title)
+    {
+      this.id = id;
+      this.title = title;
+    }
+  }
 
   class UserInitData
   {

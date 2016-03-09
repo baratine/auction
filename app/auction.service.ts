@@ -15,6 +15,7 @@ export class AuctionService
   }
 
   private _createUrl = 'http://localhost:8080/createAuction';
+  private _searchUrl = 'http://localhost:8080/searchAuctions';
 
   create(title:string, bid:number)
   {
@@ -25,10 +26,25 @@ export class AuctionService
     let body = urlSearchParams.toString();
 
     let headers = new Headers({'Content-Type': 'application/x-www-form-urlencoded'});
-    let options = new RequestOptions({headers: headers, withCredentials:true});
+    let options = new RequestOptions({headers: headers});
 
     return this.http.post(this._createUrl, body, options)
-      .map(res=>res.text()).catch(this.handleError);
+      .map(res=>res.json()).catch(this.handleError);
+  }
+
+  searchAuctions(query:string)
+  {
+    let urlSearchParams = new URLSearchParams();
+    urlSearchParams.append("q", query);
+    let url = this._searchUrl + '?' + urlSearchParams.toString();
+
+    return this.http.get(url).map(res=>this.map(res)).catch(this.handleError);
+  }
+
+  map(res:Response)
+  {
+    console.log(res.text());
+    return res.json();
   }
 
   private handleError(error:Response)

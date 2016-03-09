@@ -19,7 +19,9 @@ import io.baratine.service.ServiceRef;
 import io.baratine.web.Body;
 import io.baratine.web.CrossOrigin;
 import io.baratine.web.Form;
+import io.baratine.web.Get;
 import io.baratine.web.Post;
+import io.baratine.web.Query;
 
 /**
  * User visible channel facade at session:///auction-session.
@@ -119,7 +121,7 @@ public class AuctionSessionImpl implements AuctionSession
   }
 
   @Post()
-  public void createAuction(@Body Form form, Result<String> result)
+  public void createAuction(@Body Form form, Result<WebAuction> result)
   {
     log.finer("AuctionSessionImpl.createAuction: " + this);
 
@@ -134,17 +136,17 @@ public class AuctionSessionImpl implements AuctionSession
                      result.of((x, r) -> afterCreateAuction(x, r)));
   }
 
-  private void afterCreateAuction(long id, Result<String> result)
+  private void afterCreateAuction(long id, Result<WebAuction> result)
   {
     String encodedId = Ids.encode(id);
 
     Auction auction =
       _auctionsServiceRef.lookup('/' + encodedId).as(Auction.class);
 
-    auction.open(result.of(b -> encodedId));
+    auction.open(result.of((b, r) -> getAuction(encodedId, r)));
   }
 
-  public void getAuction(String id, Result<AuctionDataPublic> result)
+  public void getAuction(String id, Result<WebAuction> result)
   {
     if (id == null) {
       throw new IllegalArgumentException();
@@ -154,7 +156,8 @@ public class AuctionSessionImpl implements AuctionSession
       throw new IllegalStateException("No user is logged in");
     }
 
-    getAuctionService(id).get(result);
+    getAuctionService(id).get(result.of(a -> new WebAuction(a.getId(),
+                                                            a.getTitle())));
   }
 
   private Auction getAuctionService(String id)
@@ -176,11 +179,13 @@ public class AuctionSessionImpl implements AuctionSession
   }
 
   @Override
-  public void search(String query, Result<List<String>> result)
+  @Get
+  public void searchAuctions(@Query("q") String query,
+                             Result<List<AuctionDataPublic>> result)
   {
     log.info(String.format("search %1$s", query));
 
-    _auctions.findIdsByTitle(query, result.of(x -> encodeIds(x)));
+    _auctions.findAuctionDataByTitle(query, result);
   }
 
   private List<String> encodeIds(List<Long> ids)

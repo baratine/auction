@@ -2,16 +2,16 @@ package examples.auction;
 
 import java.io.Serializable;
 
-public class Bid implements Serializable
+public class AuctionBid implements Serializable
 {
   private String _user;
   private int _bid;
 
-  public Bid()
+  public AuctionBid()
   {
   }
 
-  public Bid(String user, int bid)
+  public AuctionBid(String user, int bid)
   {
     _user = user;
     _bid = bid;

@@ -10,6 +10,7 @@ import {NewAuctionComponent} from "./new-auction.component";
 import {AuctionsComponent} from "./auctions.component";
 import {UserService} from "./user.service";
 import {AuctionService} from "./auction.service";
+import {BidsComponent} from "./bids.component";
 
 @Component({
              selector: 'my-app',
@@ -18,6 +19,7 @@ import {AuctionService} from "./auction.service";
              <login-form></login-form>
              <new-auction></new-auction>
              <auctions></auctions>
+             <bids></bids>
              `,
              styleUrls: ['./app/app.component.css'],
              providers: [HTTP_PROVIDERS,
@@ -25,7 +27,7 @@ import {AuctionService} from "./auction.service";
                          UserService,
                          AuctionService,
                          AuctionsComponent],
-             directives: [ROUTER_DIRECTIVES, LoginComponent, NewAuctionComponent, AuctionsComponent],
+             directives: [ROUTER_DIRECTIVES, LoginComponent, NewAuctionComponent, AuctionsComponent, BidsComponent],
              bindings: [],
            })
 export class AppComponent

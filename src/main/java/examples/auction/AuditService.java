@@ -15,12 +15,12 @@ public interface AuditService
   void auctionToClose(AuctionDataPublic auction, Result<Void> ignore);
 
   void auctionBid(AuctionDataPublic auction,
-                  Bid bid,
+                  AuctionBid bid,
                   Result<Void> ignore);
 
-  void auctionBidAccept(Bid bid, Result<Void> ignore);
+  void auctionBidAccept(AuctionBid bid, Result<Void> ignore);
 
-  void auctionBidReject(Bid bid, Result<Void> ignore);
+  void auctionBidReject(AuctionBid bid, Result<Void> ignore);
 
   void settlementRequestAccepted(String auctionId, Result<Void> ignore);
 
@@ -30,7 +30,7 @@ public interface AuditService
 
   void settlementAuctionWillSettle(String settlementId,
                                    AuctionDataPublic auction,
-                                   AuctionDataPublic.Bid bid,
+                                   Auction.Bid bid,
                                    Result<Void> ignore);
 
   void settlementCompletingWithPayment(String settlementId,
@@ -45,7 +45,7 @@ public interface AuditService
 
   void payPalSendPaymentRequest(String settlementId,
                                 AuctionDataPublic auction,
-                                AuctionDataPublic.Bid bid,
+                                Auction.Bid bid,
                                 String userId,
                                 Result<Void> ignore);
 

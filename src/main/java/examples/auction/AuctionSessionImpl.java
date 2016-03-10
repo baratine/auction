@@ -1,6 +1,7 @@
 package examples.auction;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -161,10 +162,10 @@ public class AuctionSessionImpl implements AuctionSession
 
   private WebAuction asWebAuction(AuctionDataPublic auction)
   {
-    AuctionDataPublic.Bid bid = auction.getLastBid();
+    Auction.Bid bid = auction.getLastBid();
     int price = bid != null ? bid.getBid() : auction.getStartingBid();
 
-    WebAuction webAuction = new WebAuction(auction.getId(),
+    WebAuction webAuction = new WebAuction(auction.getEncodedId(),
                                            auction.getTitle(),
                                            price,
                                            auction.getState().toString());
@@ -193,11 +194,23 @@ public class AuctionSessionImpl implements AuctionSession
   @Override
   @Get
   public void searchAuctions(@Query("q") String query,
-                             Result<List<AuctionDataPublic>> result)
+                             Result<List<WebAuction>> result)
   {
     log.info(String.format("search %1$s", query));
 
-    _auctions.findAuctionDataByTitle(query, result);
+    _auctions.findAuctionDataByTitle(query, result.of(l -> asWebAuctions(l)));
+  }
+
+  private List<WebAuction> asWebAuctions(List<AuctionDataPublic> auctions)
+  {
+    System.out.println("AuctionSessionImpl.asWebAuctions " + auctions);
+
+    ArrayList<WebAuction> result = new ArrayList<>();
+    for (AuctionDataPublic auction : auctions) {
+      result.add(asWebAuction(auction));
+    }
+
+    return result;
   }
 
   private List<String> encodeIds(List<Long> ids)
@@ -220,7 +233,7 @@ public class AuctionSessionImpl implements AuctionSession
       throw new IllegalStateException("No user is logged in");
     }
 
-    getAuctionService(auctionId).bid(new Bid(_userId, bid), result);
+    getAuctionService(auctionId).bid(new AuctionBid(_userId, bid), result);
   }
 
   public void setListener(@Service ChannelListener listener,
@@ -254,11 +267,11 @@ public class AuctionSessionImpl implements AuctionSession
 
   private void addAuctionListenerImpl(String id)
   {
-    String url = "event:///auction/" + id;
+    String url = "/e/" + id;
 
-    ServiceRef eventRef = _manager.service(url);
+    ServiceRef queue = _manager.service(url);
 
-    AuctionEventsImpl auctionListener = new AuctionEventsImpl(eventRef);
+    AuctionEventsImpl auctionListener = new AuctionEventsImpl(queue);
 
     auctionListener.subscribe();
 
@@ -307,7 +320,7 @@ public class AuctionSessionImpl implements AuctionSession
   private class AuctionEventsImpl implements AuctionEvents
   {
     private final ServiceRef _eventRef;
-    private Cancel _Cancel;
+    private Cancel _cancel;
 
     AuctionEventsImpl(ServiceRef eventRef)
     {
@@ -316,12 +329,12 @@ public class AuctionSessionImpl implements AuctionSession
 
     public void subscribe()
     {
-      _Cancel = _eventRef.subscribe(this);
+      _cancel = _eventRef.subscribe(_manager.newService(this));
     }
 
     public void unsubscribe()
     {
-      _Cancel.cancel();
+      _cancel.cancel();
     }
 
     @Override

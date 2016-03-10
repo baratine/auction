@@ -58,7 +58,7 @@ public class AuditServiceImpl implements AuditService
 
   @Override
   public void auctionBid(AuctionDataPublic auction,
-                         Bid bid,
+                         AuctionBid bid,
                          Result<Void> ignore)
   {
     String message = String.format("auction %1$s bid %2$s", auction, bid);
@@ -68,7 +68,7 @@ public class AuditServiceImpl implements AuditService
   }
 
   @Override
-  public void auctionBidAccept(Bid bid, Result<Void> ignore)
+  public void auctionBidAccept(AuctionBid bid, Result<Void> ignore)
   {
     String message = String.format("bid accepted %1$s", bid);
     log.info(message);
@@ -77,7 +77,7 @@ public class AuditServiceImpl implements AuditService
   }
 
   @Override
-  public void auctionBidReject(Bid bid, Result<Void> ignore)
+  public void auctionBidReject(AuctionBid bid, Result<Void> ignore)
   {
     String message = String.format("bid rejected %1$s", bid);
     log.info(message);
@@ -115,7 +115,7 @@ public class AuditServiceImpl implements AuditService
   @Override
   public void settlementAuctionWillSettle(String settlementId,
                                           AuctionDataPublic auction,
-                                          AuctionDataPublic.Bid bid,
+                                          Auction.Bid bid,
                                           Result<Void> ignore)
   {
     String message
@@ -169,7 +169,7 @@ public class AuditServiceImpl implements AuditService
   @Override
   public void payPalSendPaymentRequest(String settlementId,
                                        AuctionDataPublic auction,
-                                       AuctionDataPublic.Bid bid,
+                                       Auction.Bid bid,
                                        String userId,
                                        Result<Void> ignore)
   {

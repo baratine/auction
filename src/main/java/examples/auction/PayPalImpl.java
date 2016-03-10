@@ -24,7 +24,7 @@ public class PayPalImpl implements PayPal
 
   @Override
   public void settle(AuctionDataPublic auction,
-                     AuctionDataPublic.Bid bid,
+                     Auction.Bid bid,
                      CreditCard creditCard,
                      String payPalRequestId,
                      Result<Payment> result)
@@ -63,7 +63,7 @@ public class PayPalImpl implements PayPal
 
       log.log(Level.FINER, String.format(
         "payment recieved for auction %1$s -> %2$s ",
-        auction.getId(),
+        auction.getEncodedId(),
         payment));
 
       result.ok(payment);

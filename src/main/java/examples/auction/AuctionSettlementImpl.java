@@ -27,7 +27,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private final AuditService _audit;
 
   private String _id;
-  private AuctionDataPublic.Bid _bid;
+  private Auction.Bid _bid;
   private SettlementTransactionState _state;
 
   private BoundState _boundState = BoundState.UNBOUND;
@@ -75,7 +75,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
   public boolean loadSettlement(Cursor settlement)
   {
     if (settlement != null) {
-      _bid = (AuctionDataPublic.Bid) settlement.getObject(1);
+      _bid = (Auction.Bid) settlement.getObject(1);
 
       _boundState = BoundState.BOUND;
     }
@@ -96,7 +96,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   @Override
   @Modify
-  public void settle(AuctionDataPublic.Bid bid,
+  public void settle(Auction.Bid bid,
                      Result<Status> status)
   {
     log.finer(String.format("create %1$s", this));

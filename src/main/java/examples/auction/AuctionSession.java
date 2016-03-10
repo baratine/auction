@@ -24,7 +24,7 @@ public interface AuctionSession
 
   void findAuction(String title, Result<Auction> result);
 
-  void searchAuctions(String query, Result<List<AuctionDataPublic>> result);
+  void searchAuctions(String query, Result<List<WebAuction>> result);
 
   void bidAuction(String id, int bid, Result<Boolean> result);
 

@@ -4,19 +4,18 @@ import { RouteConfig, ROUTER_DIRECTIVES, ROUTER_PROVIDERS} from 'angular2/router
 
 import {AuctionService} from "./auction.service";
 import {Auction} from "./auction";
-import {AuctionListener} from "./auction";
 import {OnInit} from "angular2/core";
 
 @Component({
-             selector: 'auctions',
-             templateUrl: 'app/auctions.component.html',
+             selector: 'bids',
+             templateUrl: 'app/bids.component.html',
              styleUrls: [''],
              providers: [],
              bindings: []
            })
-export class AuctionsComponent implements AuctionListener, OnInit
+export class BidsComponent implements OnInit
 {
-  public auctions:Auction[] = [];
+  public bids:Auction[] = [];
 
   constructor(private _auctionService:AuctionService)
   {
@@ -25,12 +24,18 @@ export class AuctionsComponent implements AuctionListener, OnInit
 
   ngOnInit():any
   {
-    this._auctionService.auctionListener = this;
   }
 
-  onNew(auction:Auction)
+  search(query:string)
   {
-    console.log(auction);
-    this.auctions.push(auction);
+    this._auctionService.searchAuctions(query)
+      .subscribe(result=>
+                 {
+                   for (bid of result)
+                   this.bids.push(bid);
+                 }, error =>
+                 {
+                   console.error(error);
+                 });
   }
 }

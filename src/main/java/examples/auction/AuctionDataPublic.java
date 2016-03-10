@@ -3,113 +3,102 @@ package examples.auction;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.UUID;
+
+import static examples.auction.Auction.State;
 
 /**
  *
  */
 public class AuctionDataPublic implements Serializable
 {
-  private String _id;
-  private String _title;
-  private int _startingBid;
+  private String encodedId;
+  private String title;
+  private int startingBid;
 
-  private ZonedDateTime _dateToClose;
+  private ZonedDateTime dateToClose;
 
-  private String _ownerId;
+  private String ownerId;
 
-  private ArrayList<Bid> _bids = new ArrayList<>();
+  private ArrayList<Auction.Bid> bids;
 
-  private BidImpl _lastBid;
+  private AuctionImpl.BidImpl lastBid;
 
   private State _state = State.INIT;
 
   //user id
-  private String _winner;
-  private String _settlementId;
+  private String winner;
+  private String settlementId;
 
   public AuctionDataPublic()
   {
   }
 
-  public AuctionDataPublic(String id,
-                           AuctionDataInit initData,
-                           ZonedDateTime closingDate)
+  public AuctionDataPublic(String encodedId,
+                           String title,
+                           int startingBid,
+                           ZonedDateTime dateToClose,
+                           String ownerId,
+                           ArrayList<Auction.Bid> bids,
+                           AuctionImpl.BidImpl lastBid,
+                           State state,
+                           String winner,
+                           String settlementId)
   {
-    _id = id;
-    _ownerId = initData.getUserId();
-    _title = initData.getTitle();
-    _startingBid = initData.getStartingBid();
-    _dateToClose = closingDate;
-    _settlementId = UUID.randomUUID().toString();
+    this.encodedId = encodedId;
+    this.title = title;
+    this.startingBid = startingBid;
+    this.dateToClose = dateToClose;
+    this.ownerId = ownerId;
+    this.bids = bids;
+    this.lastBid = lastBid;
+    _state = state;
+    this.winner = winner;
+    this.settlementId = settlementId;
   }
 
-  public String getId()
+  public String getEncodedId()
   {
-    return _id;
+    return encodedId;
   }
 
   public String getTitle()
   {
-    return _title;
+    return title;
   }
 
   public void setTitle(String title)
   {
-    _title = title;
+    this.title = title;
   }
 
   public int getStartingBid()
   {
-    return _startingBid;
+    return startingBid;
   }
 
   public void setStartingBid(int startingBid)
   {
-    _startingBid = startingBid;
+    this.startingBid = startingBid;
   }
 
   public ZonedDateTime getDateToClose()
   {
-    return _dateToClose;
+    return dateToClose;
   }
 
   public String getOwnerId()
   {
-    return _ownerId;
+    return ownerId;
   }
 
-  public boolean bid(String bidderId, int bid)
-    throws IllegalStateException
+  public Auction.Bid getLastBid()
   {
-    if (_state != State.OPEN) {
-      throw new IllegalStateException("auction cannot be bid in " + _state);
-    }
-
-    Bid last = getLastBid();
-
-    if (last == null || bid > last.getBid()) {
-      BidImpl nextBid = new BidImpl(bidderId, _id, bid);
-
-      _bids.add(nextBid);
-
-      _lastBid = nextBid;
-
-      return true;
-    }
-    else {
-      return false;
-    }
-  }
-
-  public Bid getLastBid()
-  {
-    return _lastBid;
+    return lastBid;
   }
 
   public String getLastBidder()
   {
-    Bid lastBid = getLastBid();
+    Auction.Bid lastBid = getLastBid();
 
     if (lastBid != null) {
       return lastBid.getUserId();
@@ -121,35 +110,17 @@ public class AuctionDataPublic implements Serializable
 
   public String getWinner()
   {
-    return _winner;
+    return winner;
   }
 
   public void setWinner(String winner)
   {
-    _winner = winner;
+    this.winner = winner;
   }
 
   public State getState()
   {
     return _state;
-  }
-
-  public void toOpen()
-  {
-    if (_state != State.INIT) {
-      throw new IllegalStateException("Cannot open in " + _state);
-    }
-
-    _state = State.OPEN;
-  }
-
-  public void toClose()
-  {
-    if (_state != State.OPEN) {
-      throw new IllegalStateException("Auction cannot be closed in " + _state);
-    }
-
-    _state = State.CLOSED;
   }
 
   @Override
@@ -159,98 +130,11 @@ public class AuctionDataPublic implements Serializable
       = String.format("%1$s@%2$d[%3$s, %4$s, %5$s, %6$s, %7$s]",
                       getClass().getSimpleName(),
                       System.identityHashCode(this),
-                      _id,
-                      _title,
-                      _lastBid,
-                      _winner,
+                      encodedId,
+                      title,
+                      lastBid,
+                      winner,
                       _state);
     return toString;
-  }
-
-  public void toSettled()
-  {
-    if (_state != State.CLOSED)
-      throw new IllegalStateException();
-
-    _state = State.SETTLED;
-  }
-
-  public String getSettlementId()
-  {
-    return _settlementId;
-  }
-
-  public void toRolledBack()
-  {
-    _state = State.ROLLED_BACK;
-  }
-
-  enum State
-  {
-    INIT,
-    OPEN,
-    CLOSED,
-    SETTLED,
-    ROLLED_BACK
-  }
-
-  public interface Bid
-  {
-    String getAuctionId();
-
-    String getUserId();
-
-    int getBid();
-  }
-
-  static class BidImpl implements Bid, Comparable<Bid>, Serializable
-  {
-    private String _auctionId;
-    private String _userId;
-    private int _bid;
-
-    public BidImpl()
-    {
-
-    }
-
-    BidImpl(String userId, String auctionId, int bid)
-    {
-      _userId = userId;
-      _auctionId = auctionId;
-      _bid = bid;
-    }
-
-    @Override
-    public String getAuctionId()
-    {
-      return _auctionId;
-    }
-
-    @Override
-    public int getBid()
-    {
-      return _bid;
-    }
-
-    @Override
-    public String getUserId()
-    {
-      return _userId;
-    }
-
-    @Override
-    public int compareTo(Bid o)
-    {
-      return _bid - o.getBid();
-    }
-
-    @Override
-    public String toString()
-    {
-      return getClass().getSimpleName()
-             + "@" + System.identityHashCode(this) + "["
-             + _userId + "," + _bid + "]";
-    }
   }
 }

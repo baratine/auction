@@ -1,6 +1,6 @@
 export interface Auction
 {
-  id: String;
+  id: string;
   title: string;
   bid: number;
   state: string;
@@ -8,5 +8,8 @@ export interface Auction
 
 export interface AuctionListener
 {
-  onNew(auctin:Auction);
+  onNew(auction:Auction);
+
+  onUpdate(auctions:Auction[]);
 }
+

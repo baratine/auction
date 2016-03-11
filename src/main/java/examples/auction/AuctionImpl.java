@@ -238,7 +238,7 @@ public class AuctionImpl implements Auction
   private AuctionEvents getEvents()
   {
     if (_events == null) {
-      String url = "/e/" + getEncodedId();
+      String url = "event:///auction/" + getEncodedId();
 
       _events = _manager.service(url).as(AuctionEvents.class);
     }

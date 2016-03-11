@@ -5,21 +5,25 @@ import {Observable}     from 'rxjs/Observable';
 import {Auction, AuctionListener} from './auction';
 import {Request} from "angular2/http";
 import {Json} from "angular2/src/facade/lang";
+import {OnInit} from "angular2/core";
 
 @Injectable()
 export class AuctionService
 {
-  auctionListener: AuctionListener;
+  private auctionListeners:AuctionListener[] = [];
+
+  private _createUrl = 'http://localhost:8080/createAuction';
+  private _searchUrl = 'http://localhost:8080/searchAuctions';
+  private _subscribeUrl = 'http://localhost:8080/addAuctionListener';
+  private _bidUrl = 'http://localhost:8080/bidAuction';
+  private _pollEvents = 'http://localhost:8080/pollEvents';
 
   constructor(private http:Http)
   {
     console.log("creating new AuctionService: " + http);
   }
 
-  private _createUrl = 'http://localhost:8080/createAuction';
-  private _searchUrl = 'http://localhost:8080/searchAuctions';
-
-  create(title:string, bid:number)
+  public create(title:string, bid:number)
   {
     let urlSearchParams = new URLSearchParams();
     urlSearchParams.append('t', title);
@@ -34,7 +38,7 @@ export class AuctionService
       .map(res=>res.json()).catch(this.handleError);
   }
 
-  searchAuctions(query:string)
+  public searchAuctions(query:string)
   {
     let urlSearchParams = new URLSearchParams();
     urlSearchParams.append("q", query);
@@ -43,14 +47,69 @@ export class AuctionService
     return this.http.get(url).map(res=>this.map(res)).catch(this.handleError);
   }
 
-  onAuctionCreate(auction:Auction)
+  public addAuctionListener(listener:AuctionListener)
   {
-    this.auctionListener.onNew(auction);
+    this.auctionListeners.push(listener);
   }
 
-  map(res:Response)
+  public onAuctionCreate(auction:Auction)
   {
-    console.log(res.text());
+    for (var listener of this.auctionListeners)
+      listener.onNew(auction);
+
+  }
+
+  public subscribe(auction:Auction)
+  {
+    let body = auction.id;
+
+    let headers = new Headers({'Content-Type': 'application/x-www-form-urlencoded'});
+    let options = new RequestOptions({headers: headers});
+
+    return this.http.post(this._subscribeUrl, body, options)
+      .map(res=>res.text()).catch(this.handleError);
+  }
+
+  public bid(auction:Auction)
+  {
+    let price = auction.bid + 1;
+    let body = Json.stringify({"auction": auction.id, "bid": price});
+
+    let headers = new Headers({'Content-Type': 'application/json'});
+    let options = new RequestOptions({headers: headers});
+
+    return this.http.post(this._bidUrl, body, options)
+      .map(res=>res.text()).catch(this.handleError);
+  }
+
+  poll()
+  {
+    console.log("poll");
+    this.pollEvents().subscribe(result=>
+                                {
+                                  console.log("poll :" + result);
+                                  this.update(result);
+                                  this.poll();
+                                }, error=>
+                                {
+                                  console.error(error);
+                                });
+  }
+
+  private update(auctions:Auction[])
+  {
+    for (var listener of this.auctionListeners)
+      listener.onUpdate(auctions);
+  }
+
+  private pollEvents()
+  {
+    return this.http.get(this._pollEvents)
+      .map(res=>this.map(res)).catch(this.handleError);
+  }
+
+  private map(res:Response)
+  {
     return res.json();
   }
 

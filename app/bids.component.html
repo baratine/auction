@@ -7,7 +7,7 @@
       <input #query ngControl="query" type="text" class="form-control" required>
     </div>
     <button type="submit" class="btn btn-default"
-            (click)="search(query.value)">Create
+            (click)="search(query.value)">search
     </button>
   </form>
 
@@ -16,6 +16,7 @@
     <th>ID</th>
     <th>Title</th>
     <th>Current Bid</th>
+    <th>Place A Bid</th>
     <th>State</th>
     </thead>
     <tbody>
@@ -23,6 +24,11 @@
       <td>{{bid.id}}</td>
       <td>{{bid.title}}</td>
       <td>{{bid.bid}}</td>
+      <td>
+        <button type="submit" class="btn btn-default"
+                (click)="placeBid(bid)">Bid
+        </button>
+      </td>
       <td>{{bid.state}}</td>
     </tr>
     </tbody>

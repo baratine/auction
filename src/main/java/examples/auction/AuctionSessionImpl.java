@@ -3,8 +3,10 @@ package examples.auction;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -61,6 +63,10 @@ public class AuctionSessionImpl implements AuctionSession
 
   private User _user;
   private String _userId;
+
+  //
+  private transient Set<AuctionDataPublic> _events = new HashSet<>();
+  private transient Result<List<WebAuction>> _result;
 
   @Post()
   public void createUser(@Body UserInitData user, Result<WebUser> result)
@@ -221,19 +227,18 @@ public class AuctionSessionImpl implements AuctionSession
   /**
    * Bid on an auction.
    *
-   * @param auctionId the auction to bid on
    * @param bid       the new bid
    * @param result    true for successful auction.
    */
-  public void bidAuction(String auctionId,
-                         int bid,
-                         Result<Boolean> result)
+  @Post
+  public void bidAuction(@Body WebBid bid, Result<Boolean> result)
   {
     if (_user == null) {
       throw new IllegalStateException("No user is logged in");
     }
 
-    getAuctionService(auctionId).bid(new AuctionBid(_userId, bid), result);
+    getAuctionService(bid.getAuction())
+      .bid(new AuctionBid(_userId, bid.getBid()), result);
   }
 
   public void setListener(@Service ChannelListener listener,
@@ -248,7 +253,8 @@ public class AuctionSessionImpl implements AuctionSession
     result.ok(true);
   }
 
-  public void addAuctionListener(String id, Result<Boolean> result)
+  @Post
+  public void addAuctionListener(@Body String id, Result<Boolean> result)
   {
     Objects.requireNonNull(id);
     try {
@@ -265,9 +271,55 @@ public class AuctionSessionImpl implements AuctionSession
     }
   }
 
+  @Override
+  @Get
+  public void pollEvents(Result<List<WebAuction>> result)
+  {
+    log.finer("poll events: " + _events);
+
+    List<WebAuction> auctions = new ArrayList<>();
+
+    if (_events.size() > 0) {
+      AuctionDataPublic[] events
+        = _events.toArray(new AuctionDataPublic[_events.size()]);
+
+      _events.clear();
+
+      for (AuctionDataPublic event : events) {
+        auctions.add(new WebAuction(event.getEncodedId(),
+                                    event.getTitle(),
+                                    event.getLastBid().getBid(),
+                                    event.getState().toString()));
+      }
+
+      result.ok(auctions);
+    }
+    else {
+      _result = result;
+    }
+  }
+
+  public void addEvent(AuctionDataPublic event)
+  {
+    _events.add(event);
+
+    if (_result != null) {
+      Result<List<WebAuction>> result = _result;
+
+      _result = null;
+
+      pollEvents(result);
+    }
+  }
+
   private void addAuctionListenerImpl(String id)
   {
-    String url = "/e/" + id;
+    if (_listenerMap.containsKey(id))
+      return;
+
+    String url = "event:///auction/" + id;
+
+    log.finer("add auction events listener for auction: " + id);
 
     ServiceRef queue = _manager.service(url);
 
@@ -329,7 +381,7 @@ public class AuctionSessionImpl implements AuctionSession
 
     public void subscribe()
     {
-      _cancel = _eventRef.subscribe(_manager.newService(this));
+      _cancel = _eventRef.subscribe(this);
     }
 
     public void unsubscribe()
@@ -342,12 +394,7 @@ public class AuctionSessionImpl implements AuctionSession
     {
       log.finer("on bid event for auction: " + auctionData);
 
-      try {
-        if (_listener != null)
-          _listener.onAuctionUpdate(auctionData);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+      addEvent(auctionData);
     }
 
     @Override
@@ -355,22 +402,19 @@ public class AuctionSessionImpl implements AuctionSession
     {
       log.finer("on close event for auction: " + auctionData);
 
-      if (_listener != null)
-        _listener.onAuctionClose(auctionData);
+      addEvent(auctionData);
     }
 
     @Override
     public void onSettled(AuctionDataPublic auctionData)
     {
-      if (_listener != null)
-        _listener.onAuctionUpdate(auctionData);
+      addEvent(auctionData);
     }
 
     @Override
     public void onRolledBack(AuctionDataPublic auctionData)
     {
-      if (_listener != null)
-        _listener.onAuctionUpdate(auctionData);
+      addEvent(auctionData);
     }
   }
 }

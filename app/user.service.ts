@@ -5,17 +5,18 @@ import {Observable}     from 'rxjs/Observable';
 import {User} from './user';
 import {Request} from "angular2/http";
 import {Json} from "angular2/src/facade/lang";
+import {OnInit} from "angular2/core";
 
 @Injectable()
 export class UserService
 {
+  private _createUrl = 'http://localhost:8080/createUser';
+  private _loginUrl = 'http://localhost:8080/login';
+
   constructor(private http:Http)
   {
     console.log("creating new UserService: " + http);
   }
-
-  private _createUrl = 'http://localhost:8080/createUser';
-  private _loginUrl = 'http://localhost:8080/login';
 
   login(user:string, password:string)
   {

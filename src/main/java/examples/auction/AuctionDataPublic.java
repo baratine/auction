@@ -23,7 +23,7 @@ public class AuctionDataPublic implements Serializable
 
   private AuctionImpl.BidImpl lastBid;
 
-  private State _state = State.INIT;
+  private State state;
 
   //user id
   private String winner;
@@ -51,7 +51,7 @@ public class AuctionDataPublic implements Serializable
     this.ownerId = ownerId;
     this.bids = bids;
     this.lastBid = lastBid;
-    _state = state;
+    this.state = state;
     this.winner = winner;
     this.settlementId = settlementId;
   }
@@ -120,7 +120,7 @@ public class AuctionDataPublic implements Serializable
 
   public State getState()
   {
-    return _state;
+    return state;
   }
 
   @Override
@@ -134,7 +134,7 @@ public class AuctionDataPublic implements Serializable
                       title,
                       lastBid,
                       winner,
-                      _state);
+                      state);
     return toString;
   }
 }

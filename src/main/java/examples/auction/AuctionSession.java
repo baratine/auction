@@ -26,13 +26,15 @@ public interface AuctionSession
 
   void searchAuctions(String query, Result<List<WebAuction>> result);
 
-  void bidAuction(String id, int bid, Result<Boolean> result);
+  void bidAuction(WebBid bid, Result<Boolean> result);
 
   void setListener(@Service ChannelListener listener,
                    Result<Boolean> result);
 
   void addAuctionListener(String idAuction,
                           Result<Boolean> result);
+
+  void pollEvents(Result<List<WebAuction>> result);
 
   void logout(Result<Boolean> result);
 
@@ -97,6 +99,22 @@ public interface AuctionSession
              + ", "
              + password
              + ']';
+    }
+  }
+
+  class WebBid
+  {
+    private String auction;
+    private int bid;
+
+    public String getAuction()
+    {
+      return auction;
+    }
+
+    public int getBid()
+    {
+      return bid;
     }
   }
 

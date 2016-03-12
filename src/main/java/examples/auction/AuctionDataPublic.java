@@ -26,7 +26,7 @@ public class AuctionDataPublic implements Serializable
   private State state;
 
   //user id
-  private String winner;
+  private String winnerId;
   private String settlementId;
 
   public AuctionDataPublic()
@@ -52,7 +52,7 @@ public class AuctionDataPublic implements Serializable
     this.bids = bids;
     this.lastBid = lastBid;
     this.state = state;
-    this.winner = winner;
+    this.winnerId = winner;
     this.settlementId = settlementId;
   }
 
@@ -108,14 +108,14 @@ public class AuctionDataPublic implements Serializable
     }
   }
 
-  public String getWinner()
+  public String getWinnerId()
   {
-    return winner;
+    return winnerId;
   }
 
-  public void setWinner(String winner)
+  public void setWinnerId(String winnerId)
   {
-    this.winner = winner;
+    this.winnerId = winnerId;
   }
 
   public State getState()
@@ -133,7 +133,7 @@ public class AuctionDataPublic implements Serializable
                       encodedId,
                       title,
                       lastBid,
-                      winner,
+                      winnerId,
                       state);
     return toString;
   }

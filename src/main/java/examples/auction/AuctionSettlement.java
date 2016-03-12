@@ -6,8 +6,6 @@ public interface AuctionSettlement
 {
   void settle(Auction.Bid bid, Result<Status> result);
 
-  void settleResume(Result<Status> result);
-
   void refund(Result<Status> status);
 
   void settleStatus(Result<Status> status);

@@ -16,7 +16,7 @@ public class Main
     include(AuctionAdminSessionImpl.class);
     include(AuctionSessionImpl.class);
 
-    include(AuctionSettlementManagerImpl.class);
+    include(AuctionSettlementVault.class);
     include(AuditServiceImpl.class);
     include(PayPalImpl.class);
 

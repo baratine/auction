@@ -1,97 +1,61 @@
 package examples.auction;
 
-import java.util.logging.Level;
+import javax.inject.Inject;
 import java.util.logging.Logger;
 
 import examples.auction.SettlementTransactionState.AuctionUpdateState;
 import examples.auction.SettlementTransactionState.AuctionWinnerUpdateState;
 import examples.auction.SettlementTransactionState.PaymentTxState;
 import examples.auction.SettlementTransactionState.UserUpdateState;
-import io.baratine.db.Cursor;
-import io.baratine.db.DatabaseService;
+import io.baratine.service.Data;
+import io.baratine.service.Id;
+import io.baratine.service.Ids;
 import io.baratine.service.Modify;
-import io.baratine.service.OnLoad;
-import io.baratine.service.OnSave;
 import io.baratine.service.Result;
-import io.baratine.service.ServiceRef;
+import io.baratine.service.Service;
+import io.baratine.service.ServiceManager;
 
+@Data
 public class AuctionSettlementImpl implements AuctionSettlement
 {
   private final static Logger log
     = Logger.getLogger(AuctionSettlementImpl.class.getName());
 
-  private final DatabaseService _db;
-  private final ServiceRef _userManager;
-  private final ServiceRef _auctionManager;
-  private final PayPal _paypal;
-  private final AuditService _audit;
+  @Id
+  private long _id;
+  private String _encodedId;
 
-  private String _id;
   private Auction.Bid _bid;
+
   private SettlementTransactionState _state;
 
   private BoundState _boundState = BoundState.UNBOUND;
 
   private boolean _inProgress = false;
 
-  public AuctionSettlementImpl(String id,
-                               AuctionSettlementManagerImpl settlementManager)
+  @Inject
+  @Service("/paypal")
+  private transient PayPal _paypal;
+
+  @Inject
+  @Service("/audit")
+  private transient AuditService _audit;
+
+  @Inject
+  @Service()
+  private transient ServiceManager _serviceManager;
+
+  public AuctionSettlementImpl()
   {
-    _id = id;
-    _db = settlementManager.getDatabase();
-    _paypal = settlementManager.getPayPal();
-    _audit = settlementManager.getAuditService();
-    _auctionManager = settlementManager.getAuctionManager();
-    _userManager = settlementManager.getUserManager();
   }
 
-  //id, auction_id, user_id, bid
-  @OnLoad
-  public void load(Result<Boolean> result)
+  @Modify
+  public void create(AuctionDataPublic data, Result<String> result)
   {
-    if (_boundState != BoundState.UNBOUND)
-      throw new IllegalStateException();
+    _bid = data.getLastBid();
+    _state = new SettlementTransactionState();
 
-    Result.Fork<Boolean,Boolean> fork = result.fork();
-
-/*
-    _db.findLocal(
-      "select auction_id, user_id, bid from settlement where id = ?",
-      _id).first().result(fork.fork().of(c -> loadSettlement(c)));
-
-    _db.findLocal("select state from settlement_state where id = ?",
-                  _id).first().result(fork.fork().of(c -> loadState(c)));
-*/
-
-    _db.findOne("select state from settlement_state where id = ?",
-                fork.branch().of(c -> loadState(c)), _id);
-
-    _db.findOne("select bid from settlement where id = ?",
-                fork.branch().of(c -> loadSettlement(c)), _id);
-
-    fork.join(l -> l.get(0) && l.get(1));
-  }
-
-  public boolean loadSettlement(Cursor settlement)
-  {
-    if (settlement != null) {
-      _bid = (Auction.Bid) settlement.getObject(1);
-
-      _boundState = BoundState.BOUND;
-    }
-
-    return true;
-  }
-
-  public boolean loadState(Cursor state)
-  {
-    if (state != null)
-      _state = (SettlementTransactionState) state.getObject(1);
-
-    if (_state == null)
-      _state = new SettlementTransactionState();
-
-    return true;
+    result.ok(getEncodedId());
   }
 
   @Override
@@ -113,22 +77,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
     settleImpl(status);
   }
 
-  @Override
-  public void settleResume(Result<Status> status)
-  {
-    if (_state.isSettled()) {
-      status.ok(Status.SETTLED);
-    }
-    else if (_state.isRefunded()) {
-      throw new IllegalStateException();
-    }
-    else if (_state.isRefunding()) {
-      throw new IllegalStateException();
-    }
-
-    settleImpl(status);
-  }
-
   private void settleImpl(Result<Status> status)
   {
     if (_state.getSettleStatus() == Status.SETTLE_FAILED) {
@@ -146,24 +94,35 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   public void settlePending(Result<Status> status)
   {
-    Result.Fork<Boolean,Status> fork = status.fork();
+    try {
+      log.finer("XXXXXX: -1");
+      Result.Fork<Boolean,Status> fork = status.fork();
+      log.finer("XXXXXX: 0");
+      fork.fail((l, t, r) -> this.settleFail(r));
 
-    fork.fail((l, t, r) -> this.settleFail(r));
+      log.finer("XXXXXX: 1");
 
-    updateUser(fork.branch());
-    updateAuction(fork.branch());
-    chargeUser(fork.branch());
+      updateUser(fork.branch());
+      log.finer("XXXXXX: 2");
+      updateAuction(fork.branch());
+      log.finer("XXXXXX: 3");
+      chargeUser(fork.branch());
+      log.finer("XXXXXX: 4");
 
-    fork.join((l, r) -> {
-      boolean isSuccess = l.get(0) && l.get(1) && l.get(2);
+      fork.join((l, r) -> {
+        boolean isSuccess = l.get(0) && l.get(1) && l.get(2);
 
-      if (isSuccess) {
-        settleComplete(r);
-      }
-      else {
-        settleFail(r);
-      }
-    });
+        if (isSuccess) {
+          settleComplete(r);
+        }
+        else {
+          settleFail(r);
+        }
+      });
+      log.finer("XXXXXX: 5");
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   public void updateUser(Result<Boolean> status)
@@ -193,7 +152,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private User getWinner()
   {
-    return _userManager.lookup("/" + _bid.getUserId()).as(User.class);
+    return _serviceManager.service("/user/" + _bid.getUserId()).as(User.class);
   }
 
   public void updateAuction(Result<Boolean> status)
@@ -224,7 +183,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private Auction getAuction()
   {
-    return _auctionManager.lookup("/" + _bid.getAuctionId()).as(Auction.class);
+    return _serviceManager.service("/auction/" + _bid.getAuctionId())
+                          .as(Auction.class);
   }
 
   public void chargeUser(Result<Boolean> status)
@@ -261,8 +221,16 @@ public class AuctionSettlementImpl implements AuctionSettlement
     _paypal.settle(auctionData,
                    _bid,
                    creditCard,
-                   _id,
+                   getEncodedId(),
                    status.of(x -> processPayment(x)));
+  }
+
+  private String getEncodedId()
+  {
+    if (_encodedId == null)
+      _encodedId = Ids.encode(_id);
+
+    return _encodedId;
   }
 
   private boolean processPayment(Payment payment)
@@ -472,7 +440,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private void payPalRefund(Payment payment, Result<Boolean> result)
   {
-    _paypal.refund(_id, payment.getSaleId(), payment.getSaleId(),
+    _paypal.refund(getEncodedId(), payment.getSaleId(), payment.getSaleId(),
                    result.of(refund -> processRefund(refund)));
   }
 
@@ -490,26 +458,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
     }
 
     return isRefunded;
-  }
-
-  @OnSave
-  public void save()
-  {
-    log.log(Level.FINER, String.format("saving %1$s", this));
-
-    //id , user_id , bid
-    if (_boundState == BoundState.NEW) {
-      _db.exec(
-        "insert into settlement (id, bid) values (?, ?)",
-        (x, t) -> _boundState = BoundState.BOUND,
-        _id,
-        _bid);
-    }
-
-    _db.exec("insert into settlement_state (id, state) values (?, ?)",
-             Result.ignore(),
-             _id,
-             _state);
   }
 
   @Override

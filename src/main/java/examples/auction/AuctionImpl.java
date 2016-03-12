@@ -8,7 +8,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import examples.auction.AuctionSettlement.Status;
 import io.baratine.service.Data;
 import io.baratine.service.Id;
 import io.baratine.service.Ids;
@@ -16,7 +15,6 @@ import io.baratine.service.Modify;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.ServiceManager;
-import io.baratine.service.ServiceRef;
 import io.baratine.timer.TimerService;
 
 @Data
@@ -43,8 +41,7 @@ public class AuctionImpl implements Auction
 
   private State _state = State.INIT;
 
-  //user id
-  private String _winner;
+  private String _winnerId;
   private String _settlementId;
 
   private BoundState _boundState = BoundState.UNBOUND;
@@ -53,12 +50,14 @@ public class AuctionImpl implements Auction
   private transient ServiceManager _manager;
 
   @Inject
+  @Service("/settlement")
+  private transient AuctionSettlementVault _settlementVault;
+
+  @Inject
   @Service("/audit")
   private transient AuditService _audit;
 
   private transient AuctionEvents _events;
-
-  private transient ServiceRef _settlement;
 
   public AuctionImpl()
   {
@@ -83,7 +82,6 @@ public class AuctionImpl implements Auction
     _title = initData.getTitle();
     _startingBid = initData.getStartingBid();
     _dateToClose = closingDate;
-    _settlementId = UUID.randomUUID().toString();
 
     _boundState = BoundState.BOUND;
 
@@ -100,18 +98,18 @@ public class AuctionImpl implements Auction
                                  _bids,
                                  _lastBid,
                                  _state,
-                                 _winner,
+                                 _winnerId,
                                  _settlementId);
   }
 
   public String getWinner()
   {
-    return _winner;
+    return _winnerId;
   }
 
   public void setWinner(String winner)
   {
-    _winner = winner;
+    _winnerId = winner;
   }
 
   public void toOpen()
@@ -209,8 +207,7 @@ public class AuctionImpl implements Auction
 
       log.warning("close - 2: " + this);
 
-      if (_settlement != null)
-        settle();
+      settle();
 
       log.warning("close - 3: " + this);
 
@@ -231,8 +228,8 @@ public class AuctionImpl implements Auction
     if (_state != State.SETTLED)
       throw new IllegalStateException();
 
-    getAuctionSettlement()
-      .refund(result.of(s -> s.equals(Status.ROLLED_BACK)));
+    getAuctionSettlement(result.of((s, r) -> s.refund(r.of(t -> t
+                                                                == AuctionSettlement.Status.ROLLED_BACK))));
   }
 
   private AuctionEvents getEvents()
@@ -246,14 +243,20 @@ public class AuctionImpl implements Auction
     return _events;
   }
 
-  private AuctionSettlement getAuctionSettlement()
+  private void getAuctionSettlement(Result<AuctionSettlement> result)
   {
-    String settlementUri = "/" + getSettlementId();
-
-    AuctionSettlement settlement
-      = _settlement.lookup(settlementUri).as(AuctionSettlement.class);
-
-    return settlement;
+    if (_settlementId == null) {
+      _settlementVault.create(getAuctionDataPublic(),
+                              result.of(s -> {
+                                _settlementId = s;
+                                return _manager.service("/settlement/" + s)
+                                               .as(AuctionSettlement.class);
+                              }));
+    }
+    else {
+      result.ok(_manager.service("/settlement/" + getSettlementId())
+                        .as(AuctionSettlement.class));
+    }
   }
 
   private void settle()
@@ -263,9 +266,7 @@ public class AuctionImpl implements Auction
     if (bid == null)
       return;
 
-    AuctionSettlement settlement = getAuctionSettlement();
-
-    settlement.settle(bid, Result.ignore());
+    getAuctionSettlement((s, e) -> s.settle(bid, Result.ignore()));
   }
 
   public Auction.Bid getLastBid()

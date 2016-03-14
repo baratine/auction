@@ -227,8 +227,8 @@ public class AuctionSessionImpl implements AuctionSession
   /**
    * Bid on an auction.
    *
-   * @param bid       the new bid
-   * @param result    true for successful auction.
+   * @param bid    the new bid
+   * @param result true for successful auction.
    */
   @Post
   public void bidAuction(@Body WebBid bid, Result<Boolean> result)
@@ -285,12 +285,8 @@ public class AuctionSessionImpl implements AuctionSession
 
       _events.clear();
 
-      for (AuctionDataPublic event : events) {
-        auctions.add(new WebAuction(event.getEncodedId(),
-                                    event.getTitle(),
-                                    event.getLastBid().getBid(),
-                                    event.getState().toString()));
-      }
+      for (AuctionDataPublic event : events)
+        auctions.add(asWebAuction(event));
 
       result.ok(auctions);
     }

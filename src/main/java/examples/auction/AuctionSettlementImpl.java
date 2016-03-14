@@ -42,7 +42,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private transient AuditService _audit;
 
   @Inject
-  @Service()
   private transient ServiceManager _serviceManager;
 
   public AuctionSettlementImpl()
@@ -110,6 +109,10 @@ public class AuctionSettlementImpl implements AuctionSettlement
       log.finer("XXXXXX: 4");
 
       fork.join((l, r) -> {
+
+        System.out.println("AuctionSettlementImpl.settlePending XXXXXXXXXXXX  "
+                           + l);
+
         boolean isSuccess = l.get(0) && l.get(1) && l.get(2);
 
         if (isSuccess) {

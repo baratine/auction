@@ -2,11 +2,11 @@ package examples.auction;
 
 public interface AuctionEvents
 {
-  void onBid(AuctionDataPublic auctionData);
+  void onBid(AuctionData auctionData);
 
-  void onClose(AuctionDataPublic auctionData);
+  void onClose(AuctionData auctionData);
 
-  void onSettled(AuctionDataPublic auctionData);
+  void onSettled(AuctionData auctionData);
 
-  void onRolledBack(AuctionDataPublic auctionData);
+  void onRolledBack(AuctionData auctionData);
 }

@@ -21,7 +21,7 @@ public class AuditServiceImpl implements AuditService
   }
 
   @Override
-  public void auctionLoad(AuctionDataPublic auction, Result<Void> ignore)
+  public void auctionLoad(AuctionData auction, Result<Void> ignore)
   {
     String message = String.format("auction load %1$s", auction);
     log.info(message);
@@ -30,7 +30,7 @@ public class AuditServiceImpl implements AuditService
   }
 
   @Override
-  public void auctionSave(AuctionDataPublic auction, Result<Void> ignore)
+  public void auctionSave(AuctionData auction, Result<Void> ignore)
   {
     String message = String.format("auction save %1$s", auction);
     log.info(message);
@@ -39,7 +39,7 @@ public class AuditServiceImpl implements AuditService
   }
 
   @Override
-  public void auctionToOpen(AuctionDataPublic auction, Result<Void> ignore)
+  public void auctionToOpen(AuctionData auction, Result<Void> ignore)
   {
     String message = String.format("auction open %1$s", auction);
     log.info(message);
@@ -48,7 +48,7 @@ public class AuditServiceImpl implements AuditService
   }
 
   @Override
-  public void auctionToClose(AuctionDataPublic auction, Result<Void> ignore)
+  public void auctionToClose(AuctionData auction, Result<Void> ignore)
   {
     String message = String.format("auction close %1$s", auction);
     log.info(message);
@@ -57,7 +57,7 @@ public class AuditServiceImpl implements AuditService
   }
 
   @Override
-  public void auctionBid(AuctionDataPublic auction,
+  public void auctionBid(AuctionData auction,
                          AuctionBid bid,
                          Result<Void> ignore)
   {
@@ -114,7 +114,7 @@ public class AuditServiceImpl implements AuditService
 
   @Override
   public void settlementAuctionWillSettle(String settlementId,
-                                          AuctionDataPublic auction,
+                                          AuctionData auction,
                                           Auction.Bid bid,
                                           Result<Void> ignore)
   {
@@ -149,7 +149,7 @@ public class AuditServiceImpl implements AuditService
 
   @Override
   public void payPalReceivePaymentResponse(String settlementId,
-                                           AuctionDataPublic auction,
+                                           AuctionData auction,
                                            Payment payment,
                                            Result<Void> ignore)
   {
@@ -168,7 +168,7 @@ public class AuditServiceImpl implements AuditService
 
   @Override
   public void payPalSendPaymentRequest(String settlementId,
-                                       AuctionDataPublic auction,
+                                       AuctionData auction,
                                        Auction.Bid bid,
                                        String userId,
                                        Result<Void> ignore)

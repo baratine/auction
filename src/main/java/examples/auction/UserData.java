@@ -1,52 +1,34 @@
 package examples.auction;
 
-import java.util.HashSet;
 import java.util.Set;
 
 public class UserData
 {
-  private String _id;
+  private String _encodedId;
 
   private String _name;
 
-  private String _password;
-  private boolean _isAdmin;
-
-  private Set<String> _wonAuctions = new HashSet<>();
+  private Set<String> _wonAuctions;
 
   public UserData()
   {
   }
 
-  public UserData(String id,
-                  String name,
-                  String password,
-                  boolean isAdmin)
+  public UserData(String userId,
+                  String name)
   {
-    _id = id;
+    _encodedId = userId;
     _name = name;
-    _password = password;
-    _isAdmin = isAdmin;
   }
 
-  public String getId()
+  public String getEncodedId()
   {
-    return _id;
+    return _encodedId;
   }
 
   public String getName()
   {
     return _name;
-  }
-
-  public String getDigest()
-  {
-    return _password;
-  }
-
-  public boolean isAdmin()
-  {
-    return _isAdmin;
   }
 
   public Set<String> getWonAuctions()
@@ -57,16 +39,6 @@ public class UserData
   @Override
   public String toString()
   {
-    return getClass().getSimpleName() + "[" + _id + "," + _name + "]";
-  }
-
-  public void addWonAuction(String auctionId)
-  {
-    _wonAuctions.add(auctionId);
-  }
-
-  public void removeWonAuction(String auctionId)
-  {
-    _wonAuctions.remove(auctionId);
+    return getClass().getSimpleName() + "[" + _encodedId + "," + _name + "]";
   }
 }

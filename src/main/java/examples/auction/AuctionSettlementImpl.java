@@ -1,28 +1,29 @@
 package examples.auction;
 
-import javax.inject.Inject;
 import java.util.logging.Logger;
+
+import javax.inject.Inject;
 
 import examples.auction.SettlementTransactionState.AuctionUpdateState;
 import examples.auction.SettlementTransactionState.AuctionWinnerUpdateState;
 import examples.auction.SettlementTransactionState.PaymentTxState;
 import examples.auction.SettlementTransactionState.UserUpdateState;
-import io.baratine.service.Data;
+import io.baratine.service.Asset;
 import io.baratine.service.Id;
-import io.baratine.service.Ids;
+import io.baratine.service.IdAsset;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.ServiceManager;
 
-@Data
+@Asset
 public class AuctionSettlementImpl implements AuctionSettlement
 {
   private final static Logger log
     = Logger.getLogger(AuctionSettlementImpl.class.getName());
 
   @Id
-  private long _id;
+  private IdAsset _id;
   private String _encodedId;
 
   private Auction.Bid _bid;
@@ -49,7 +50,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
   }
 
   @Modify
-  public void create(AuctionDataPublic data, Result<String> result)
+  public void create(AuctionData data, Result<String> result)
   {
     _bid = data.getLastBid();
     _state = new SettlementTransactionState();
@@ -192,7 +193,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   public void chargeUser(Result<Boolean> status)
   {
-    final ValueRef<AuctionDataPublic> auctionData = new ValueRef();
+    final ValueRef<AuctionData> auctionData = new ValueRef();
     final ValueRef<CreditCard> creditCard = new ValueRef();
 
     Result<Boolean> paymentResult = Result.of(x ->
@@ -217,7 +218,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
     fork.join(l -> l.get(0) && l.get(1));
   }
 
-  public void chargeUser(AuctionDataPublic auctionData,
+  public void chargeUser(AuctionData auctionData,
                          CreditCard creditCard,
                          Result<Boolean> status)
   {
@@ -231,7 +232,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private String getEncodedId()
   {
     if (_encodedId == null)
-      _encodedId = Ids.encode(_id);
+      _encodedId = _id.toString();
 
     return _encodedId;
   }

@@ -5,7 +5,7 @@ import io.baratine.service.Result;
 public interface Auction
 {
   void create(AuctionDataInit initData,
-              Result<Long> result);
+              Result<String> auctionId);
 
   void open(Result<Boolean> result);
 
@@ -20,7 +20,7 @@ public interface Auction
 
   void setRolledBack(Result<Boolean> result);
 
-  void get(Result<AuctionDataPublic> result);
+  void get(Result<AuctionData> result);
 
   void close(Result<Boolean> result);
 

@@ -1,15 +1,15 @@
 package examples.auction;
 
+import static examples.auction.Auction.State;
+
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 
-import static examples.auction.Auction.State;
-
 /**
  *
  */
-public class AuctionDataPublic implements Serializable
+public class AuctionData implements Serializable
 {
   private String encodedId;
   private String title;
@@ -29,20 +29,20 @@ public class AuctionDataPublic implements Serializable
   private String winnerId;
   private String settlementId;
 
-  public AuctionDataPublic()
+  public AuctionData()
   {
   }
 
-  public AuctionDataPublic(String encodedId,
-                           String title,
-                           int startingBid,
-                           ZonedDateTime dateToClose,
-                           String ownerId,
-                           ArrayList<Auction.Bid> bids,
-                           AuctionImpl.BidImpl lastBid,
-                           State state,
-                           String winner,
-                           String settlementId)
+  public AuctionData(String encodedId,
+                     String title,
+                     int startingBid,
+                     ZonedDateTime dateToClose,
+                     String ownerId,
+                     ArrayList<Auction.Bid> bids,
+                     AuctionImpl.BidImpl lastBid,
+                     State state,
+                     String winner,
+                     String settlementId)
   {
     this.encodedId = encodedId;
     this.title = title;

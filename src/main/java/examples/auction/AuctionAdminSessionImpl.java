@@ -1,11 +1,12 @@
 package examples.auction;
 
-import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.inject.Inject;
 
 import io.baratine.service.Cancel;
 import io.baratine.service.OnDestroy;
@@ -106,13 +107,12 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
   }
 
   @Override
-  public void getWinner(String auctionId, Result<UserDataPublic> result)
+  public void getWinner(String auctionId, Result<UserData> result)
   {
     Auction auction = getAuctionService(auctionId);
 
     auction.get(result.of((a, r) -> {
-      getUserService(a.getLastBidder()).get(
-        r.of(u -> new UserDataPublic(u)));
+      getUserService(a.getLastBidder()).get(r.of());
     }));
   }
 
@@ -124,7 +124,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
                                 result.of((s, r) -> s.getTransactionState(r)));
   }
 
-  public void getAuction(String id, Result<AuctionDataPublic> result)
+  public void getAuction(String id, Result<AuctionData> result)
   {
     if (id == null) {
       throw new IllegalArgumentException();
@@ -279,7 +279,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     }
 
     @Override
-    public void onBid(AuctionDataPublic auctionData)
+    public void onBid(AuctionData auctionData)
     {
       log.finer("on bid event for auction: " + auctionData);
 
@@ -292,7 +292,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     }
 
     @Override
-    public void onClose(AuctionDataPublic auctionData)
+    public void onClose(AuctionData auctionData)
     {
       log.finer("on close event for auction: " + auctionData);
 
@@ -301,14 +301,14 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     }
 
     @Override
-    public void onSettled(AuctionDataPublic auctionData)
+    public void onSettled(AuctionData auctionData)
     {
       if (_listener != null)
         _listener.onAuctionUpdate(auctionData);
     }
 
     @Override
-    public void onRolledBack(AuctionDataPublic auctionData)
+    public void onRolledBack(AuctionData auctionData)
     {
       if (_listener != null)
         _listener.onAuctionUpdate(auctionData);

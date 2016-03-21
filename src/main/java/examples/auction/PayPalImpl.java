@@ -23,7 +23,7 @@ public class PayPalImpl implements PayPal
   AuditService _audit;
 
   @Override
-  public void settle(AuctionDataPublic auction,
+  public void settle(AuctionData auction,
                      Auction.Bid bid,
                      CreditCard creditCard,
                      String payPalRequestId,

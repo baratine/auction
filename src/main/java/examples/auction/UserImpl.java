@@ -4,15 +4,16 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.logging.Logger;
 
-import io.baratine.service.Data;
+import io.baratine.service.Asset;
 import io.baratine.service.Id;
-import io.baratine.service.Ids;
+import io.baratine.service.IdAsset;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
 
-@Data
+@Asset
 public class UserImpl implements User
 {
   private static final Logger log = Logger.getLogger(UserImpl.class.getName());
@@ -20,12 +21,16 @@ public class UserImpl implements User
   private transient MessageDigest _digest;
 
   @Id
-  private long _id;
+  private IdAsset _id;
 
   private String _encodedId;
 
-  private UserData _user;
-  private CreditCard _creditCard;
+  private String _name;
+
+  private String _password;
+  private boolean _isAdmin;
+
+  private HashSet<String> _wonAuctions;
 
   public UserImpl()
   {
@@ -34,23 +39,21 @@ public class UserImpl implements User
   @Override
   @Modify
   public void create(AuctionSession.UserInitData userInitData,
-                     Result<Long> id)
+                     Result<String> userId)
   {
     log.finer(String.format("create new user: %1$s", userInitData.getUser()));
 
-    _user = new UserData(getEncodedId(),
-                         userInitData.getUser(),
-                         digest(userInitData.getPassword()),
-                         userInitData.isAdmin());
+    _name = userInitData.getUser();
+    _password = digest(userInitData.getPassword());
+    _isAdmin = userInitData.isAdmin();
 
-    id.ok(_id);
+    _encodedId = _id.toString();
+
+    userId.ok(_encodedId);
   }
 
   private String getEncodedId()
   {
-    if (_encodedId == null)
-      _encodedId = Ids.encode(_id);
-
     return _encodedId;
   }
 
@@ -81,14 +84,8 @@ public class UserImpl implements User
                            boolean isAdmin,
                            Result<Boolean> result)
   {
-    if (_user == null) {
-      result.ok(false);
-
-      return;
-    }
-
-    boolean isAuthenticated = _user.getDigest().equals(digest(password));
-    isAuthenticated &= (isAdmin == _user.isAdmin());
+    boolean isAuthenticated = _password.equals(digest(password));
+    isAuthenticated &= (isAdmin == _isAdmin);
 
     result.ok(isAuthenticated);
   }
@@ -96,24 +93,23 @@ public class UserImpl implements User
   @Override
   public void get(Result<UserData> user)
   {
-    user.ok(_user);
+    user.ok(new UserData(getEncodedId(), _name));
   }
 
   @Override
   public void getCreditCard(Result<CreditCard> creditCard)
   {
-    CreditCard cc = _creditCard;
-    if (cc == null)
-      cc = new CreditCard("visa", "4214020540356393", "222", 10, 2020);
-
-    creditCard.ok(cc);
+    creditCard.ok(new CreditCard("visa", "4214020540356393", "222", 10, 2020));
   }
 
   @Override
   @Modify
   public void addWonAuction(String auctionId, Result<Boolean> result)
   {
-    _user.addWonAuction(auctionId);
+    if (_wonAuctions == null)
+      _wonAuctions = new HashSet<>();
+
+    _wonAuctions.add(auctionId);
 
     result.ok(true);
   }
@@ -122,7 +118,10 @@ public class UserImpl implements User
   @Modify
   public void removeWonAuction(String auctionId, Result<Boolean> result)
   {
-    _user.removeWonAuction(auctionId);
+    if (_wonAuctions == null)
+      throw new IllegalStateException();
+
+    _wonAuctions.remove(_wonAuctions);
 
     result.ok(true);
   }

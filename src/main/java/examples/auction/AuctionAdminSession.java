@@ -16,11 +16,11 @@ public interface AuctionAdminSession
 
   void getUser(Result<UserData> result);
 
-  void getWinner(String auctionId, Result<UserDataPublic> result);
+  void getWinner(String auctionId, Result<UserData> result);
 
   void getSettlementState(String auctionId, Result<SettlementTransactionState> result);
 
-  void getAuction(String id, Result<AuctionDataPublic> result);
+  void getAuction(String id, Result<AuctionData> result);
 
   void search(String query, Result<List<Long>> result);
 

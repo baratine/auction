@@ -5,7 +5,7 @@ package examples.auction;
  */
 public interface ChannelListener
 {
-  void onAuctionUpdate(AuctionDataPublic data);
+  void onAuctionUpdate(AuctionData data);
 
-  void onAuctionClose(AuctionDataPublic data);
+  void onAuctionClose(AuctionData data);
 }

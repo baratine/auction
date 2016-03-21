@@ -1,6 +1,5 @@
 package examples.auction;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,9 +10,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javax.inject.Inject;
+
 import io.baratine.service.Cancel;
 import io.baratine.service.Id;
-import io.baratine.service.Ids;
 import io.baratine.service.OnDestroy;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
@@ -65,14 +65,14 @@ public class AuctionSessionImpl implements AuctionSession
   private String _userId;
 
   //
-  private transient Set<AuctionDataPublic> _events = new HashSet<>();
+  private transient Set<AuctionData> _events = new HashSet<>();
   private transient Result<List<WebAuction>> _result;
 
   @Post()
   public void createUser(@Body UserInitData user, Result<WebUser> result)
   {
     _users.create(user,
-                  result.of(id -> new WebUser(Ids.encode(id), user.getUser())));
+                  result.of(id -> new WebUser(id, user.getUser())));
   }
 
   @Post()
@@ -101,11 +101,9 @@ public class AuctionSessionImpl implements AuctionSession
   {
     if (isLoggedIn) {
       _user = user;
-      log.finer("AuctionSessionImpl.completeLogin: " + this);
-      log.finer("AuctionSessionImpl.completeLogin: " + _user);
-      log.finer("AuctionSessionImpl.completeLogin: " + user);
+
       user.get(result.of(u -> {
-        _userId = u.getId();
+        _userId = u.getEncodedId();
         return true;
       }));
     }
@@ -143,14 +141,12 @@ public class AuctionSessionImpl implements AuctionSession
                      result.of((x, r) -> afterCreateAuction(x, r)));
   }
 
-  private void afterCreateAuction(long id, Result<WebAuction> result)
+  private void afterCreateAuction(String auctionId, Result<WebAuction> result)
   {
-    String encodedId = Ids.encode(id);
-
     Auction auction =
-      _auctionsServiceRef.lookup('/' + encodedId).as(Auction.class);
+      _auctionsServiceRef.lookup('/' + auctionId).as(Auction.class);
 
-    auction.open(result.of((b, r) -> getAuction(encodedId, r)));
+    auction.open(result.of((b, r) -> getAuction(auctionId, r)));
   }
 
   public void getAuction(String id, Result<WebAuction> result)
@@ -166,7 +162,7 @@ public class AuctionSessionImpl implements AuctionSession
     getAuctionService(id).get(result.of(a -> asWebAuction(a)));
   }
 
-  private WebAuction asWebAuction(AuctionDataPublic auction)
+  private WebAuction asWebAuction(AuctionData auction)
   {
     Auction.Bid bid = auction.getLastBid();
     int price = bid != null ? bid.getBid() : auction.getStartingBid();
@@ -207,21 +203,11 @@ public class AuctionSessionImpl implements AuctionSession
     _auctions.findAuctionDataByTitle(query, result.of(l -> asWebAuctions(l)));
   }
 
-  private List<WebAuction> asWebAuctions(List<AuctionDataPublic> auctions)
+  private List<WebAuction> asWebAuctions(List<AuctionData> auctions)
   {
-    System.out.println("AuctionSessionImpl.asWebAuctions " + auctions);
-
-    ArrayList<WebAuction> result = new ArrayList<>();
-    for (AuctionDataPublic auction : auctions) {
-      result.add(asWebAuction(auction));
-    }
-
-    return result;
-  }
-
-  private List<String> encodeIds(List<Long> ids)
-  {
-    return ids.stream().map(x -> Ids.encode(x)).collect(Collectors.toList());
+    return auctions.stream()
+                   .map(a -> asWebAuction(a))
+                   .collect(Collectors.toList());
   }
 
   /**
@@ -280,12 +266,12 @@ public class AuctionSessionImpl implements AuctionSession
     List<WebAuction> auctions = new ArrayList<>();
 
     if (_events.size() > 0) {
-      AuctionDataPublic[] events
-        = _events.toArray(new AuctionDataPublic[_events.size()]);
+      AuctionData[] events
+        = _events.toArray(new AuctionData[_events.size()]);
 
       _events.clear();
 
-      for (AuctionDataPublic event : events)
+      for (AuctionData event : events)
         auctions.add(asWebAuction(event));
 
       result.ok(auctions);
@@ -295,7 +281,7 @@ public class AuctionSessionImpl implements AuctionSession
     }
   }
 
-  public void addEvent(AuctionDataPublic event)
+  public void addEvent(AuctionData event)
   {
     _events.add(event);
 
@@ -386,7 +372,7 @@ public class AuctionSessionImpl implements AuctionSession
     }
 
     @Override
-    public void onBid(AuctionDataPublic auctionData)
+    public void onBid(AuctionData auctionData)
     {
       log.finer("on bid event for auction: " + auctionData);
 
@@ -394,7 +380,7 @@ public class AuctionSessionImpl implements AuctionSession
     }
 
     @Override
-    public void onClose(AuctionDataPublic auctionData)
+    public void onClose(AuctionData auctionData)
     {
       log.finer("on close event for auction: " + auctionData);
 
@@ -402,13 +388,13 @@ public class AuctionSessionImpl implements AuctionSession
     }
 
     @Override
-    public void onSettled(AuctionDataPublic auctionData)
+    public void onSettled(AuctionData auctionData)
     {
       addEvent(auctionData);
     }
 
     @Override
-    public void onRolledBack(AuctionDataPublic auctionData)
+    public void onRolledBack(AuctionData auctionData)
     {
       addEvent(auctionData);
     }

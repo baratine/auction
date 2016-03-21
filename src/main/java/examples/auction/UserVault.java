@@ -1,15 +1,16 @@
 package examples.auction;
 
-import com.caucho.v5.data.Sql;
+import com.caucho.v5.ramp.vault.Sql;
+import io.baratine.service.IdAsset;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.Vault;
 
 @Service("/user")
-public interface UserVault extends Vault<Long,UserImpl>
+public interface UserVault extends Vault<IdAsset,UserImpl>
 {
   void create(AuctionSession.UserInitData userInitData,
-              Result<Long> result);
+              Result<String> result);
 
   //@Sql("where __doc.name=?")
   @Sql("")

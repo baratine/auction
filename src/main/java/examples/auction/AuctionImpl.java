@@ -1,30 +1,30 @@
 package examples.auction;
 
-import javax.inject.Inject;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.baratine.service.Data;
+import javax.inject.Inject;
+
+import io.baratine.service.Asset;
 import io.baratine.service.Id;
-import io.baratine.service.Ids;
+import io.baratine.service.IdAsset;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.ServiceManager;
 import io.baratine.timer.TimerService;
 
-@Data
+@Asset
 public class AuctionImpl implements Auction
 {
   private final static Logger log
     = Logger.getLogger(AuctionImpl.class.getName());
 
   @Id
-  private long _id;
+  private IdAsset _id;
 
   private String _encodedId;
 
@@ -63,18 +63,16 @@ public class AuctionImpl implements Auction
   {
   }
 
+  @Override
   @Modify
   public void create(AuctionDataInit initData,
-                     Result<Long> result)
+                     Result<String> auctionId)
   {
-/*
-    if (_state != State.UNBOUND)
-      throw new IllegalStateException();
-*/
-
     ZonedDateTime date = ZonedDateTime.now();
     date = date.plusSeconds(15);
     ZonedDateTime closingDate = date;
+
+    log.log(Level.FINER, "XXX:0 " + _id + " / " + _id);
 
     _audit.auctionCreate(initData, Result.<Void>ignore());
 
@@ -85,21 +83,27 @@ public class AuctionImpl implements Auction
 
     _boundState = BoundState.BOUND;
 
-    result.ok(_id);
+    log.log(Level.FINER, "XXX:1 " + _id + " / " + _encodedId);
+
+    _encodedId = _id.toString();
+
+    log.log(Level.FINER, "XXX:2 " + _id + " / " + _encodedId);
+
+    auctionId.ok(_encodedId);
   }
 
-  private AuctionDataPublic getAuctionDataPublic()
+  private AuctionData getAuctionDataPublic()
   {
-    return new AuctionDataPublic(getEncodedId(),
-                                 _title,
-                                 _startingBid,
-                                 _dateToClose,
-                                 _ownerId,
-                                 _bids,
-                                 _lastBid,
-                                 _state,
-                                 _winnerId,
-                                 _settlementId);
+    return new AuctionData(getEncodedId(),
+                           _title,
+                           _startingBid,
+                           _dateToClose,
+                           _ownerId,
+                           _bids,
+                           _lastBid,
+                           _state,
+                           _winnerId,
+                           _settlementId);
   }
 
   public String getWinner()
@@ -158,9 +162,6 @@ public class AuctionImpl implements Auction
 
   public String getEncodedId()
   {
-    if (_encodedId == null)
-      _encodedId = Ids.encode(_id);
-
     return _encodedId;
   }
 
@@ -378,7 +379,7 @@ public class AuctionImpl implements Auction
     getEvents().onRolledBack(getAuctionDataPublic());
   }
 
-  public void get(Result<AuctionDataPublic> result)
+  public void get(Result<AuctionData> result)
   {
     if (log.isLoggable(Level.FINER))
       log.finer(String.format("@%1$d get %2$s %3$s",

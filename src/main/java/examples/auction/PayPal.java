@@ -4,7 +4,7 @@ import io.baratine.service.Result;
 
 public interface PayPal
 {
-  void settle(AuctionDataPublic auction,
+  void settle(AuctionData auction,
               Auction.Bid bid,
               CreditCard creditCard,
               String payPalRequestId,

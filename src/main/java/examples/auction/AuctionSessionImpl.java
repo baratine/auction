@@ -72,7 +72,14 @@ public class AuctionSessionImpl implements AuctionSession
   {
     String user = login.getFirst("u");
     String password = login.getFirst("p");
-    _users.findByName(user, result.of((u, r) -> authenticate(u, password, r)));
+
+    if (user == null || password == null) {
+      result.ok(false);
+    }
+    else {
+      _users.findByName(user,
+                        result.of((u, r) -> authenticate(u, password, r)));
+    }
   }
 
   private void authenticate(User user, String password, Result<Boolean> result)

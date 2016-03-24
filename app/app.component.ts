@@ -16,10 +16,16 @@ import {BidsComponent} from "./bids.component";
              selector: 'my-app',
              template: `
              <h1>{{title}}</h1>
-             <login-form></login-form>
-             <new-auction></new-auction>
-             <auctions></auctions>
-             <bids></bids>
+             <div class="panel">
+               <login-form></login-form>
+             </div>
+             <div class="panel">
+               <new-auction></new-auction>
+               <auctions></auctions>
+             </div>
+             <div class="panel">
+               <bids></bids>
+             </div>
              `,
              styleUrls: ['./app/app.component.css'],
              providers: [HTTP_PROVIDERS,

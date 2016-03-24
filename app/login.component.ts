@@ -14,6 +14,7 @@ import {AppComponent} from "./app.component";
 export class LoginComponent
 {
   user:User;
+  message:string;
 
   constructor(private _userService:UserService)
   {
@@ -21,15 +22,23 @@ export class LoginComponent
 
   login(user:string, password:string)
   {
-
     this._userService.login(user, password).subscribe(
       loggedIn =>
       {
-        console.log(loggedIn);
+        console.log("login: " + loggedIn);
+
+        if (loggedIn === "true") {
+          this.message = "login successful: " + user;
+        }
+        else {
+          this.message = "login failed.";
+        }
       },
       error =>
       {
         console.error(error);
+
+        this.message = "login failed: " + error;
       });
   }
 
@@ -44,6 +53,5 @@ export class LoginComponent
       {
         console.error(error);
       });
-
   }
 }

@@ -208,6 +208,7 @@ public class PayPalRestLink
   public String list(String token) throws IOException
   {
     Map<String,String> headers = new HashMap<>();
+
     headers.put("Content-Type", "application/json");
     headers.put("Authorization", "Bearer " + token);
 
@@ -220,9 +221,11 @@ public class PayPalRestLink
     throws IOException
   {
     Map<String,String> headers = new HashMap<>();
+
     headers.put("Content-Type", "application/json");
     headers.put("Authorization", "Bearer " + securityToken);
     headers.put("PayPal-Request-Id", payPalRequestId);
+
     String response = send("/v1/payments/sale/" + saleId + "/refund",
                            "POST",
                            headers,

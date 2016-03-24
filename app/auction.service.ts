@@ -2,6 +2,7 @@ import {Injectable}     from 'angular2/core';
 import {Http, Response, Headers, RequestOptions, URLSearchParams} from 'angular2/http';
 import {Observable}     from 'rxjs/Observable';
 
+import {BaseUrlProvider} from './baseurl';
 import {Auction, AuctionListener} from './auction';
 import {Request} from "angular2/http";
 import {Json} from "angular2/src/facade/lang";
@@ -12,14 +13,18 @@ export class AuctionService
 {
   private auctionListeners:AuctionListener[] = [];
 
-  private _createUrl = 'http://localhost:8080/createAuction';
-  private _searchUrl = 'http://localhost:8080/searchAuctions';
-  private _subscribeUrl = 'http://localhost:8080/addAuctionListener';
-  private _bidUrl = 'http://localhost:8080/bidAuction';
+  private _createUrl;
+  private _searchUrl;
+  private _subscribeUrl;
+  private _bidUrl;
 
-  constructor(private http:Http)
+  constructor(private http:Http, private _baseUrlProvider:BaseUrlProvider)
   {
     console.log("creating new AuctionService: " + http);
+    this._createUrl = _baseUrlProvider.baseUrl + "createAuction";
+    this._searchUrl = _baseUrlProvider.baseUrl + "searchAuctions";
+    this._subscribeUrl = _baseUrlProvider.baseUrl + "addAuctionListener";
+    this._bidUrl = _baseUrlProvider.baseUrl + "bidAuction";
   }
 
   public create(title:string, bid:number)

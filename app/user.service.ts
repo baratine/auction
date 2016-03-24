@@ -2,6 +2,7 @@ import {Injectable}     from 'angular2/core';
 import {Http, Response, Headers, RequestOptions} from 'angular2/http';
 import {Observable}     from 'rxjs/Observable';
 
+import {BaseUrlProvider} from './baseurl';
 import {User} from './user';
 import {Request} from "angular2/http";
 import {Json} from "angular2/src/facade/lang";
@@ -10,12 +11,15 @@ import {OnInit} from "angular2/core";
 @Injectable()
 export class UserService
 {
-  private _createUrl = 'http://localhost:8080/createUser';
-  private _loginUrl = 'http://localhost:8080/login';
+  private _createUrl;
+  private _loginUrl;
 
-  constructor(private http:Http)
+  constructor(private http:Http, private _baseUrlProvider:BaseUrlProvider)
   {
     console.log("creating new UserService: " + http);
+
+    this._createUrl = _baseUrlProvider.baseUrl + "createUser";
+    this._loginUrl = _baseUrlProvider.baseUrl + "login";
   }
 
   login(user:string, password:string)

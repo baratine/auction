@@ -8,6 +8,8 @@ import java.util.logging.Logger;
 
 import javax.inject.Inject;
 
+import io.baratine.event.EventService;
+import io.baratine.event.EventServiceSync;
 import io.baratine.service.Asset;
 import io.baratine.service.Id;
 import io.baratine.service.IdAsset;
@@ -56,6 +58,9 @@ public class AuctionImpl implements Auction
   @Inject
   @Service("/audit")
   private transient AuditService _audit;
+
+  @Inject
+  private transient EventServiceSync _eventService;
 
   private transient AuctionEvents _events;
 
@@ -235,11 +240,8 @@ public class AuctionImpl implements Auction
 
   private AuctionEvents getEvents()
   {
-    if (_events == null) {
-      String url = "event:///auction/" + getEncodedId();
-
-      _events = _manager.service(url).as(AuctionEvents.class);
-    }
+    if (_events == null)
+      _events = _eventService.publishPath(_encodedId, AuctionEvents.class);
 
     return _events;
   }

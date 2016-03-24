@@ -9,8 +9,8 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import io.baratine.event.EventService;
 import io.baratine.service.Api;
-import io.baratine.service.Cancel;
 import io.baratine.service.Id;
 import io.baratine.service.OnDestroy;
 import io.baratine.service.Result;
@@ -53,6 +53,9 @@ public class AuctionSessionImpl implements AuctionSession
   @Service("/user")
   private UserVault _users;
 
+  @Inject
+  private EventService _eventService;
+
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
 
   private User _user;
@@ -60,14 +63,14 @@ public class AuctionSessionImpl implements AuctionSession
 
   private WebAuctionUpdateListener _webListener;
 
-  @Post()
+  @Post("/user/createUser")
   public void createUser(@Body UserInitData user, Result<WebUser> result)
   {
     _users.create(user,
                   result.of(id -> new WebUser(id.toString(), user.getUser())));
   }
 
-  @Post()
+  @Post("/user/login")
   public void login(@Body Form login, Result<Boolean> result)
   {
     String user = login.getFirst("u");
@@ -124,7 +127,7 @@ public class AuctionSessionImpl implements AuctionSession
     _user.get(userData);
   }
 
-  @Post()
+  @Post("/user/createAuction")
   public void createAuction(@Body Form form, Result<WebAuction> result)
   {
     log.finer("AuctionSessionImpl.createAuction: " + this);
@@ -194,7 +197,7 @@ public class AuctionSessionImpl implements AuctionSession
   }
 
   @Override
-  @Get
+  @Get("/user/searchAuctions")
   public void searchAuctions(@Query("q") String query,
                              Result<List<WebAuction>> result)
   {
@@ -216,7 +219,7 @@ public class AuctionSessionImpl implements AuctionSession
    * @param bid    the new bid
    * @param result true for successful auction.
    */
-  @Post
+  @Post("/user/bidAuction")
   public void bidAuction(@Body WebBid bid, Result<Boolean> result)
   {
     if (_user == null) {
@@ -233,7 +236,7 @@ public class AuctionSessionImpl implements AuctionSession
     _webListener = listener;
   }
 
-  @Post
+  @Post("/user/addAuctionListener")
   public void addAuctionListener(@Body String id, Result<Boolean> result)
   {
     Objects.requireNonNull(id);
@@ -262,13 +265,11 @@ public class AuctionSessionImpl implements AuctionSession
     if (_listenerMap.containsKey(id))
       return;
 
-    String url = "event:///auction/" + id;
-
     log.finer("add auction events listener for auction: " + id);
 
-    ServiceRef queue = _manager.service(url);
+    AuctionEventsImpl auctionListener = new AuctionEventsImpl();
 
-    AuctionEventsImpl auctionListener = new AuctionEventsImpl(queue);
+    _eventService.subscribe(id, auctionListener, (c, e) -> {});
 
     auctionListener.subscribe();
 
@@ -316,22 +317,18 @@ public class AuctionSessionImpl implements AuctionSession
 
   private class AuctionEventsImpl implements AuctionEvents
   {
-    private final ServiceRef _eventRef;
-    private Cancel _cancel;
-
-    AuctionEventsImpl(ServiceRef eventRef)
+    AuctionEventsImpl()
     {
-      _eventRef = eventRef;
     }
 
     public void subscribe()
     {
-      _cancel = _eventRef.subscribe(this);
+
     }
 
     public void unsubscribe()
     {
-      _cancel.cancel();
+
     }
 
     @Override

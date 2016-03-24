@@ -4,8 +4,9 @@ import { HTTP_PROVIDERS } from 'angular2/http';
 import {ROUTER_DIRECTIVES} from "angular2/router";
 import {ROUTER_PROVIDERS} from "angular2/router";
 
+import {BaseUrlProvider} from "./baseurl";
 import {User} from "./user";
-import { LoginComponent } from './login.component';
+import {LoginComponent} from './login.component';
 import {NewAuctionComponent} from "./new-auction.component";
 import {AuctionsComponent} from "./auctions.component";
 import {UserService} from "./user.service";
@@ -30,6 +31,7 @@ import {BidsComponent} from "./bids.component";
              styleUrls: ['./app/app.component.css'],
              providers: [HTTP_PROVIDERS,
                          ROUTER_PROVIDERS,
+                         BaseUrlProvider,
                          UserService,
                          AuctionService,
                          AuctionsComponent],

@@ -25,7 +25,7 @@
       <td>{{bid.title}}</td>
       <td>{{bid.bid}}</td>
       <td>
-        <a href="" class="btn-link" (click)="placeBid(bid)">Bid</a>
+        <button class="btn-link" [disabled]="'OPEN' !== (bid.state.toUpperCase())" (click)="placeBid(bid)">Bid</button>
       </td>
       <td>{{bid.state}}</td>
     </tr>

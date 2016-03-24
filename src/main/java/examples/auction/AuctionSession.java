@@ -28,15 +28,10 @@ public interface AuctionSession
 
   void bidAuction(WebBid bid, Result<Boolean> result);
 
-  void setListener(@Service ChannelListener listener,
-                   Result<Boolean> result);
-
   void addAuctionUpdateListener(WebAuctionUpdateListener listener);
 
   void addAuctionListener(String idAuction,
                           Result<Boolean> result);
-
-  void pollEvents(Result<List<WebAuction>> result);
 
   void logout(Result<Boolean> result);
 

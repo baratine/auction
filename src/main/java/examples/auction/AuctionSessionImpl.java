@@ -1,11 +1,8 @@
 package examples.auction;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -62,14 +59,8 @@ public class AuctionSessionImpl implements AuctionSession
 
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
 
-  private ChannelListener _listener;
-
   private User _user;
   private String _userId;
-
-  //
-  private transient Set<AuctionData> _events = new HashSet<>();
-  private transient Result<List<WebAuction>> _result;
 
   private WebAuctionUpdateListener _webListener;
 
@@ -234,18 +225,6 @@ public class AuctionSessionImpl implements AuctionSession
       .bid(new AuctionBid(_userId, bid.getBid()), result);
   }
 
-  public void setListener(@Service ChannelListener listener,
-                          Result<Boolean> result)
-  {
-    Objects.requireNonNull(listener);
-
-    log.finer("set auction channel listener: " + listener);
-
-    _listener = listener;
-
-    result.ok(true);
-  }
-
   @Override
   public void addAuctionUpdateListener(WebAuctionUpdateListener listener)
   {
@@ -270,55 +249,10 @@ public class AuctionSessionImpl implements AuctionSession
     }
   }
 
-  @Override
-  @Get
-  public void pollEvents(Result<List<WebAuction>> result)
-  {
-    log.finer("poll events: " + _events);
-
-    List<WebAuction> auctions = new ArrayList<>();
-
-    if (_events.size() > 0) {
-      AuctionData[] events
-        = _events.toArray(new AuctionData[_events.size()]);
-
-      _events.clear();
-
-      for (AuctionData event : events) {
-        WebAuction webAuction = asWebAuction(event);
-        auctions.add(webAuction);
-
-        System.out.println("AuctionSessionImpl.pollEvents "
-                           + _webListener
-                           + ": "
-                           + webAuction);
-
-        if (_webListener != null)
-          _webListener.auctionUpdated(webAuction);
-      }
-
-      result.ok(auctions);
-    }
-    else {
-      _result = result;
-    }
-  }
-
   public void addEvent(AuctionData event)
   {
-    _events.add(event);
-
-    if (_webListener != null) {
+    if (_webListener != null)
       _webListener.auctionUpdated(asWebAuction(event));
-    }
-
-    if (_result != null) {
-      Result<List<WebAuction>> result = _result;
-
-      _result = null;
-
-      pollEvents(result);
-    }
   }
 
   private void addAuctionListenerImpl(String id)

@@ -26,8 +26,6 @@ public class AuctionSocket
   public void next(String s, WebSocket<AuctionSession.WebAuction> webSocket)
     throws IOException
   {
-    System.out.println("AuctionSocket.next: " + s + ", " + webSocket);
-
   }
 
   @Override
@@ -52,8 +50,6 @@ public class AuctionSocket
     @Override
     public void auctionUpdated(AuctionSession.WebAuction auction)
     {
-      System.out.println("WebAuctionUpdateListener.auctionUpdated " + auction);
-
       _webSocket.next(auction);
     }
   }

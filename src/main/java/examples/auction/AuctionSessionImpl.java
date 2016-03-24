@@ -42,10 +42,6 @@ public class AuctionSessionImpl implements AuctionSession
   private ServiceManager _manager;
 
   @Inject
-  @Service("/user")
-  private ServiceRef _usersServiceRef;
-
-  @Inject
   @Service("/auction")
   private AuctionVault _auctions;
 
@@ -67,7 +63,6 @@ public class AuctionSessionImpl implements AuctionSession
   @Post()
   public void createUser(@Body UserInitData user, Result<WebUser> result)
   {
-    System.out.println("AuctionSessionImpl.createUser " + ServiceRef.current());
     _users.create(user,
                   result.of(id -> new WebUser(id.toString(), user.getUser())));
   }

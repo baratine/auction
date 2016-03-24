@@ -56,7 +56,6 @@ export class AuctionService
   {
     for (var listener of this.auctionListeners)
       listener.onNew(auction);
-
   }
 
   public subscribe(auction:Auction)
@@ -92,21 +91,18 @@ export class AuctionService
   {
     var websocket = new WebSocket("ws://localhost:8080/auction-updates");
 
-    var x = this;
+    var self = this;
     websocket.addEventListener("message", function (e:MessageEvent)
     {
-      x.auctionUpdate(x, e);
+      self.auctionUpdate(self, e);
     });
   }
 
   private auctionUpdate(self:AuctionService, e:MessageEvent)
   {
-    console.log("message: " + e.data);
-
     var auction = Json.parse(e.data);
     var auctions:Auction[] = [<Auction>auction];
 
-    console.log("this: " + this);
     self.update(auctions);
   }
 

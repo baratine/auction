@@ -1,6 +1,5 @@
 package examples.auction;
 
-import javax.inject.Singleton;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,6 +16,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.inject.Singleton;
 
 @Singleton
 public class PayPalRestLink
@@ -128,15 +129,20 @@ public class PayPalRestLink
       return new String(buffer.toByteArray());
     }
     else {
-      System.out.println(connection.getResponseCode());
+      log.warning(String.format("error response %1$d", responseCode));
+
+      StringBuilder error = new StringBuilder();
+
       InputStream err = connection.getErrorStream();
       int i;
       while ((i = err.read()) > 0)
-        System.out.print((char) i);
+        error.append((char) i);
 
-      throw new IllegalStateException(connection.getResponseMessage()
+      throw new IllegalStateException(responseCode
                                       + ": "
-                                      + connection.getResponseMessage());
+                                      + connection.getResponseMessage()
+                                      + ": "
+                                      + error);
     }
   }
 
@@ -185,7 +191,7 @@ public class PayPalRestLink
                               currency,
                               description);
 
-      System.out.println(payment);
+      log.finer(payment);
     }
 
     Map<String,String> headers = new HashMap<>();

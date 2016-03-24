@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import javax.inject.Inject;
 
 import io.baratine.service.Cancel;
+import io.baratine.service.IdAsset;
 import io.baratine.service.OnDestroy;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
@@ -162,7 +163,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
   }
 
   @Override
-  public void search(String query, Result<List<Long>> result)
+  public void search(String query, Result<List<IdAsset>> result)
   {
     log.info(String.format("search %1$s", query));
 

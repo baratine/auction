@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import io.baratine.service.Api;
 import io.baratine.service.Cancel;
 import io.baratine.service.Id;
 import io.baratine.service.OnDestroy;
@@ -31,6 +32,7 @@ import io.baratine.web.Query;
  */
 @Service("session:")
 @CrossOrigin(value = "*", allowCredentials = true)
+@Api(AuctionSession.class)
 public class AuctionSessionImpl implements AuctionSession
 {
   private final static Logger log
@@ -59,6 +61,7 @@ public class AuctionSessionImpl implements AuctionSession
   private UserVault _users;
 
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
+
   private ChannelListener _listener;
 
   private User _user;
@@ -68,11 +71,14 @@ public class AuctionSessionImpl implements AuctionSession
   private transient Set<AuctionData> _events = new HashSet<>();
   private transient Result<List<WebAuction>> _result;
 
+  private WebAuctionUpdateListener _webListener;
+
   @Post()
   public void createUser(@Body UserInitData user, Result<WebUser> result)
   {
+    System.out.println("AuctionSessionImpl.createUser " + ServiceRef.current());
     _users.create(user,
-                  result.of(id -> new WebUser(id, user.getUser())));
+                  result.of(id -> new WebUser(id.toString(), user.getUser())));
   }
 
   @Post()
@@ -138,7 +144,8 @@ public class AuctionSessionImpl implements AuctionSession
     Integer bid = Integer.parseInt(form.getFirst("b"));
 
     _auctions.create(new AuctionDataInit(_userId, title, bid),
-                     result.of((x, r) -> afterCreateAuction(x, r)));
+                     result.of((id, r) -> afterCreateAuction(id.toString(),
+                                                             r)));
   }
 
   private void afterCreateAuction(String auctionId, Result<WebAuction> result)
@@ -239,6 +246,12 @@ public class AuctionSessionImpl implements AuctionSession
     result.ok(true);
   }
 
+  @Override
+  public void addAuctionUpdateListener(WebAuctionUpdateListener listener)
+  {
+    _webListener = listener;
+  }
+
   @Post
   public void addAuctionListener(@Body String id, Result<Boolean> result)
   {
@@ -271,8 +284,13 @@ public class AuctionSessionImpl implements AuctionSession
 
       _events.clear();
 
-      for (AuctionData event : events)
-        auctions.add(asWebAuction(event));
+      for (AuctionData event : events) {
+        WebAuction webAuction = asWebAuction(event);
+        auctions.add(webAuction);
+
+        if (_webListener != null)
+          _webListener.auctionUpdated(webAuction);
+      }
 
       result.ok(auctions);
     }

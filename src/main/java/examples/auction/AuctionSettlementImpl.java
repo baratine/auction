@@ -50,12 +50,12 @@ public class AuctionSettlementImpl implements AuctionSettlement
   }
 
   @Modify
-  public void create(AuctionData data, Result<String> result)
+  public void create(AuctionData data, Result<IdAsset> result)
   {
     _bid = data.getLastBid();
     _state = new SettlementTransactionState();
 
-    result.ok(getEncodedId());
+    result.ok(_id);
   }
 
   @Override

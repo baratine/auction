@@ -39,7 +39,7 @@ public class UserImpl implements User
   @Override
   @Modify
   public void create(AuctionSession.UserInitData userInitData,
-                     Result<String> userId)
+                     Result<IdAsset> userId)
   {
     log.finer(String.format("create new user: %1$s", userInitData.getUser()));
 
@@ -49,7 +49,7 @@ public class UserImpl implements User
 
     _encodedId = _id.toString();
 
-    userId.ok(_encodedId);
+    userId.ok(_id);
   }
 
   private String getEncodedId()

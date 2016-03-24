@@ -27,6 +27,7 @@ export class AuctionsComponent implements AuctionListener, OnInit
   {
     this._auctionService.addAuctionListener(this);
     this._auctionService.poll();
+    this._auctionService.registerForAuctionUpdates();
   }
 
   onNew(auction:Auction)

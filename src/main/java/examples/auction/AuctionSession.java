@@ -31,12 +31,19 @@ public interface AuctionSession
   void setListener(@Service ChannelListener listener,
                    Result<Boolean> result);
 
+  void addAuctionUpdateListener(WebAuctionUpdateListener listener);
+
   void addAuctionListener(String idAuction,
                           Result<Boolean> result);
 
   void pollEvents(Result<List<WebAuction>> result);
 
   void logout(Result<Boolean> result);
+
+  interface WebAuctionUpdateListener
+  {
+    void auctionUpdated(WebAuction auction);
+  }
 
   class WebAuction
   {

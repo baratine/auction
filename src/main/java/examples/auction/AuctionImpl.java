@@ -66,7 +66,7 @@ public class AuctionImpl implements Auction
   @Override
   @Modify
   public void create(AuctionDataInit initData,
-                     Result<String> auctionId)
+                     Result<IdAsset> auctionId)
   {
     ZonedDateTime date = ZonedDateTime.now();
     date = date.plusSeconds(15);
@@ -89,7 +89,7 @@ public class AuctionImpl implements Auction
 
     log.log(Level.FINER, "XXX:2 " + _id + " / " + _encodedId);
 
-    auctionId.ok(_encodedId);
+    auctionId.ok(_id);
   }
 
   private AuctionData getAuctionDataPublic()
@@ -249,7 +249,7 @@ public class AuctionImpl implements Auction
     if (_settlementId == null) {
       _settlementVault.create(getAuctionDataPublic(),
                               result.of(s -> {
-                                _settlementId = s;
+                                _settlementId = s.toString();
                                 return _manager.service("/settlement/" + s)
                                                .as(AuctionSettlement.class);
                               }));
@@ -481,7 +481,7 @@ public class AuctionImpl implements Auction
            + _boundState
            + ", "
            + getAuctionDataPublic()
-           + "]";
+           + "]@" + System.identityHashCode(this);
   }
 
   enum BoundState

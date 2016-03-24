@@ -1,11 +1,12 @@
 package examples.auction;
 
+import io.baratine.service.IdAsset;
 import io.baratine.service.Result;
 
 public interface Auction
 {
   void create(AuctionDataInit initData,
-              Result<String> auctionId);
+              Result<IdAsset> auctionId);
 
   void open(Result<Boolean> result);
 

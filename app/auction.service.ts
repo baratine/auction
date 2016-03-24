@@ -108,6 +108,18 @@ export class AuctionService
       .map(res=>this.map(res)).catch(this.handleError);
   }
 
+  public registerForAuctionUpdates()
+  {
+    var websocket = new WebSocket("ws://localhost:8080/auction-updates");
+
+    websocket.addEventListener("message", this.auctionUpdate);
+  }
+
+  private auctionUpdate(e:MessageEvent)
+  {
+    console.log("message" + e.data);
+  }
+
   private map(res:Response)
   {
     return res.json();

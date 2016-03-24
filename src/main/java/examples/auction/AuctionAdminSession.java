@@ -2,6 +2,7 @@ package examples.auction;
 
 import java.util.List;
 
+import io.baratine.service.IdAsset;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 
@@ -18,11 +19,12 @@ public interface AuctionAdminSession
 
   void getWinner(String auctionId, Result<UserData> result);
 
-  void getSettlementState(String auctionId, Result<SettlementTransactionState> result);
+  void getSettlementState(String auctionId,
+                          Result<SettlementTransactionState> result);
 
   void getAuction(String id, Result<AuctionData> result);
 
-  void search(String query, Result<List<Long>> result);
+  void search(String query, Result<List<IdAsset>> result);
 
   void setListener(@Service ChannelListener listener, Result<Boolean> result);
 

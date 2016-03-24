@@ -1,10 +1,11 @@
 package examples.auction;
 
+import static io.baratine.web.Web.*;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.caucho.v5.ramp.jamp.WebJamp;
-import static io.baratine.web.Web.*;
 
 public class Main
 {
@@ -12,6 +13,8 @@ public class Main
   {
     //property("server.file", "classpath:/public");
     property("server.file", "/Users/alex/projects/baratine-github/auction");
+
+    websocket("/auction-updates").to(AuctionSocket.class);
 
     include(AuctionAdminSessionImpl.class);
     include(AuctionSessionImpl.class);

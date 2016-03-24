@@ -1,11 +1,12 @@
 package examples.auction;
 
+import io.baratine.service.IdAsset;
 import io.baratine.service.Result;
 
 public interface User
 {
   void create(AuctionSessionImpl.UserInitData user,
-              Result<String> userId);
+              Result<IdAsset> userId);
 
   void authenticate(String password,
                     boolean isAdmin,

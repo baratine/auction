@@ -9,5 +9,5 @@ import io.baratine.service.Vault;
 public interface AuctionSettlementVault
   extends Vault<IdAsset,AuctionSettlementImpl>
 {
-  void create(AuctionData data, Result<String> result);
+  void create(AuctionData data, Result<IdAsset> result);
 }

@@ -82,42 +82,32 @@ export class AuctionService
       .map(res=>res.text()).catch(this.handleError);
   }
 
-  poll()
-  {
-    console.log("poll");
-    this.pollEvents().subscribe(result=>
-                                {
-                                  console.log("poll :" + result);
-                                  this.update(result);
-                                  this.poll();
-                                }, error=>
-                                {
-                                  console.error(error);
-                                });
-  }
-
-  private update(auctions:Auction[])
+  public update(auctions:Auction[])
   {
     for (var listener of this.auctionListeners)
       listener.onUpdate(auctions);
-  }
-
-  private pollEvents()
-  {
-    return this.http.get(this._pollEvents)
-      .map(res=>this.map(res)).catch(this.handleError);
   }
 
   public registerForAuctionUpdates()
   {
     var websocket = new WebSocket("ws://localhost:8080/auction-updates");
 
-    websocket.addEventListener("message", this.auctionUpdate);
+    var x = this;
+    websocket.addEventListener("message", function (e:MessageEvent)
+    {
+      x.auctionUpdate(x, e);
+    });
   }
 
-  private auctionUpdate(e:MessageEvent)
+  private auctionUpdate(self:AuctionService, e:MessageEvent)
   {
-    console.log("message" + e.data);
+    console.log("message: " + e.data);
+
+    var auction = Json.parse(e.data);
+    var auctions:Auction[] = [<Auction>auction];
+
+    console.log("this: " + this);
+    self.update(auctions);
   }
 
   private map(res:Response)

@@ -26,7 +26,6 @@ export class AuctionsComponent implements AuctionListener, OnInit
   ngOnInit():any
   {
     this._auctionService.addAuctionListener(this);
-    this._auctionService.poll();
     this._auctionService.registerForAuctionUpdates();
   }
 

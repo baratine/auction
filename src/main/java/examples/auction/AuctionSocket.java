@@ -52,6 +52,8 @@ public class AuctionSocket
     @Override
     public void auctionUpdated(AuctionSession.WebAuction auction)
     {
+      System.out.println("WebAuctionUpdateListener.auctionUpdated " + auction);
+
       _webSocket.next(auction);
     }
   }

@@ -288,6 +288,11 @@ public class AuctionSessionImpl implements AuctionSession
         WebAuction webAuction = asWebAuction(event);
         auctions.add(webAuction);
 
+        System.out.println("AuctionSessionImpl.pollEvents "
+                           + _webListener
+                           + ": "
+                           + webAuction);
+
         if (_webListener != null)
           _webListener.auctionUpdated(webAuction);
       }
@@ -302,6 +307,10 @@ public class AuctionSessionImpl implements AuctionSession
   public void addEvent(AuctionData event)
   {
     _events.add(event);
+
+    if (_webListener != null) {
+      _webListener.auctionUpdated(asWebAuction(event));
+    }
 
     if (_result != null) {
       Result<List<WebAuction>> result = _result;

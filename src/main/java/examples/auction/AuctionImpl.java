@@ -234,7 +234,7 @@ public class AuctionImpl implements Auction
   private AuctionEvents getEvents()
   {
     if (_events == null)
-      _events = _eventService.publishPath(_encodedId, AuctionEvents.class);
+      _events = _eventService.publisherPath(_encodedId, AuctionEvents.class);
 
     return _events;
   }
@@ -260,7 +260,6 @@ public class AuctionImpl implements Auction
                                   return settlement;
                                 } catch (Exception e) {
                                   log.log(Level.SEVERE, e.getMessage(), e);
-
 
                                   throw new RuntimeException(e);
                                 }

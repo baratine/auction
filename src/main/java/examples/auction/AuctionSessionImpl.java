@@ -21,6 +21,7 @@ import io.baratine.web.Body;
 import io.baratine.web.CrossOrigin;
 import io.baratine.web.Form;
 import io.baratine.web.Get;
+import io.baratine.web.Path;
 import io.baratine.web.Post;
 import io.baratine.web.Query;
 
@@ -30,6 +31,7 @@ import io.baratine.web.Query;
 @Service("session:")
 @CrossOrigin(value = "*", allowCredentials = true)
 @Api(AuctionSession.class)
+@Path("/user")
 public class AuctionSessionImpl implements AuctionSession
 {
   private final static Logger log
@@ -63,14 +65,14 @@ public class AuctionSessionImpl implements AuctionSession
 
   private WebAuctionUpdateListener _webListener;
 
-  @Post("/user/createUser")
+  @Post("/createUser")
   public void createUser(@Body UserInitData user, Result<WebUser> result)
   {
     _users.create(user,
                   result.of(id -> new WebUser(id.toString(), user.getUser())));
   }
 
-  @Post("/user/login")
+  @Post("/login")
   public void login(@Body Form login, Result<Boolean> result)
   {
     String user = login.getFirst("u");
@@ -127,7 +129,7 @@ public class AuctionSessionImpl implements AuctionSession
     _user.get(userData);
   }
 
-  @Post("/user/createAuction")
+  @Post("/createAuction")
   public void createAuction(@Body Form form, Result<WebAuction> result)
   {
     log.finer("AuctionSessionImpl.createAuction: " + this);
@@ -197,7 +199,7 @@ public class AuctionSessionImpl implements AuctionSession
   }
 
   @Override
-  @Get("/user/searchAuctions")
+  @Get("/searchAuctions")
   public void searchAuctions(@Query("q") String query,
                              Result<List<WebAuction>> result)
   {
@@ -219,7 +221,7 @@ public class AuctionSessionImpl implements AuctionSession
    * @param bid    the new bid
    * @param result true for successful auction.
    */
-  @Post("/user/bidAuction")
+  @Post("/bidAuction")
   public void bidAuction(@Body WebBid bid, Result<Boolean> result)
   {
     if (_user == null) {
@@ -236,7 +238,7 @@ public class AuctionSessionImpl implements AuctionSession
     _webListener = listener;
   }
 
-  @Post("/user/addAuctionListener")
+  @Post("/addAuctionListener")
   public void addAuctionListener(@Body String id, Result<Boolean> result)
   {
     Objects.requireNonNull(id);
@@ -269,7 +271,7 @@ public class AuctionSessionImpl implements AuctionSession
 
     AuctionEventsImpl auctionListener = new AuctionEventsImpl();
 
-    _eventService.subscribe(id, auctionListener, (c, e) -> {});
+    _eventService.subscriber(id, auctionListener, (c, e) -> {});
 
     auctionListener.subscribe();
 

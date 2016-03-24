@@ -17,7 +17,7 @@ import {AuctionListener} from "./auction";
            })
 export class BidsComponent implements OnInit, AuctionListener
 {
-  public bids:Auction[] = [];
+  public bids:Auction[] = [];//[{"id":"laksdfj", "title":"j test ", "bid":3, "state":"open"}];
 
   constructor(private _auctionService:AuctionService)
   {
@@ -64,6 +64,8 @@ export class BidsComponent implements OnInit, AuctionListener
                                             {
                                               console.error(error);
                                             });
+
+    return false;
   }
 
   onNew(auction:Auction)

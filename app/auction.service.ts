@@ -16,7 +16,6 @@ export class AuctionService
   private _searchUrl = 'http://localhost:8080/searchAuctions';
   private _subscribeUrl = 'http://localhost:8080/addAuctionListener';
   private _bidUrl = 'http://localhost:8080/bidAuction';
-  private _pollEvents = 'http://localhost:8080/pollEvents';
 
   constructor(private http:Http)
   {

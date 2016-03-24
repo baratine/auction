@@ -37,5 +37,10 @@ export class AuctionsComponent implements AuctionListener, OnInit
 
   onUpdate(auctions:Auction[])
   {
+    for (var auction of auctions) {
+      var i = this.auctions.findIndex(x =>x.id == auction.id);
+      if (i > -1)
+        this.auctions[i] = auction;
+    }
   }
 }

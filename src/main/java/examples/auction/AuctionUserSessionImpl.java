@@ -1,8 +1,10 @@
 package examples.auction;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.baratine.service.Api;
+import io.baratine.service.OnInit;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.web.Body;

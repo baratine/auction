@@ -4,6 +4,9 @@ import java.io.IOException;
 
 import javax.inject.Inject;
 
+import io.baratine.pipe.PipeIn;
+import io.baratine.pipe.PipeService;
+import io.baratine.pipe.Pipes;
 import io.baratine.service.Id;
 import io.baratine.service.Service;
 import io.baratine.service.ServiceManager;
@@ -12,13 +15,20 @@ import io.baratine.web.WebSocket;
 
 @Service("session:")
 public class AuctionSocket
-  implements ServiceWebSocket<String,AuctionUserSession.WebAuction>
+  implements ServiceWebSocket<String,AuctionUserSession.WebAuction>,
+  PipeIn<AuctionSession.WebAuction>
 {
-  @Inject
-  ServiceManager _manager;
   @Id
   private String _id;
-  private WebSocket<AuctionUserSession.WebAuction> _webSocket;
+
+  @Inject
+  ServiceManager _manager;
+
+  @Inject
+  @Service("pipe:///test")
+  PipeService<AuctionSession.WebAuction> _pipeService;
+
+  private WebSocket<AuctionUserSession.WebAuction> _ws;
 
   @Override
   public void next(String s, WebSocket<AuctionUserSession.WebAuction> webSocket)
@@ -27,31 +37,28 @@ public class AuctionSocket
   }
 
   @Override
-  public void open(WebSocket<AuctionUserSession.WebAuction> webSocket)
+  public void ok()
   {
-    _webSocket = webSocket;
 
-    AuctionUserSession auctionSession
-      = _manager.service("session:///"
-                         + AuctionUserSessionImpl.class.getSimpleName()
-                         + "/"
-                         + _id)
-                .as(AuctionUserSession.class);
-
-    AuctionUserSession.WebAuctionUpdateListener listener
-      = _manager.newService(new WebAuctionUpdateListener())
-                .as(AuctionUserSession.WebAuctionUpdateListener.class);
-
-    auctionSession.addAuctionUpdateListener(listener);
   }
 
-  class WebAuctionUpdateListener
-    implements AuctionUserSession.WebAuctionUpdateListener
+  @Override
+  public void fail(Throwable throwable)
   {
-    @Override
-    public void auctionUpdated(AuctionUserSession.WebAuction auction)
-    {
-      _webSocket.next(auction);
-    }
+
+  }
+
+  @Override
+  public void next(AuctionSession.WebAuction o)
+  {
+    _ws.next(o);
+  }
+
+  @Override
+  public void open(WebSocket<AuctionUserSession.WebAuction> webSocket)
+  {
+    _ws = webSocket;
+
+    _pipeService.subscribe(Pipes.in(this));
   }
 }

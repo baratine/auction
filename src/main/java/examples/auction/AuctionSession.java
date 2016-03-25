@@ -20,8 +20,6 @@ public interface AuctionSession
 
   void searchAuctions(String query, Result<List<WebAuction>> result);
 
-  void addAuctionUpdateListener(WebAuctionUpdateListener listener);
-
   void addAuctionListener(String idAuction,
                           Result<Boolean> result);
 

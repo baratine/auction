@@ -10,10 +10,14 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import io.baratine.event.EventService;
+import io.baratine.pipe.PipeOut;
+import io.baratine.pipe.PipeService;
 import io.baratine.service.Id;
 import io.baratine.service.OnDestroy;
+import io.baratine.service.OnInit;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
+import io.baratine.service.ServiceManager;
 import io.baratine.service.ServiceRef;
 import io.baratine.web.Body;
 import io.baratine.web.Form;
@@ -28,6 +32,9 @@ public abstract class AbstractAuctionSession implements AuctionSession
 
   @Id
   protected String _id;
+
+  @Inject
+  private ServiceManager _manager;
 
   @Inject
   @Service("/auction")
@@ -53,7 +60,28 @@ public abstract class AbstractAuctionSession implements AuctionSession
   protected String _userId;
 
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
-  private AuctionUserSession.WebAuctionUpdateListener _webListener;
+
+  @Inject
+  @Service("pipe:///test")
+  PipeService<WebAuction> _pipeService;
+
+  private PipeOut<WebAuction> _auctionUpdates;
+
+  @OnInit
+  public void init()
+  {
+    log.log(Level.FINER, "auction updates pipe service " + _pipeService);
+
+    _pipeService.publish((x, e) -> {
+
+      log.log(Level.FINER, "auction updates pipe " + x);
+
+      if (e != null)
+        log.log(Level.WARNING, "ERR", e);
+
+      _auctionUpdates = x;
+    });
+  }
 
   @Post("/createUser")
   public void createUser(@Body AuctionUserSession.UserInitData user,
@@ -190,11 +218,6 @@ public abstract class AbstractAuctionSession implements AuctionSession
                    .collect(Collectors.toList());
   }
 
-  public void addAuctionUpdateListener(AuctionUserSession.WebAuctionUpdateListener listener)
-  {
-    _webListener = listener;
-  }
-
   @Post("/addAuctionListener")
   public void addAuctionListener(@Body String id, Result<Boolean> result)
   {
@@ -232,8 +255,7 @@ public abstract class AbstractAuctionSession implements AuctionSession
 
   public void addEvent(AuctionData event)
   {
-    if (_webListener != null)
-      _webListener.auctionUpdated(asWebAuction(event));
+    _auctionUpdates.next(asWebAuction(event));
   }
 
   public void logout(Result<Boolean> result)

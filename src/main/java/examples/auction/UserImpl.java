@@ -52,11 +52,6 @@ public class UserImpl implements User
     userId.ok(_id);
   }
 
-  private String getEncodedId()
-  {
-    return _encodedId;
-  }
-
   public String digest(String password)
   {
     try {
@@ -94,6 +89,11 @@ public class UserImpl implements User
   public void get(Result<UserData> user)
   {
     user.ok(new UserData(getEncodedId(), _name));
+  }
+
+  private String getEncodedId()
+  {
+    return _encodedId;
   }
 
   @Override

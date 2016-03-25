@@ -90,20 +90,6 @@ public class AuctionImpl implements Auction
     auctionId.ok(_id);
   }
 
-  private AuctionData getAuctionDataPublic()
-  {
-    return new AuctionData(getEncodedId(),
-                           _title,
-                           _startingBid,
-                           _dateToClose,
-                           _ownerId,
-                           _bids,
-                           _lastBid,
-                           _state,
-                           _winnerId,
-                           _settlementId);
-  }
-
   public String getWinner()
   {
     return _winnerId;
@@ -156,11 +142,6 @@ public class AuctionImpl implements Auction
                       getEncodedId(),
                       _state));
     }
-  }
-
-  public String getEncodedId()
-  {
-    return _encodedId;
   }
 
   private void startCloseTimer()
@@ -231,14 +212,6 @@ public class AuctionImpl implements Auction
                                                                 == AuctionSettlement.Status.ROLLED_BACK))));
   }
 
-  private AuctionEvents getEvents()
-  {
-    if (_events == null)
-      _events = _eventService.publisherPath(_encodedId, AuctionEvents.class);
-
-    return _events;
-  }
-
   private void getAuctionSettlement(Result<AuctionSettlement> result)
   {
     log.finer("getAuctionSettlement: 0 " + _settlementId);
@@ -273,6 +246,25 @@ public class AuctionImpl implements Auction
     }
   }
 
+  private AuctionData getAuctionDataPublic()
+  {
+    return new AuctionData(getEncodedId(),
+                           _title,
+                           _startingBid,
+                           _dateToClose,
+                           _ownerId,
+                           _bids,
+                           _lastBid,
+                           _state,
+                           _winnerId,
+                           _settlementId);
+  }
+
+  public String getEncodedId()
+  {
+    return _encodedId;
+  }
+
   private void settle()
   {
     Bid bid = getLastBid();
@@ -286,11 +278,6 @@ public class AuctionImpl implements Auction
     });
   }
 
-  public Auction.Bid getLastBid()
-  {
-    return _lastBid;
-  }
-
   public String getLastBidder()
   {
     Auction.Bid lastBid = getLastBid();
@@ -301,6 +288,11 @@ public class AuctionImpl implements Auction
     else {
       return null;
     }
+  }
+
+  public Auction.Bid getLastBid()
+  {
+    return _lastBid;
   }
 
   @Modify
@@ -326,6 +318,14 @@ public class AuctionImpl implements Auction
 
       result.ok(false);
     }
+  }
+
+  private AuctionEvents getEvents()
+  {
+    if (_events == null)
+      _events = _eventService.publisherPath(_encodedId, AuctionEvents.class);
+
+    return _events;
   }
 
   public boolean bid(String bidderId, int bid)
@@ -386,6 +386,14 @@ public class AuctionImpl implements Auction
     getEvents().onSettled(getAuctionDataPublic());
   }
 
+  public void toSettled()
+  {
+    if (_state != State.CLOSED)
+      throw new IllegalStateException();
+
+    _state = State.SETTLED;
+  }
+
   @Override
   @Modify
   public void setRolledBack(Result<Boolean> result)
@@ -393,6 +401,11 @@ public class AuctionImpl implements Auction
     toRolledBack();
 
     getEvents().onRolledBack(getAuctionDataPublic());
+  }
+
+  public void toRolledBack()
+  {
+    _state = State.ROLLED_BACK;
   }
 
   public void get(Result<AuctionData> result)
@@ -412,27 +425,33 @@ public class AuctionImpl implements Auction
     result.ok(getSettlementId());
   }
 
-  public void toSettled()
-  {
-    if (_state != State.CLOSED)
-      throw new IllegalStateException();
-
-    _state = State.SETTLED;
-  }
-
   public String getSettlementId()
   {
     return _settlementId;
   }
 
-  public void toRolledBack()
-  {
-    _state = State.ROLLED_BACK;
-  }
-
   public ZonedDateTime getDateToClose()
   {
     return _dateToClose;
+  }
+
+  @Override
+  public String toString()
+  {
+    return AuctionImpl.class.getSimpleName()
+           + "["
+           + getEncodedId()
+           + ", "
+           + _boundState
+           + ", "
+           + getAuctionDataPublic()
+           + "]@" + System.identityHashCode(this);
+  }
+
+  enum BoundState
+  {
+    UNBOUND,
+    BOUND
   }
 
   public static class BidImpl implements Auction.Bid, Comparable<Auction.Bid>,
@@ -485,25 +504,6 @@ public class AuctionImpl implements Auction
              + "@" + System.identityHashCode(this) + "["
              + _userId + "," + _bid + "]";
     }
-  }
-
-  @Override
-  public String toString()
-  {
-    return AuctionImpl.class.getSimpleName()
-           + "["
-           + getEncodedId()
-           + ", "
-           + _boundState
-           + ", "
-           + getAuctionDataPublic()
-           + "]@" + System.identityHashCode(this);
-  }
-
-  enum BoundState
-  {
-    UNBOUND,
-    BOUND
   }
 }
 

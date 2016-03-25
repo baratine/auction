@@ -91,11 +91,6 @@ public class AuctionData implements Serializable
     return ownerId;
   }
 
-  public Auction.Bid getLastBid()
-  {
-    return lastBid;
-  }
-
   public String getLastBidder()
   {
     Auction.Bid lastBid = getLastBid();
@@ -106,6 +101,11 @@ public class AuctionData implements Serializable
     else {
       return null;
     }
+  }
+
+  public Auction.Bid getLastBid()
+  {
+    return lastBid;
   }
 
   public String getWinnerId()

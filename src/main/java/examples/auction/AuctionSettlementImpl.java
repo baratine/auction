@@ -150,11 +150,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
     return isAccepted;
   }
 
-  private User getWinner()
-  {
-    return _serviceManager.service("/user/" + _bid.getUserId()).as(User.class);
-  }
-
   public void updateAuction(Result<Boolean> status)
   {
     if (_state.getAuctionWinnerUpdateState()
@@ -179,12 +174,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
     }
 
     return isAccepted;
-  }
-
-  private Auction getAuction()
-  {
-    return _serviceManager.service("/auction/" + _bid.getAuctionId())
-                          .as(Auction.class);
   }
 
   public void chargeUser(Result<Boolean> status)
@@ -223,14 +212,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
                    creditCard,
                    getEncodedId(),
                    status.of(x -> processPayment(x)));
-  }
-
-  private String getEncodedId()
-  {
-    if (_encodedId == null)
-      _encodedId = _id.toString();
-
-    return _encodedId;
   }
 
   private boolean processPayment(Payment payment)
@@ -345,20 +326,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
     fork.join(l -> l.get(0) && l.get(1) && l.get(2));
   }
 
-  private Status processRefund(boolean result)
-  {
-    Status status = Status.ROLLING_BACK;
-
-    if (result) {
-      status = Status.ROLLED_BACK;
-      getAuction().setRolledBack((b, t) -> _state.setRefundStatus(Status.ROLLED_BACK));
-    }
-
-    _state.setRefundStatus(status);
-
-    return status;
-  }
-
   private void resetUser(Result<Boolean> result)
   {
     if (_state.getUserSettleState()
@@ -372,6 +339,11 @@ public class AuctionSettlementImpl implements AuctionSettlement
       getWinner().removeWonAuction(_bid.getAuctionId(),
                                    result.of(x -> afterUserReset(x)));
     }
+  }
+
+  private User getWinner()
+  {
+    return _serviceManager.service("/user/" + _bid.getUserId()).as(User.class);
   }
 
   private boolean afterUserReset(boolean isReset)
@@ -401,6 +373,12 @@ public class AuctionSettlementImpl implements AuctionSettlement
       getAuction().clearAuctionWinner(_bid.getUserId(),
                                       result.of(x -> afterAuctionReset(x)));
     }
+  }
+
+  private Auction getAuction()
+  {
+    return _serviceManager.service("/auction/" + _bid.getAuctionId())
+                          .as(Auction.class);
   }
 
   private boolean afterAuctionReset(boolean isReset)
@@ -444,6 +422,14 @@ public class AuctionSettlementImpl implements AuctionSettlement
                    result.of(refund -> processRefund(refund)));
   }
 
+  private String getEncodedId()
+  {
+    if (_encodedId == null)
+      _encodedId = _id.toString();
+
+    return _encodedId;
+  }
+
   private boolean processRefund(Refund refund)
   {
     boolean isRefunded = false;
@@ -458,6 +444,20 @@ public class AuctionSettlementImpl implements AuctionSettlement
     }
 
     return isRefunded;
+  }
+
+  private Status processRefund(boolean result)
+  {
+    Status status = Status.ROLLING_BACK;
+
+    if (result) {
+      status = Status.ROLLED_BACK;
+      getAuction().setRolledBack((b, t) -> _state.setRefundStatus(Status.ROLLED_BACK));
+    }
+
+    _state.setRefundStatus(status);
+
+    return status;
   }
 
   @Override

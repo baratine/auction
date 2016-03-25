@@ -112,7 +112,7 @@ public class SettlementTransactionState
     isSettled &= _userSettleState == UserUpdateState.SUCCESS;
 
     isSettled &= _auctionWinnerUpdateState
-                   == AuctionWinnerUpdateState.SUCCESS;
+                 == AuctionWinnerUpdateState.SUCCESS;
 
     isSettled &= _paymentState == PaymentTxState.SUCCESS;
 
@@ -167,14 +167,14 @@ public class SettlementTransactionState
     _refund = refund;
   }
 
-  public void setSettleStatus(AuctionSettlement.Status commitStatus)
-  {
-    _settleStatus = commitStatus;
-  }
-
   public AuctionSettlement.Status getSettleStatus()
   {
     return _settleStatus;
+  }
+
+  public void setSettleStatus(AuctionSettlement.Status commitStatus)
+  {
+    _settleStatus = commitStatus;
   }
 
   public AuctionSettlement.Status getRefundStatus()

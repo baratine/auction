@@ -3,7 +3,6 @@ package examples.auction;
 import java.util.List;
 
 import io.baratine.service.Result;
-import io.baratine.service.Service;
 import io.baratine.web.Body;
 import io.baratine.web.Form;
 

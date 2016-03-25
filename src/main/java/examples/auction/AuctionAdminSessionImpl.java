@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import javax.inject.Inject;
 
+import io.baratine.event.EventService;
 import io.baratine.service.Cancel;
 import io.baratine.service.IdAsset;
 import io.baratine.service.OnDestroy;
@@ -51,10 +52,14 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
   private ServiceRef _settlementsServiceRef;
 
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
-  private ChannelListener _listener;
 
   private User _user;
   private String _userId;
+
+  @Inject
+  private EventService _eventService;
+
+  private AuctionSession.WebAuctionUpdateListener _listener;
 
   public void createUser(String userName,
                          String password,
@@ -117,36 +122,6 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     }));
   }
 
-  @Override
-  public void getSettlementState(String auctionId,
-                                 Result<SettlementTransactionState> result)
-  {
-    getAuctionSettlementService(auctionId,
-                                result.of((s, r) -> s.getTransactionState(r)));
-  }
-
-  public void getAuction(String id, Result<AuctionData> result)
-  {
-    if (id == null) {
-      throw new IllegalArgumentException();
-    }
-
-    if (_user == null) {
-      throw new IllegalStateException("No user is logged in");
-    }
-
-    getAuctionService(id).get(result);
-  }
-
-  private void getAuctionSettlementService(String auctionId,
-                                           Result<AuctionSettlement> result)
-  {
-    getAuctionService(auctionId).getSettlementId(result.of(sid -> {
-      return _settlementsServiceRef.lookup('/' + sid)
-                                   .as(AuctionSettlement.class);
-    }));
-  }
-
   private Auction getAuctionService(String id)
   {
     Auction auction
@@ -163,23 +138,41 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
   }
 
   @Override
+  public void getSettlementState(String auctionId,
+                                 Result<SettlementTransactionState> result)
+  {
+    getAuctionSettlementService(auctionId,
+                                result.of((s, r) -> s.getTransactionState(r)));
+  }
+
+  private void getAuctionSettlementService(String auctionId,
+                                           Result<AuctionSettlement> result)
+  {
+    getAuctionService(auctionId).getSettlementId(result.of(sid -> {
+      return _settlementsServiceRef.lookup('/' + sid)
+                                   .as(AuctionSettlement.class);
+    }));
+  }
+
+  public void getAuction(String id, Result<AuctionData> result)
+  {
+    if (id == null) {
+      throw new IllegalArgumentException();
+    }
+
+    if (_user == null) {
+      throw new IllegalStateException("No user is logged in");
+    }
+
+    getAuctionService(id).get(result);
+  }
+
+  @Override
   public void search(String query, Result<List<IdAsset>> result)
   {
     log.info(String.format("search %1$s", query));
 
     _auctions.findIdsByTitle(query, result);
-  }
-
-  public void setListener(@Service ChannelListener listener,
-                          Result<Boolean> result)
-  {
-    Objects.requireNonNull(listener);
-
-    log.finer("set auction channel listener: " + listener);
-
-    _listener = listener;
-
-    result.ok(true);
   }
 
   public void addAuctionListener(String id, Result<Boolean> result)
@@ -199,25 +192,28 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     }
   }
 
+  private void addAuctionListenerImpl(String id)
+  {
+    if (_listenerMap.containsKey(id))
+      return;
+
+    log.finer("add auction events listener for auction: " + id);
+
+    AuctionEventsImpl auctionListener = new AuctionEventsImpl(null);
+
+    _eventService.subscriber(id, auctionListener, (c, e) -> {});
+
+    auctionListener.subscribe();
+
+    _listenerMap.put(id, auctionListener);
+  }
+
   @Override
   public void refund(String id, Result<Boolean> result)
   {
     Auction auction = getAuctionService(id);
 
     auction.refund(result);
-  }
-
-  private void addAuctionListenerImpl(String id)
-  {
-    String url = "event:///auction/" + id;
-
-    ServiceRef eventRef = _manager.service(url);
-
-    AuctionEventsImpl auctionListener = new AuctionEventsImpl(eventRef);
-
-    auctionListener.subscribe();
-
-    _listenerMap.put(id, auctionListener);
   }
 
   @Override
@@ -238,6 +234,20 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     }
 
     _listenerMap.clear();
+  }
+
+  private AuctionSession.WebAuction asWebAuction(AuctionData auction)
+  {
+    Auction.Bid bid = auction.getLastBid();
+    int price = bid != null ? bid.getBid() : auction.getStartingBid();
+
+    AuctionSession.WebAuction
+      webAuction = new AuctionSession.WebAuction(auction.getEncodedId(),
+                                                 auction.getTitle(),
+                                                 price,
+                                                 auction.getState().toString());
+
+    return webAuction;
   }
 
   @OnDestroy
@@ -286,7 +296,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
 
       try {
         if (_listener != null)
-          _listener.onAuctionUpdate(auctionData);
+          _listener.auctionUpdated(asWebAuction(auctionData));
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -298,21 +308,21 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
       log.finer("on close event for auction: " + auctionData);
 
       if (_listener != null)
-        _listener.onAuctionClose(auctionData);
+        _listener.auctionUpdated(asWebAuction(auctionData));
     }
 
     @Override
     public void onSettled(AuctionData auctionData)
     {
       if (_listener != null)
-        _listener.onAuctionUpdate(auctionData);
+        _listener.auctionUpdated(asWebAuction(auctionData));
     }
 
     @Override
     public void onRolledBack(AuctionData auctionData)
     {
       if (_listener != null)
-        _listener.onAuctionUpdate(auctionData);
+        _listener.auctionUpdated(asWebAuction(auctionData));
     }
   }
 }

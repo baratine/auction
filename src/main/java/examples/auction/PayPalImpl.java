@@ -1,12 +1,13 @@
 package examples.auction;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.inject.Inject;
+
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.Workers;
-
-import javax.inject.Inject;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Service("/paypal")
 @Workers(20)

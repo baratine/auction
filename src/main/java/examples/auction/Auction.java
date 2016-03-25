@@ -29,15 +29,6 @@ public interface Auction
 
   void getSettlementId(Result<String> result);
 
-  interface Bid
-  {
-    String getAuctionId();
-
-    String getUserId();
-
-    int getBid();
-  }
-
   enum State
   {
     INIT,
@@ -45,6 +36,15 @@ public interface Auction
     CLOSED,
     SETTLED,
     ROLLED_BACK
+  }
+
+  interface Bid
+  {
+    String getAuctionId();
+
+    String getUserId();
+
+    int getBid();
   }
 }
 

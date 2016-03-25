@@ -1,7 +1,8 @@
 package examples.auction;
 
-import javax.json.JsonObject;
 import java.io.StringReader;
+
+import javax.json.JsonObject;
 
 /**
  * {

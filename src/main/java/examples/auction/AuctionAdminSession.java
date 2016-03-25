@@ -4,7 +4,6 @@ import java.util.List;
 
 import io.baratine.service.IdAsset;
 import io.baratine.service.Result;
-import io.baratine.service.Service;
 
 /**
  * Admin visible channel facade at session://web/auction-session
@@ -25,8 +24,6 @@ public interface AuctionAdminSession
   void getAuction(String id, Result<AuctionData> result);
 
   void search(String query, Result<List<IdAsset>> result);
-
-  void setListener(@Service ChannelListener listener, Result<Boolean> result);
 
   void addAuctionListener(String id, Result<Boolean> result);
 

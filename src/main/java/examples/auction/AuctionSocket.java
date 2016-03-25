@@ -14,12 +14,10 @@ import io.baratine.web.WebSocket;
 public class AuctionSocket
   implements ServiceWebSocket<String,AuctionSession.WebAuction>
 {
-  @Id
-  private String _id;
-
   @Inject
   ServiceManager _manager;
-
+  @Id
+  private String _id;
   private WebSocket<AuctionSession.WebAuction> _webSocket;
 
   @Override

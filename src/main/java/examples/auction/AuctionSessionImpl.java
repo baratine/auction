@@ -32,16 +32,14 @@ import io.baratine.web.Query;
 @CrossOrigin(value = "*", allowCredentials = true)
 @Api(AuctionSession.class)
 @Path("/user")
-public class AuctionSessionImpl implements AuctionSession
+public class AuctionSessionImpl extends AbstractAuctionSession
+  implements AuctionSession
 {
   private final static Logger log
     = Logger.getLogger(AuctionSessionImpl.class.getName());
 
   @Id
   private String _id;
-
-  @Inject
-  private ServiceManager _manager;
 
   @Inject
   @Service("/auction")
@@ -256,12 +254,6 @@ public class AuctionSessionImpl implements AuctionSession
     }
   }
 
-  public void addEvent(AuctionData event)
-  {
-    if (_webListener != null)
-      _webListener.auctionUpdated(asWebAuction(event));
-  }
-
   private void addAuctionListenerImpl(String id)
   {
     if (_listenerMap.containsKey(id))
@@ -276,6 +268,12 @@ public class AuctionSessionImpl implements AuctionSession
     auctionListener.subscribe();
 
     _listenerMap.put(id, auctionListener);
+  }
+
+  public void addEvent(AuctionData event)
+  {
+    if (_webListener != null)
+      _webListener.auctionUpdated(asWebAuction(event));
   }
 
   @Override

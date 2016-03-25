@@ -35,7 +35,7 @@ public class AuctionAdminSessionImpl extends AbstractAuctionSession
 
     auction.get(result.of((a, r) -> {
       getUserService(a.getLastBidder())
-        .get(r.of(u -> new WebUser(u.getEncodedId(), u.getName())));
+        .get(r.of(u -> WebUser.of(u)));
     }));
   }
 

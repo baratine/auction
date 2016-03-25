@@ -3,7 +3,7 @@ import {NgForm}    from 'angular2/common';
 
 import {User} from "./user";
 import {UserService} from './user.service'
-import {AppComponent} from "./app.component";
+import {UserAppComponent} from "./app.component";
 
 @Component({
              selector: 'login-form',

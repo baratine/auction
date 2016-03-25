@@ -18,15 +18,18 @@ export class UserService
   {
     console.log("creating new UserService: " + http);
 
-    this._createUrl = _baseUrlProvider.baseUrl + "createUser";
-    this._loginUrl = _baseUrlProvider.baseUrl + "login";
+    this._createUrl = _baseUrlProvider.url + "createUser";
+    this._loginUrl = _baseUrlProvider.url + "login";
   }
 
   login(user:string, password:string)
   {
     let body = 'u=' + user + '&' + 'p=' + password;
 
-    let headers = new Headers({'Content-Type': 'application/x-www-form-urlencoded'});
+    let headers = new Headers({
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Connection': 'Close'
+    });
     let options = new RequestOptions({headers: headers});
 
     return this.http.post(this._loginUrl, body, options)
@@ -37,7 +40,10 @@ export class UserService
   {
     let body = Json.stringify({"user": user, "password": password});
 
-    let headers = new Headers({'Content-Type': 'application/json'});
+    let headers = new Headers({
+      'Content-Type': 'application/json',
+      'Connection': 'Close'
+    });
     let options = new RequestOptions({headers: headers});
 
     return this.http.post(this._createUrl, body, options)

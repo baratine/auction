@@ -4,7 +4,7 @@ import { HTTP_PROVIDERS } from 'angular2/http';
 import {ROUTER_DIRECTIVES} from "angular2/router";
 import {ROUTER_PROVIDERS} from "angular2/router";
 
-import {BaseUrlProvider,UserUrlProvider} from "./baseurl";
+import {BaseUrlProvider,UserUrlProvider,AdminUrlProvider} from "./baseurl";
 import {User} from "./user";
 import {LoginComponent} from './login.component';
 import {NewAuctionComponent} from "./new-auction.component";
@@ -14,7 +14,7 @@ import {AuctionService} from "./auction.service";
 import {BidsComponent} from "./bids.component";
 
 @Component({
-             selector: 'my-app',
+             selector: 'user-app',
              template: `
              <h1>{{title}}</h1>
              <div class="panel">
@@ -31,19 +31,47 @@ import {BidsComponent} from "./bids.component";
              styleUrls: ['./app/app.component.css'],
              providers: [HTTP_PROVIDERS,
                          ROUTER_PROVIDERS,
-                         provide(BaseUrlProvider, {useClass:UserUrlProvider}),
+                         provide(BaseUrlProvider, {useClass: UserUrlProvider}),
                          UserService,
                          AuctionService,
                          AuctionsComponent],
              directives: [ROUTER_DIRECTIVES, LoginComponent, NewAuctionComponent, AuctionsComponent, BidsComponent],
              bindings: [],
            })
-export class AppComponent
+export class UserAppComponent
 {
   constructor()
   {
   }
 
   title = 'Baratine™ Auction Application';
+  user:User;
+}
+
+@Component({
+             selector: 'admin-app',
+             template: `
+             <h1>{{title}}</h1>
+             <div class="panel">
+               <login-form></login-form>
+             </div>
+             `,
+             styleUrls: ['./app/app.component.css'],
+             providers: [HTTP_PROVIDERS,
+                         ROUTER_PROVIDERS,
+                         provide(BaseUrlProvider, {useClass: AdminUrlProvider}),
+                         UserService,
+                         AuctionService,
+                         AuctionsComponent],
+             directives: [ROUTER_DIRECTIVES, LoginComponent, NewAuctionComponent, AuctionsComponent, BidsComponent],
+             bindings: [],
+           })
+export class AdminAppComponent
+{
+  constructor()
+  {
+  }
+
+  title = 'Baratine™ Auction Admin Application';
   user:User;
 }

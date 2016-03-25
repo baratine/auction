@@ -1,7 +1,7 @@
 import {Component} from 'angular2/core';
 import {NgForm}    from 'angular2/common';
 
-import {AppComponent} from "./app.component";
+import {UserAppComponent} from "./app.component";
 import {AuctionService} from "./auction.service";
 import {AuctionsComponent} from "./auctions.component";
 

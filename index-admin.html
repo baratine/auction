@@ -7,8 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet"
-        href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
 
   <!-- 1. Load libraries -->
   <!-- IE required polyfills, in this exact order -->
@@ -32,7 +31,7 @@
                       }
                     }
                   });
-    System.import('app/user-main')
+    System.import('app/admin-main')
             .then(null, console.error.bind(console));
   </script>
 
@@ -40,7 +39,7 @@
 
 <!-- 3. Display the application -->
 <body>
-<user-app>Loading...</user-app>
+<admin-app>Loading...</admin-app>
 </body>
 
 </html>

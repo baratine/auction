@@ -41,12 +41,26 @@ public interface AuctionSession
     {
     }
 
-    public WebAuction(String id, String title, long bid, String state)
+    private WebAuction(String id, String title, long bid, String state)
     {
       this.id = id;
       this.title = title;
       this.bid = bid;
       this.state = state;
+    }
+
+    public static WebAuction of(AuctionData auction)
+    {
+      Auction.Bid bid = auction.getLastBid();
+      int price = bid != null ? bid.getBid() : auction.getStartingBid();
+
+      WebAuction webAuction
+        = new WebAuction(auction.getEncodedId(),
+                         auction.getTitle(),
+                         price,
+                         auction.getState().toString());
+
+      return webAuction;
     }
   }
 
@@ -103,10 +117,15 @@ public interface AuctionSession
     {
     }
 
-    public WebUser(String id, String user)
+    private WebUser(String id, String user)
     {
       this.id = id;
       this.user = user;
+    }
+
+    public static WebUser of(UserData user)
+    {
+      return new WebUser(user.getEncodedId(), user.getName());
     }
 
     @Override

@@ -17,14 +17,16 @@ export class AuctionService
   private _searchUrl;
   private _subscribeUrl;
   private _bidUrl;
+  private _auctionUpdatesUrl;
 
   constructor(private http:Http, private _baseUrlProvider:BaseUrlProvider)
   {
     console.log("creating new AuctionService: " + http);
-    this._createUrl = _baseUrlProvider.baseUrl + "createAuction";
-    this._searchUrl = _baseUrlProvider.baseUrl + "searchAuctions";
-    this._subscribeUrl = _baseUrlProvider.baseUrl + "addAuctionListener";
-    this._bidUrl = _baseUrlProvider.baseUrl + "bidAuction";
+    this._createUrl = _baseUrlProvider.url + "createAuction";
+    this._searchUrl = _baseUrlProvider.url + "searchAuctions";
+    this._subscribeUrl = _baseUrlProvider.url + "addAuctionListener";
+    this._bidUrl = _baseUrlProvider.url + "bidAuction";
+    this._auctionUpdatesUrl = _baseUrlProvider.wsUrl + "auction-updates";
   }
 
   public create(title:string, bid:number)
@@ -35,7 +37,10 @@ export class AuctionService
 
     let body = urlSearchParams.toString();
 
-    let headers = new Headers({'Content-Type': 'application/x-www-form-urlencoded'});
+    let headers = new Headers({
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Connection': 'Close'
+    });
     let options = new RequestOptions({headers: headers});
 
     return this.http.post(this._createUrl, body, options)
@@ -48,7 +53,11 @@ export class AuctionService
     urlSearchParams.append("q", query);
     let url = this._searchUrl + '?' + urlSearchParams.toString();
 
-    return this.http.get(url).map(res=>this.map(res)).catch(this.handleError);
+    let headers = new Headers({'Connection': 'Close'});
+    let options = new RequestOptions({headers: headers});
+
+    return this.http.get(url, options)
+      .map(res=>this.map(res)).catch(this.handleError);
   }
 
   public addAuctionListener(listener:AuctionListener)
@@ -66,7 +75,10 @@ export class AuctionService
   {
     let body = auction.id;
 
-    let headers = new Headers({'Content-Type': 'application/x-www-form-urlencoded'});
+    let headers = new Headers({
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Connection': 'Close'
+    });
     let options = new RequestOptions({headers: headers});
 
     return this.http.post(this._subscribeUrl, body, options)
@@ -78,7 +90,10 @@ export class AuctionService
     let price = auction.bid + 1;
     let body = Json.stringify({"auction": auction.id, "bid": price});
 
-    let headers = new Headers({'Content-Type': 'application/json'});
+    let headers = new Headers({
+      'Content-Type': 'application/json',
+      'Connection': 'Close'
+    });
     let options = new RequestOptions({headers: headers});
 
     return this.http.post(this._bidUrl, body, options)
@@ -93,7 +108,7 @@ export class AuctionService
 
   public registerForAuctionUpdates()
   {
-    var websocket = new WebSocket("ws://localhost:8080/auction-updates");
+    var websocket = new WebSocket(this._auctionUpdatesUrl);
 
     var self = this;
     websocket.addEventListener("message", function (e:MessageEvent)

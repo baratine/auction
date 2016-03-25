@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import io.baratine.event.EventService;
 import io.baratine.pipe.PipeOut;
 import io.baratine.pipe.PipeService;
+import io.baratine.pipe.Pipes;
 import io.baratine.service.Id;
 import io.baratine.service.OnDestroy;
 import io.baratine.service.OnInit;
@@ -72,24 +73,16 @@ public abstract class AbstractAuctionSession implements AuctionSession
   {
     log.log(Level.FINER, "auction updates pipe service " + _pipeService);
 
-    _pipeService.publish((x, e) -> {
-
-      log.log(Level.FINER, "auction updates pipe " + x);
-
-      if (e != null)
-        log.log(Level.WARNING, "ERR", e);
-
-      _auctionUpdates = x;
-    });
+    _pipeService.publish(Pipes.flow(x -> _auctionUpdates = x));
   }
 
   @Post("/createUser")
   public void createUser(@Body AuctionUserSession.UserInitData user,
                          Result<AuctionUserSession.WebUser> result)
   {
-    _users.create(user,
-                  result.of(id -> new AuctionUserSession.WebUser(id.toString(),
-                                                                 user.getUser())));
+    _users.create(user, result.of((id, r) ->
+                                    getUserService(id.toString()).get(r.of(u -> WebUser
+                                      .of(u)))));
   }
 
   @Post("/login")
@@ -147,7 +140,7 @@ public abstract class AbstractAuctionSession implements AuctionSession
       throw new IllegalStateException("No user is logged in");
     }
 
-    _user.get(result.of(u -> new WebUser(u.getEncodedId(), u.getName())));
+    _user.get(result.of(u -> WebUser.of(u)));
   }
 
   public User getUserService(String id)
@@ -166,22 +159,7 @@ public abstract class AbstractAuctionSession implements AuctionSession
       throw new IllegalStateException("No user is logged in");
     }
 
-    getAuctionService(id).get(result.of(a -> asWebAuction(a)));
-  }
-
-  private AuctionUserSession.WebAuction asWebAuction(AuctionData auction)
-  {
-    Auction.Bid bid = auction.getLastBid();
-    int price = bid != null ? bid.getBid() : auction.getStartingBid();
-
-    AuctionUserSession.WebAuction
-      webAuction = new AuctionUserSession.WebAuction(auction.getEncodedId(),
-                                                     auction.getTitle(),
-                                                     price,
-                                                     auction.getState()
-                                                            .toString());
-
-    return webAuction;
+    getAuctionService(id).get(result.of(a -> WebAuction.of(a)));
   }
 
   protected Auction getAuctionService(String id)
@@ -214,7 +192,7 @@ public abstract class AbstractAuctionSession implements AuctionSession
   private List<AuctionUserSession.WebAuction> asWebAuctions(List<AuctionData> auctions)
   {
     return auctions.stream()
-                   .map(a -> asWebAuction(a))
+                   .map(a -> WebAuction.of(a))
                    .collect(Collectors.toList());
   }
 
@@ -255,7 +233,7 @@ public abstract class AbstractAuctionSession implements AuctionSession
 
   public void addEvent(AuctionData event)
   {
-    _auctionUpdates.next(asWebAuction(event));
+    _auctionUpdates.next(WebAuction.of(event));
   }
 
   public void logout(Result<Boolean> result)

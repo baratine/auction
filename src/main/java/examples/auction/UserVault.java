@@ -5,7 +5,7 @@ import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.Vault;
 
-@Service("/user")
+@Service("/User")
 public interface UserVault extends Vault<IdAsset,UserImpl>
 {
   void create(AuctionUserSession.UserInitData userInitData,

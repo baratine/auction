@@ -19,7 +19,6 @@ import io.baratine.service.OnInit;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.ServiceManager;
-import io.baratine.service.ServiceRef;
 import io.baratine.web.Body;
 import io.baratine.web.Form;
 import io.baratine.web.Get;
@@ -35,23 +34,15 @@ public abstract class AbstractAuctionSession implements AuctionSession
   protected String _id;
 
   @Inject
-  private ServiceManager _manager;
+  protected ServiceManager _manager;
 
   @Inject
-  @Service("/auction")
+  @Service("/Auction")
   protected AuctionVault _auctions;
 
   @Inject
-  @Service("/auction")
-  protected ServiceRef _auctionsServiceRef;
-
-  @Inject
-  @Service("/user")
+  @Service("/User")
   private UserVault _users;
-
-  @Inject
-  @Service("/user")
-  private ServiceRef _userService;
 
   @Inject
   private EventService _eventService;
@@ -145,7 +136,7 @@ public abstract class AbstractAuctionSession implements AuctionSession
 
   public User getUserService(String id)
   {
-    return _userService.lookup("/" + id).as(User.class);
+    return _manager.service(User.class, id);
   }
 
   public void getAuction(String id,
@@ -164,8 +155,7 @@ public abstract class AbstractAuctionSession implements AuctionSession
 
   protected Auction getAuctionService(String id)
   {
-    Auction auction
-      = _auctionsServiceRef.lookup('/' + id).as(Auction.class);
+    Auction auction = _manager.service(Auction.class, id);
 
     return auction;
   }

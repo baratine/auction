@@ -7,7 +7,7 @@ import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.Vault;
 
-@Service("/auction")
+@Service("/Auction")
 public interface AuctionVault extends Vault<IdAsset,AuctionImpl>
 {
   void create(AuctionDataInit data, Result<IdAsset> id);

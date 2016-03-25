@@ -43,7 +43,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private transient AuditService _audit;
 
   @Inject
-  private transient ServiceManager _serviceManager;
+  private transient ServiceManager _manager;
 
   public AuctionSettlementImpl()
   {
@@ -343,7 +343,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private User getWinner()
   {
-    return _serviceManager.service("/user/" + _bid.getUserId()).as(User.class);
+    return _manager.service(User.class, _bid.getUserId());
   }
 
   private boolean afterUserReset(boolean isReset)
@@ -377,8 +377,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private Auction getAuction()
   {
-    return _serviceManager.service("/auction/" + _bid.getAuctionId())
-                          .as(Auction.class);
+    return _manager.service(Auction.class, _bid.getAuctionId());
   }
 
   private boolean afterAuctionReset(boolean isReset)

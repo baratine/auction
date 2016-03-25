@@ -5,7 +5,7 @@ import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.Vault;
 
-@Service("/settlement")
+@Service("/AuctionSettlement")
 public interface AuctionSettlementVault
   extends Vault<IdAsset,AuctionSettlementImpl>
 {

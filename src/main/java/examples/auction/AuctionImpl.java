@@ -51,7 +51,7 @@ public class AuctionImpl implements Auction
   private transient ServiceManager _manager;
 
   @Inject
-  @Service("/settlement")
+  @Service("/AuctionSettlement")
   private transient AuctionSettlementVault _settlementVault;
 
   @Inject
@@ -223,9 +223,8 @@ public class AuctionImpl implements Auction
                                           + _settlementId + ", " + _manager);
                                 try {
                                   AuctionSettlement settlement
-                                    = _manager.service(
-                                    "/settlement/" + _settlementId).as(
-                                    AuctionSettlement.class);
+                                    = _manager.service(AuctionSettlement.class,
+                                                       _settlementId);
 
                                   log.finer("getAuctionSettlement: 2 "
                                             + settlement);

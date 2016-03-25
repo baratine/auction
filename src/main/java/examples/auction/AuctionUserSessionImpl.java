@@ -1,10 +1,8 @@
 package examples.auction;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.baratine.service.Api;
-import io.baratine.service.OnInit;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.web.Body;
@@ -45,8 +43,7 @@ public class AuctionUserSessionImpl extends AbstractAuctionSession
 
   private void afterCreateAuction(String auctionId, Result<WebAuction> result)
   {
-    Auction auction =
-      _auctionsServiceRef.lookup('/' + auctionId).as(Auction.class);
+    Auction auction = _manager.service(Auction.class, auctionId);
 
     auction.open(result.of((b, r) -> getAuction(auctionId, r)));
   }

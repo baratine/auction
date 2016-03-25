@@ -12,7 +12,7 @@ public interface AuctionSession
 
   void login(@Body Form login, Result<Boolean> result);
 
-  void getUser(Result<UserData> result);
+  void getUser(Result<WebUser> result);
 
   void getAuction(String id, Result<WebAuction> result);
 

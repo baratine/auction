@@ -27,7 +27,7 @@ public abstract class AbstractAuctionSession implements AuctionSession
     = Logger.getLogger(AbstractAuctionSession.class.getName());
 
   @Id
-  private String _id;
+  protected String _id;
 
   @Inject
   @Service("/auction")
@@ -40,6 +40,10 @@ public abstract class AbstractAuctionSession implements AuctionSession
   @Inject
   @Service("/user")
   private UserVault _users;
+
+  @Inject
+  @Service("/user")
+  private ServiceRef _userService;
 
   @Inject
   private EventService _eventService;
@@ -109,13 +113,18 @@ public abstract class AbstractAuctionSession implements AuctionSession
   /**
    * returns logged in user
    */
-  public void getUser(Result<UserData> userData)
+  public void getUser(Result<WebUser> result)
   {
     if (_user == null) {
       throw new IllegalStateException("No user is logged in");
     }
 
-    _user.get(userData);
+    _user.get(result.of(u -> new WebUser(u.getEncodedId(), u.getName())));
+  }
+
+  public User getUserService(String id)
+  {
+    return _userService.lookup("/" + id).as(User.class);
   }
 
   public void getAuction(String id,

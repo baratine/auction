@@ -17,7 +17,7 @@ public class Main
     websocket("/auction-updates").to(AuctionSocket.class);
 
     include(AuctionAdminSessionImpl.class);
-    include(AuctionSessionImpl.class);
+    include(AuctionUserSessionImpl.class);
 
     include(AuctionSettlementVault.class);
     include(AuditServiceImpl.class);

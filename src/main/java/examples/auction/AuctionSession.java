@@ -6,9 +6,6 @@ import io.baratine.service.Result;
 import io.baratine.web.Body;
 import io.baratine.web.Form;
 
-/**
- * User visible channel facade at session://web/auction-session
- */
 public interface AuctionSession
 {
   void createUser(@Body UserInitData user, Result<WebUser> result);
@@ -17,15 +14,11 @@ public interface AuctionSession
 
   void getUser(Result<UserData> result);
 
-  void createAuction(Form form, Result<WebAuction> result);
-
   void getAuction(String id, Result<WebAuction> result);
 
   void findAuction(String title, Result<Auction> result);
 
   void searchAuctions(String query, Result<List<WebAuction>> result);
-
-  void bidAuction(WebBid bid, Result<Boolean> result);
 
   void addAuctionUpdateListener(WebAuctionUpdateListener listener);
 
@@ -100,22 +93,6 @@ public interface AuctionSession
              + ", "
              + password
              + ']';
-    }
-  }
-
-  class WebBid
-  {
-    private String auction;
-    private int bid;
-
-    public String getAuction()
-    {
-      return auction;
-    }
-
-    public int getBid()
-    {
-      return bid;
     }
   }
 

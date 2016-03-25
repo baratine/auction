@@ -8,7 +8,7 @@ import io.baratine.service.Vault;
 @Service("/user")
 public interface UserVault extends Vault<IdAsset,UserImpl>
 {
-  void create(AuctionSession.UserInitData userInitData,
+  void create(AuctionUserSession.UserInitData userInitData,
               Result<IdAsset> result);
 
   void findByName(String name, Result<User> result);

@@ -38,7 +38,7 @@ public class UserImpl implements User
 
   @Override
   @Modify
-  public void create(AuctionSession.UserInitData userInitData,
+  public void create(AuctionUserSession.UserInitData userInitData,
                      Result<IdAsset> userId)
   {
     log.finer(String.format("create new user: %1$s", userInitData.getUser()));

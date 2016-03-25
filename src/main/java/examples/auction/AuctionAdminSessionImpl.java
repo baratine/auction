@@ -59,7 +59,7 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
   @Inject
   private EventService _eventService;
 
-  private AuctionSession.WebAuctionUpdateListener _listener;
+  private AuctionUserSession.WebAuctionUpdateListener _listener;
 
   public void createUser(String userName,
                          String password,
@@ -236,16 +236,16 @@ public class AuctionAdminSessionImpl implements AuctionAdminSession
     _listenerMap.clear();
   }
 
-  private AuctionSession.WebAuction asWebAuction(AuctionData auction)
+  private AuctionUserSession.WebAuction asWebAuction(AuctionData auction)
   {
     Auction.Bid bid = auction.getLastBid();
     int price = bid != null ? bid.getBid() : auction.getStartingBid();
 
-    AuctionSession.WebAuction
-      webAuction = new AuctionSession.WebAuction(auction.getEncodedId(),
-                                                 auction.getTitle(),
-                                                 price,
-                                                 auction.getState().toString());
+    AuctionUserSession.WebAuction
+      webAuction = new AuctionUserSession.WebAuction(auction.getEncodedId(),
+                                                     auction.getTitle(),
+                                                     price,
+                                                     auction.getState().toString());
 
     return webAuction;
   }

@@ -5,7 +5,7 @@ import io.baratine.service.Result;
 
 public interface User
 {
-  void create(AuctionSessionImpl.UserInitData user,
+  void create(AuctionUserSessionImpl.UserInitData user,
               Result<IdAsset> userId);
 
   void authenticate(String password,

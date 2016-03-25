@@ -12,41 +12,44 @@ import io.baratine.web.WebSocket;
 
 @Service("session:")
 public class AuctionSocket
-  implements ServiceWebSocket<String,AuctionSession.WebAuction>
+  implements ServiceWebSocket<String,AuctionUserSession.WebAuction>
 {
   @Inject
   ServiceManager _manager;
   @Id
   private String _id;
-  private WebSocket<AuctionSession.WebAuction> _webSocket;
+  private WebSocket<AuctionUserSession.WebAuction> _webSocket;
 
   @Override
-  public void next(String s, WebSocket<AuctionSession.WebAuction> webSocket)
+  public void next(String s, WebSocket<AuctionUserSession.WebAuction> webSocket)
     throws IOException
   {
   }
 
   @Override
-  public void open(WebSocket<AuctionSession.WebAuction> webSocket)
+  public void open(WebSocket<AuctionUserSession.WebAuction> webSocket)
   {
     _webSocket = webSocket;
 
-    AuctionSession auctionSession
-      = _manager.service("session:///AuctionSessionImpl/" + _id)
-                .as(AuctionSession.class);
+    AuctionUserSession auctionSession
+      = _manager.service("session:///"
+                         + AuctionUserSessionImpl.class.getSimpleName()
+                         + "/"
+                         + _id)
+                .as(AuctionUserSession.class);
 
-    AuctionSession.WebAuctionUpdateListener listener
+    AuctionUserSession.WebAuctionUpdateListener listener
       = _manager.newService(new WebAuctionUpdateListener())
-                .as(AuctionSession.WebAuctionUpdateListener.class);
+                .as(AuctionUserSession.WebAuctionUpdateListener.class);
 
     auctionSession.addAuctionUpdateListener(listener);
   }
 
   class WebAuctionUpdateListener
-    implements AuctionSession.WebAuctionUpdateListener
+    implements AuctionUserSession.WebAuctionUpdateListener
   {
     @Override
-    public void auctionUpdated(AuctionSession.WebAuction auction)
+    public void auctionUpdated(AuctionUserSession.WebAuction auction)
     {
       _webSocket.next(auction);
     }

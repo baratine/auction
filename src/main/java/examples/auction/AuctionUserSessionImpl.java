@@ -16,13 +16,13 @@ import io.baratine.web.Post;
  */
 @Service("session:")
 @CrossOrigin(value = "*", allowCredentials = true)
-@Api(AuctionSession.class)
+@Api(AuctionUserSession.class)
 @Path("/user")
-public class AuctionSessionImpl extends AbstractAuctionSession
-  implements AuctionSession
+public class AuctionUserSessionImpl extends AbstractAuctionSession
+  implements AuctionUserSession
 {
   private final static Logger log
-    = Logger.getLogger(AuctionSessionImpl.class.getName());
+    = Logger.getLogger(AuctionUserSessionImpl.class.getName());
 
   @Post("/createAuction")
   public void createAuction(@Body Form form, Result<WebAuction> result)

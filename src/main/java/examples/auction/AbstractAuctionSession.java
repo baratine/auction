@@ -21,7 +21,7 @@ import io.baratine.web.Get;
 import io.baratine.web.Post;
 import io.baratine.web.Query;
 
-public abstract class AbstractAuctionSession
+public abstract class AbstractAuctionSession implements AuctionSession
 {
   private final static Logger log
     = Logger.getLogger(AbstractAuctionSession.class.getName());
@@ -49,15 +49,15 @@ public abstract class AbstractAuctionSession
   protected String _userId;
 
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
-  private AuctionSession.WebAuctionUpdateListener _webListener;
+  private AuctionUserSession.WebAuctionUpdateListener _webListener;
 
   @Post("/createUser")
-  public void createUser(@Body AuctionSession.UserInitData user,
-                         Result<AuctionSession.WebUser> result)
+  public void createUser(@Body AuctionUserSession.UserInitData user,
+                         Result<AuctionUserSession.WebUser> result)
   {
     _users.create(user,
-                  result.of(id -> new AuctionSession.WebUser(id.toString(),
-                                                             user.getUser())));
+                  result.of(id -> new AuctionUserSession.WebUser(id.toString(),
+                                                                 user.getUser())));
   }
 
   @Post("/login")
@@ -118,7 +118,8 @@ public abstract class AbstractAuctionSession
     _user.get(userData);
   }
 
-  public void getAuction(String id, Result<AuctionSession.WebAuction> result)
+  public void getAuction(String id,
+                         Result<AuctionUserSession.WebAuction> result)
   {
     if (id == null) {
       throw new IllegalArgumentException();
@@ -131,16 +132,17 @@ public abstract class AbstractAuctionSession
     getAuctionService(id).get(result.of(a -> asWebAuction(a)));
   }
 
-  private AuctionSession.WebAuction asWebAuction(AuctionData auction)
+  private AuctionUserSession.WebAuction asWebAuction(AuctionData auction)
   {
     Auction.Bid bid = auction.getLastBid();
     int price = bid != null ? bid.getBid() : auction.getStartingBid();
 
-    AuctionSession.WebAuction
-      webAuction = new AuctionSession.WebAuction(auction.getEncodedId(),
-                                                 auction.getTitle(),
-                                                 price,
-                                                 auction.getState().toString());
+    AuctionUserSession.WebAuction
+      webAuction = new AuctionUserSession.WebAuction(auction.getEncodedId(),
+                                                     auction.getTitle(),
+                                                     price,
+                                                     auction.getState()
+                                                            .toString());
 
     return webAuction;
   }
@@ -165,21 +167,21 @@ public abstract class AbstractAuctionSession
 
   @Get("/searchAuctions")
   public void searchAuctions(@Query("q") String query,
-                             Result<List<AuctionSession.WebAuction>> result)
+                             Result<List<AuctionUserSession.WebAuction>> result)
   {
     AbstractAuctionSession.log.info(String.format("search %1$s", query));
 
     _auctions.findAuctionDataByTitle(query, result.of(l -> asWebAuctions(l)));
   }
 
-  private List<AuctionSession.WebAuction> asWebAuctions(List<AuctionData> auctions)
+  private List<AuctionUserSession.WebAuction> asWebAuctions(List<AuctionData> auctions)
   {
     return auctions.stream()
                    .map(a -> asWebAuction(a))
                    .collect(Collectors.toList());
   }
 
-  public void addAuctionUpdateListener(AuctionSession.WebAuctionUpdateListener listener)
+  public void addAuctionUpdateListener(AuctionUserSession.WebAuctionUpdateListener listener)
   {
     _webListener = listener;
   }

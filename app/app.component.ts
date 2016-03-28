@@ -12,6 +12,7 @@ import {AuctionsComponent} from "./auctions.component";
 import {UserService} from "./user.service";
 import {AuctionService} from "./auction.service";
 import {BidsComponent} from "./bids.component";
+import {AuctionAdminComponent} from "./auction-admin.component";
 
 @Component({
              selector: 'user-app',
@@ -55,6 +56,9 @@ export class UserAppComponent
              <div class="panel">
                <login-form></login-form>
              </div>
+             <div class="panel">
+                <auction-admin></auction-admin>
+             </div>
              `,
              styleUrls: ['./app/app.component.css'],
              providers: [HTTP_PROVIDERS,
@@ -63,7 +67,7 @@ export class UserAppComponent
                          UserService,
                          AuctionService,
                          AuctionsComponent],
-             directives: [ROUTER_DIRECTIVES, LoginComponent, NewAuctionComponent, AuctionsComponent, BidsComponent],
+             directives: [ROUTER_DIRECTIVES, LoginComponent, AuctionAdminComponent],
              bindings: [],
            })
 export class AdminAppComponent

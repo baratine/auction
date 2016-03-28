@@ -25,7 +25,7 @@ import io.baratine.web.Get;
 import io.baratine.web.Post;
 import io.baratine.web.Query;
 
-public abstract class AbstractAuctionSession implements AuctionSession
+public class AbstractAuctionSession implements AuctionSession
 {
   private final static Logger log
     = Logger.getLogger(AbstractAuctionSession.class.getName());
@@ -69,7 +69,7 @@ public abstract class AbstractAuctionSession implements AuctionSession
 
   @Post("/createUser")
   public void createUser(@Body AuctionUserSession.UserInitData user,
-                         Result<AuctionUserSession.WebUser> result)
+                         Result<WebUser> result)
   {
     _users.create(user, result.of((id, r) ->
                                     getUserService(id.toString()).get(r.of(u -> WebUser
@@ -261,7 +261,7 @@ public abstract class AbstractAuctionSession implements AuctionSession
            + _id
            + ", "
            + _userId
-           + ']';
+           + "]@" + System.identityHashCode(this);
   }
 
   private class AuctionEventsImpl implements AuctionEvents

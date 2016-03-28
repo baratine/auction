@@ -2,14 +2,15 @@ package examples.auction;
 
 import java.util.logging.Logger;
 
-import javax.inject.Inject;
-
 import io.baratine.service.Api;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
-import io.baratine.service.ServiceRef;
+import io.baratine.web.Body;
 import io.baratine.web.CrossOrigin;
+import io.baratine.web.Get;
 import io.baratine.web.Path;
+import io.baratine.web.Post;
+import io.baratine.web.Query;
 
 /**
  * User visible channel facade at session://web/auction-admin-session.
@@ -24,12 +25,9 @@ public class AuctionAdminSessionImpl extends AbstractAuctionSession
   private final static Logger log
     = Logger.getLogger(AuctionAdminSessionImpl.class.getName());
 
-  @Inject
-  @Service("/settlement")
-  private ServiceRef _settlements;
-
   @Override
-  public void getWinner(String auctionId, Result<WebUser> result)
+  @Get("/winner")
+  public void getWinner(@Query("id") String auctionId, Result<WebUser> result)
   {
     Auction auction = getAuctionService(auctionId);
 
@@ -40,7 +38,8 @@ public class AuctionAdminSessionImpl extends AbstractAuctionSession
   }
 
   @Override
-  public void getSettlementState(String auctionId,
+  @Get("/settlement")
+  public void getSettlementState(@Query("id") String auctionId,
                                  Result<SettlementTransactionState> result)
   {
     getAuctionSettlementService(auctionId,
@@ -51,13 +50,13 @@ public class AuctionAdminSessionImpl extends AbstractAuctionSession
                                            Result<AuctionSettlement> result)
   {
     getAuctionService(auctionId).getSettlementId(result.of(sid -> {
-      return _settlements.lookup('/' + sid)
-                         .as(AuctionSettlement.class);
+      return _manager.service(AuctionSettlement.class, sid);
     }));
   }
 
   @Override
-  public void refund(String id, Result<Boolean> result)
+  @Post("/refund")
+  public void refund(@Body String id, Result<Boolean> result)
   {
     Auction auction = getAuctionService(id);
 

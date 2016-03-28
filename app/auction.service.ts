@@ -17,6 +17,7 @@ export class AuctionService
   private _searchUrl;
   private _subscribeUrl;
   private _bidUrl;
+  private _refundUrl;
   private _auctionUpdatesUrl;
 
   constructor(private http:Http, private _baseUrlProvider:BaseUrlProvider)
@@ -26,6 +27,7 @@ export class AuctionService
     this._searchUrl = _baseUrlProvider.url + "searchAuctions";
     this._subscribeUrl = _baseUrlProvider.url + "addAuctionListener";
     this._bidUrl = _baseUrlProvider.url + "bidAuction";
+    this._refundUrl = _baseUrlProvider.url + "refund";
     this._auctionUpdatesUrl = _baseUrlProvider.wsUrl + "auction-updates";
   }
 
@@ -97,6 +99,15 @@ export class AuctionService
     let options = new RequestOptions({headers: headers});
 
     return this.http.post(this._bidUrl, body, options)
+      .map(res=>res.text()).catch(this.handleError);
+  }
+
+  public refund(auction:Auction)
+  {
+    let headers = new Headers({'Connection': 'Close'});
+    let options = new RequestOptions({headers: headers});
+
+    return this.http.post(this._refundUrl, auction.id, options)
       .map(res=>res.text()).catch(this.handleError);
   }
 

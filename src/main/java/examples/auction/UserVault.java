@@ -1,9 +1,9 @@
 package examples.auction;
 
-import io.baratine.service.IdAsset;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
-import io.baratine.service.Vault;
+import io.baratine.vault.IdAsset;
+import io.baratine.vault.Vault;
 
 @Service("/User")
 public interface UserVault extends Vault<IdAsset,UserImpl>

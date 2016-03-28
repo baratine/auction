@@ -1,6 +1,6 @@
 package examples.auction;
 
-import io.baratine.service.IdAsset;
+import io.baratine.vault.IdAsset;
 import io.baratine.service.Result;
 
 public interface User

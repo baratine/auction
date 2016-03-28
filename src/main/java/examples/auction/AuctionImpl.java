@@ -8,15 +8,15 @@ import java.util.logging.Logger;
 
 import javax.inject.Inject;
 
-import io.baratine.event.EventServiceSync;
-import io.baratine.service.Asset;
-import io.baratine.service.Id;
-import io.baratine.service.IdAsset;
+import io.baratine.event.EventsSync;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
-import io.baratine.service.ServiceManager;
-import io.baratine.timer.TimerService;
+import io.baratine.service.Services;
+import io.baratine.timer.Timers;
+import io.baratine.vault.Asset;
+import io.baratine.vault.Id;
+import io.baratine.vault.IdAsset;
 
 @Asset
 public class AuctionImpl implements Auction
@@ -48,7 +48,7 @@ public class AuctionImpl implements Auction
   private BoundState _boundState = BoundState.UNBOUND;
 
   @Inject
-  private transient ServiceManager _manager;
+  private transient Services _manager;
 
   @Inject
   @Service("/AuctionSettlement")
@@ -59,7 +59,7 @@ public class AuctionImpl implements Auction
   private transient AuditService _audit;
 
   @Inject
-  private transient EventServiceSync _eventService;
+  private transient EventsSync _Events;
 
   private transient AuctionEvents _events;
 
@@ -148,8 +148,8 @@ public class AuctionImpl implements Auction
   {
     String url = "timer:///";
 
-    ServiceManager manager = ServiceManager.current();
-    TimerService timer = manager.service(url).as(TimerService.class);
+    Services manager = Services.current();
+    Timers timer = manager.service(url).as(Timers.class);
 
     timer.runAt((x) -> closeOnTimer(Result.ignore()),
                 getDateToClose().toInstant().toEpochMilli(),
@@ -322,7 +322,7 @@ public class AuctionImpl implements Auction
   private AuctionEvents getEvents()
   {
     if (_events == null)
-      _events = _eventService.publisherPath(_encodedId, AuctionEvents.class);
+      _events = _Events.publisherPath(_encodedId, AuctionEvents.class);
 
     return _events;
   }

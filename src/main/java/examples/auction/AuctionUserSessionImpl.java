@@ -16,7 +16,7 @@ import io.baratine.web.Post;
  */
 @Service("session:")
 @CrossOrigin(value = "*", allowCredentials = true)
-@Api(AuctionUserSession.class)
+//@Api(AuctionUserSession.class)
 @Path("/user")
 public class AuctionUserSessionImpl extends AbstractAuctionSession
   implements AuctionUserSession

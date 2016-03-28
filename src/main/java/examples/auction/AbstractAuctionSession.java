@@ -9,16 +9,16 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import io.baratine.event.EventService;
+import io.baratine.event.Events;
+import io.baratine.pipe.BrokerPipe;
 import io.baratine.pipe.PipeOut;
-import io.baratine.pipe.PipeService;
 import io.baratine.pipe.Pipes;
-import io.baratine.service.Id;
 import io.baratine.service.OnDestroy;
 import io.baratine.service.OnInit;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
-import io.baratine.service.ServiceManager;
+import io.baratine.service.Services;
+import io.baratine.vault.Id;
 import io.baratine.web.Body;
 import io.baratine.web.Form;
 import io.baratine.web.Get;
@@ -34,7 +34,7 @@ public class AbstractAuctionSession implements AuctionSession
   protected String _id;
 
   @Inject
-  protected ServiceManager _manager;
+  protected Services _manager;
 
   @Inject
   @Service("/Auction")
@@ -45,7 +45,7 @@ public class AbstractAuctionSession implements AuctionSession
   private UserVault _users;
 
   @Inject
-  private EventService _eventService;
+  private Events _Events;
 
   protected User _user;
 
@@ -55,7 +55,7 @@ public class AbstractAuctionSession implements AuctionSession
 
   @Inject
   @Service("pipe:///test")
-  PipeService<WebAuction> _pipeService;
+  BrokerPipe<WebAuction> _pipeService;
 
   private PipeOut<WebAuction> _auctionUpdates;
 
@@ -214,7 +214,7 @@ public class AbstractAuctionSession implements AuctionSession
 
     AuctionEventsImpl auctionListener = new AuctionEventsImpl();
 
-    _eventService.subscriber(id, auctionListener, (c, e) -> {});
+    _Events.subscriber(id, auctionListener, (c, e) -> {});
 
     auctionListener.subscribe();
 

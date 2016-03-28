@@ -7,9 +7,9 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.logging.Logger;
 
-import io.baratine.service.Asset;
-import io.baratine.service.Id;
-import io.baratine.service.IdAsset;
+import io.baratine.vault.Asset;
+import io.baratine.vault.Id;
+import io.baratine.vault.IdAsset;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
 

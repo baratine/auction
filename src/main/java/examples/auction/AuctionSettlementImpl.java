@@ -8,13 +8,13 @@ import examples.auction.SettlementTransactionState.AuctionUpdateState;
 import examples.auction.SettlementTransactionState.AuctionWinnerUpdateState;
 import examples.auction.SettlementTransactionState.PaymentTxState;
 import examples.auction.SettlementTransactionState.UserUpdateState;
-import io.baratine.service.Asset;
-import io.baratine.service.Id;
-import io.baratine.service.IdAsset;
+import io.baratine.vault.Asset;
+import io.baratine.vault.Id;
+import io.baratine.vault.IdAsset;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
-import io.baratine.service.ServiceManager;
+import io.baratine.service.Services;
 
 @Asset
 public class AuctionSettlementImpl implements AuctionSettlement
@@ -43,7 +43,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private transient AuditService _audit;
 
   @Inject
-  private transient ServiceManager _manager;
+  private transient Services _manager;
 
   public AuctionSettlementImpl()
   {

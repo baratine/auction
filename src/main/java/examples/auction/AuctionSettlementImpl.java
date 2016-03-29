@@ -95,19 +95,12 @@ public class AuctionSettlementImpl implements AuctionSettlement
   public void settlePending(Result<Status> status)
   {
     try {
-      log.finer("XXXXXX: -1");
       Result.Fork<Boolean,Status> fork = status.fork();
-      log.finer("XXXXXX: 0");
       fork.fail((l, t, r) -> this.settleFail(r));
 
-      log.finer("XXXXXX: 1");
-
       updateUser(fork.branch());
-      log.finer("XXXXXX: 2");
       updateAuction(fork.branch());
-      log.finer("XXXXXX: 3");
       chargeUser(fork.branch());
-      log.finer("XXXXXX: 4");
 
       fork.join((l, r) -> {
         boolean isSuccess = l.get(0) && l.get(1) && l.get(2);
@@ -119,7 +112,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
           settleFail(r);
         }
       });
-      log.finer("XXXXXX: 5");
     } catch (Exception e) {
       e.printStackTrace();
     }

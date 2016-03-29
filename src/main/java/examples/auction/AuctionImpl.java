@@ -59,9 +59,9 @@ public class AuctionImpl implements Auction
   private transient AuditService _audit;
 
   @Inject
-  private transient EventsSync _Events;
+  private transient EventsSync _events;
 
-  private transient AuctionEvents _events;
+  private transient AuctionEvents _auctionEvents;
 
   public AuctionImpl()
   {
@@ -177,19 +177,11 @@ public class AuctionImpl implements Auction
     if (_state == State.OPEN) {
       _audit.auctionToClose(getAuctionDataPublic(), Result.ignore());
 
-      log.warning("close - 0: " + this);
-
       toClose();
 
-      log.warning("close - 1: " + this);
-
-      getEvents().onClose(getAuctionDataPublic());
-
-      log.warning("close - 2: " + this);
+      getAuctionEvents().onClose(getAuctionDataPublic());
 
       settle();
-
-      log.warning("close - 3: " + this);
 
       result.ok(true);
     }
@@ -272,7 +264,6 @@ public class AuctionImpl implements Auction
       return;
 
     getAuctionSettlement((s, e) -> {
-      log.finer("XXX-0: " + s + ", " + bid);
       s.settle(bid, Result.ignore());
     });
   }
@@ -308,7 +299,7 @@ public class AuctionImpl implements Auction
     if (isAccepted) {
       _audit.auctionBidAccept(bid, Result.ignore());
 
-      getEvents().onBid(getAuctionDataPublic());
+      getAuctionEvents().onBid(getAuctionDataPublic());
 
       result.ok(true);
     }
@@ -319,12 +310,12 @@ public class AuctionImpl implements Auction
     }
   }
 
-  private AuctionEvents getEvents()
+  private AuctionEvents getAuctionEvents()
   {
-    if (_events == null)
-      _events = _Events.publisherPath(_encodedId, AuctionEvents.class);
+    if (_auctionEvents == null)
+      _auctionEvents = _events.publisherPath(_encodedId, AuctionEvents.class);
 
-    return _events;
+    return _auctionEvents;
   }
 
   private boolean bid(String bidderId, int bid)
@@ -360,7 +351,7 @@ public class AuctionImpl implements Auction
     setWinner(user);
 
     //TODO:
-    getEvents().onSettled(getAuctionDataPublic());
+    getAuctionEvents().onSettled(getAuctionDataPublic());
 
     result.ok(true);
   }
@@ -382,7 +373,7 @@ public class AuctionImpl implements Auction
 
     result.ok(true);
 
-    getEvents().onSettled(getAuctionDataPublic());
+    getAuctionEvents().onSettled(getAuctionDataPublic());
   }
 
   public void toSettled()
@@ -399,7 +390,7 @@ public class AuctionImpl implements Auction
   {
     toRolledBack();
 
-    getEvents().onRolledBack(getAuctionDataPublic());
+    getAuctionEvents().onRolledBack(getAuctionDataPublic());
   }
 
   public void toRolledBack()

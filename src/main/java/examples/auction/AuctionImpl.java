@@ -240,8 +240,8 @@ public class AuctionImpl implements Auction
     }
     else {
       log.finer("getAuctionSettlement: 2 " + _settlementId);
-      result.ok(_manager.service("/settlement/" + _settlementId)
-                        .as(AuctionSettlement.class));
+
+      result.ok(_manager.service(AuctionSettlement.class, _settlementId));
     }
   }
 
@@ -327,7 +327,7 @@ public class AuctionImpl implements Auction
     return _events;
   }
 
-  public boolean bid(String bidderId, int bid)
+  private boolean bid(String bidderId, int bid)
     throws IllegalStateException
   {
     if (_state != State.OPEN) {

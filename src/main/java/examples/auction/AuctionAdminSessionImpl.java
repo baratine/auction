@@ -17,7 +17,7 @@ import io.baratine.web.Query;
  */
 @Service("session:")
 @CrossOrigin(value = "*", allowCredentials = true)
-@Api(AuctionAdminSession.class)
+//@Api(AuctionAdminSession.class)
 @Path("/admin")
 public class AuctionAdminSessionImpl extends AbstractAuctionSession
   implements AuctionAdminSession

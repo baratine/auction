@@ -2,7 +2,6 @@ package examples.auction;
 
 import java.util.logging.Logger;
 
-import io.baratine.service.Api;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.web.Body;
@@ -29,6 +28,8 @@ public class AuctionAdminSessionImpl extends AbstractAuctionSession
   @Get("/winner")
   public void getWinner(@Query("id") String auctionId, Result<WebUser> result)
   {
+    validateSession();
+
     Auction auction = getAuctionService(auctionId);
 
     auction.get(result.of((a, r) -> {
@@ -42,6 +43,8 @@ public class AuctionAdminSessionImpl extends AbstractAuctionSession
   public void getSettlementState(@Query("id") String auctionId,
                                  Result<SettlementTransactionState> result)
   {
+    validateSession();
+
     getAuctionSettlementService(auctionId,
                                 result.of((s, r) -> s.getTransactionState(r)));
   }
@@ -58,6 +61,8 @@ public class AuctionAdminSessionImpl extends AbstractAuctionSession
   @Post("/refund")
   public void refund(@Body String id, Result<Boolean> result)
   {
+    validateSession();
+
     Auction auction = getAuctionService(id);
 
     auction.refund(result);

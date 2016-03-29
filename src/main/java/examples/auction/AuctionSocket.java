@@ -24,8 +24,10 @@ public class AuctionSocket
   @Inject
   Services _manager;
 
+/*
   @Inject
   @Service("pipe:///test")
+*/
   BrokerPipe<AuctionSession.WebAuction> _pipeBroker;
 
   private WebSocket<AuctionUserSession.WebAuction> _ws;
@@ -58,6 +60,9 @@ public class AuctionSocket
   public void open(WebSocket<AuctionUserSession.WebAuction> webSocket)
   {
     _ws = webSocket;
+
+    _pipeBroker = _manager.service("pipe:///events/" + _id)
+                           .as(BrokerPipe.class);
 
     _pipeBroker.subscribe(Pipes.in(this));
   }

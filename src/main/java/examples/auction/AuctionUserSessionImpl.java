@@ -2,7 +2,6 @@ package examples.auction;
 
 import java.util.logging.Logger;
 
-import io.baratine.service.Api;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.web.Body;
@@ -27,11 +26,7 @@ public class AuctionUserSessionImpl extends AbstractAuctionSession
   @Post("/createAuction")
   public void createAuction(@Body Form form, Result<WebAuction> result)
   {
-    log.finer("AuctionSessionImpl.createAuction: " + this);
-
-    if (_user == null) {
-      throw new IllegalStateException("No user is logged in");
-    }
+    validateSession();
 
     String title = form.getFirst("t");
     Integer bid = Integer.parseInt(form.getFirst("b"));
@@ -57,9 +52,7 @@ public class AuctionUserSessionImpl extends AbstractAuctionSession
   @Post("/bidAuction")
   public void bidAuction(@Body WebBid bid, Result<Boolean> result)
   {
-    if (_user == null) {
-      throw new IllegalStateException("No user is logged in");
-    }
+    validateSession();
 
     getAuctionService(bid.getAuction())
       .bid(new AuctionBid(_userId, bid.getBid()), result);

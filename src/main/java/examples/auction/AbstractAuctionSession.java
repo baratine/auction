@@ -53,18 +53,22 @@ public class AbstractAuctionSession implements AuctionSession
 
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
 
-  @Inject
-  @Service("pipe:///test")
-  BrokerPipe<WebAuction> _pipeService;
+  /*@Inject
+  @Service("pipe:///events")
+  */
+  BrokerPipe<WebAuction> _pipeBroker;
 
   private PipeOut<WebAuction> _auctionUpdates;
 
   @OnInit
   public void init()
   {
-    log.log(Level.FINER, "auction updates pipe service " + _pipeService);
+    log.log(Level.FINER, "auction updates pipe service " + _pipeBroker);
 
-    _pipeService.publish(Pipes.flow(x -> _auctionUpdates = x));
+    _pipeBroker = _manager.service("pipe:///events/" + _id)
+                          .as(BrokerPipe.class);
+
+    _pipeBroker.publish(Pipes.flow(x -> _auctionUpdates = x));
   }
 
   @Post("/createUser")
@@ -127,9 +131,7 @@ public class AbstractAuctionSession implements AuctionSession
    */
   public void getUser(Result<WebUser> result)
   {
-    if (_user == null) {
-      throw new IllegalStateException("No user is logged in");
-    }
+    validateSession();
 
     _user.get(result.of(u -> WebUser.of(u)));
   }
@@ -142,12 +144,10 @@ public class AbstractAuctionSession implements AuctionSession
   public void getAuction(String id,
                          Result<AuctionUserSession.WebAuction> result)
   {
+    validateSession();
+
     if (id == null) {
       throw new IllegalArgumentException();
-    }
-
-    if (_user == null) {
-      throw new IllegalStateException("No user is logged in");
     }
 
     getAuctionService(id).get(result.of(a -> WebAuction.of(a)));
@@ -163,9 +163,7 @@ public class AbstractAuctionSession implements AuctionSession
   public void findAuction(String title,
                           Result<Auction> result)
   {
-    if (_user == null) {
-      throw new IllegalStateException("No user is logged in");
-    }
+    validateSession();
 
     _auctions.findByTitle(title, result);
   }
@@ -174,6 +172,8 @@ public class AbstractAuctionSession implements AuctionSession
   public void searchAuctions(@Query("q") String query,
                              Result<List<AuctionUserSession.WebAuction>> result)
   {
+    validateSession();
+
     AbstractAuctionSession.log.info(String.format("search %1$s", query));
 
     _auctions.findAuctionDataByTitle(query, result.of(l -> asWebAuctions(l)));
@@ -224,6 +224,12 @@ public class AbstractAuctionSession implements AuctionSession
   public void addEvent(AuctionData event)
   {
     _auctionUpdates.next(WebAuction.of(event));
+  }
+
+  protected void validateSession()
+  {
+    if (_user == null)
+      throw new IllegalStateException("not logged in");
   }
 
   public void logout(Result<Boolean> result)

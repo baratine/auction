@@ -5,7 +5,7 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 import io.baratine.pipe.BrokerPipe;
-import io.baratine.pipe.PipeIn;
+import io.baratine.pipe.Pipe;
 import io.baratine.pipe.Pipes;
 import io.baratine.service.Service;
 import io.baratine.service.Services;
@@ -16,7 +16,7 @@ import io.baratine.web.WebSocket;
 @Service("session:")
 public class AuctionSocket
   implements ServiceWebSocket<String,AuctionUserSession.WebAuction>,
-  PipeIn<AuctionSession.WebAuction>
+  Pipe<AuctionSession.WebAuction>
 {
   @Id
   private String _id;
@@ -24,10 +24,10 @@ public class AuctionSocket
   @Inject
   Services _manager;
 
-/*
-  @Inject
-  @Service("pipe:///test")
-*/
+  /*
+    @Inject
+    @Service("pipe:///test")
+  */
   BrokerPipe<AuctionSession.WebAuction> _pipeBroker;
 
   private WebSocket<AuctionUserSession.WebAuction> _ws;
@@ -62,7 +62,7 @@ public class AuctionSocket
     _ws = webSocket;
 
     _pipeBroker = _manager.service("pipe:///events/" + _id)
-                           .as(BrokerPipe.class);
+                          .as(BrokerPipe.class);
 
     _pipeBroker.subscribe(Pipes.in(this));
   }

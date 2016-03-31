@@ -11,7 +11,7 @@ import javax.inject.Inject;
 
 import io.baratine.event.Events;
 import io.baratine.pipe.BrokerPipe;
-import io.baratine.pipe.PipeOut;
+import io.baratine.pipe.Pipe;
 import io.baratine.pipe.Pipes;
 import io.baratine.service.OnDestroy;
 import io.baratine.service.OnInit;
@@ -58,7 +58,7 @@ public class AbstractAuctionSession implements AuctionSession
   */
   BrokerPipe<WebAuction> _pipeBroker;
 
-  private PipeOut<WebAuction> _auctionUpdates;
+  private Pipe<WebAuction> _auctionUpdates;
 
   @OnInit
   public void init()
@@ -68,7 +68,7 @@ public class AbstractAuctionSession implements AuctionSession
     _pipeBroker = _manager.service("pipe:///events/" + _id)
                           .as(BrokerPipe.class);
 
-    _pipeBroker.publish(Pipes.flow(x -> _auctionUpdates = x));
+    _pipeBroker.publish(Pipes.out((x, e) -> _auctionUpdates = x));
   }
 
   @Post("/createUser")

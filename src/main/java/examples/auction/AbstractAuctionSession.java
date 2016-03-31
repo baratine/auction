@@ -53,10 +53,7 @@ public class AbstractAuctionSession implements AuctionSession
 
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
 
-  /*@Inject
-  @Service("pipe:///events")
-  */
-  BrokerPipe<WebAuction> _pipeBroker;
+  private BrokerPipe<WebAuction> _pipeBroker;
 
   private Pipe<WebAuction> _auctionUpdates;
 
@@ -120,8 +117,6 @@ public class AbstractAuctionSession implements AuctionSession
       }));
     }
     else {
-      log.finer("AbstractAuctionSession.completeLogin fail: "
-                + this);
       result.ok(false);
     }
   }
@@ -209,8 +204,7 @@ public class AbstractAuctionSession implements AuctionSession
     if (_listenerMap.containsKey(id))
       return;
 
-    AbstractAuctionSession.log.finer("add auction events listener for auction: "
-                                     + id);
+    log.finer("add auction events listener for auction: " + id);
 
     AuctionEventsImpl auctionListener = new AuctionEventsImpl();
 

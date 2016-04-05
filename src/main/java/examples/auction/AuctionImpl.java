@@ -59,6 +59,7 @@ public class AuctionImpl implements Auction
   private transient AuditService _audit;
 
   @Inject
+  @Service("event:")
   private transient EventsSync _events;
 
   private transient AuctionEvents _auctionEvents;

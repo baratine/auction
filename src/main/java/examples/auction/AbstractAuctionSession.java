@@ -1,5 +1,6 @@
 package examples.auction;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -10,9 +11,6 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import io.baratine.event.Events;
-import io.baratine.pipe.BrokerPipe;
-import io.baratine.pipe.Pipe;
-import io.baratine.pipe.Pipes;
 import io.baratine.service.OnDestroy;
 import io.baratine.service.OnInit;
 import io.baratine.service.Result;
@@ -24,6 +22,10 @@ import io.baratine.web.Form;
 import io.baratine.web.Get;
 import io.baratine.web.Post;
 import io.baratine.web.Query;
+import io.baratine.web.RequestWeb;
+import io.baratine.web.ServiceWebSocket;
+import io.baratine.web.WebSocket;
+import io.baratine.web.WebSocketPath;
 
 public class AbstractAuctionSession implements AuctionSession
 {
@@ -45,27 +47,19 @@ public class AbstractAuctionSession implements AuctionSession
   private UserVault _users;
 
   @Inject
-  private Events _Events;
+  @Service("event:")
+  private Events _events;
 
   protected User _user;
 
   protected String _userId;
 
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
-
-  private BrokerPipe<WebAuction> _pipeBroker;
-
-  private Pipe<WebAuction> _auctionUpdates;
+  private WebAuctionUpdates _updates;
 
   @OnInit
   public void init()
   {
-    log.log(Level.FINER, "auction updates pipe service " + _pipeBroker);
-
-    _pipeBroker = _manager.service("pipe:///events/" + _id)
-                          .as(BrokerPipe.class);
-
-    _pipeBroker.publish(Pipes.out((x, e) -> _auctionUpdates = x));
   }
 
   @Post("/createUser")
@@ -181,6 +175,38 @@ public class AbstractAuctionSession implements AuctionSession
                    .collect(Collectors.toList());
   }
 
+  @WebSocketPath("/auction-updates")
+  public void updates(RequestWeb request)
+  {
+    _updates = new WebAuctionUpdates();
+
+    request.upgrade(_updates);
+  }
+
+  class WebAuctionUpdates implements ServiceWebSocket<WebAuction,WebAuction>
+  {
+    private WebSocket<WebAuction> _updatesSocket;
+
+    @Override
+    public void open(WebSocket<WebAuction> webSocket)
+    {
+      _updatesSocket = webSocket;
+    }
+
+    @Override
+    public void next(WebAuction auction,
+                     WebSocket<WebAuction> webSocket)
+      throws IOException
+    {
+
+    }
+
+    public void next(WebAuction auction)
+    {
+      _updatesSocket.next(auction);
+    }
+  }
+
   @Post("/addAuctionListener")
   public void addAuctionListener(@Body String id, Result<Boolean> result)
   {
@@ -208,7 +234,7 @@ public class AbstractAuctionSession implements AuctionSession
 
     AuctionEventsImpl auctionListener = new AuctionEventsImpl();
 
-    _Events.subscriber(id, auctionListener, (c, e) -> {});
+    _events.subscriber(id, auctionListener, (c, e) -> {});
 
     auctionListener.subscribe();
 
@@ -217,7 +243,7 @@ public class AbstractAuctionSession implements AuctionSession
 
   public void addEvent(AuctionData event)
   {
-    _auctionUpdates.next(WebAuction.of(event));
+    _updates.next(WebAuction.of(event));
   }
 
   protected void validateSession()

@@ -14,7 +14,7 @@ public class Main
     //property("server.file", "classpath:/public");
     property("server.file", "/Users/alex/projects/baratine-github/auction");
 
-    websocket("/user/auction-updates").to(AuctionSocket.class);
+    //websocket("/user/auction-updates").to(AuctionSocket.class);
 
     include(AuctionAdminSessionImpl.class);
     include(AuctionUserSessionImpl.class);

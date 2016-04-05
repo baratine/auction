@@ -1,10 +1,12 @@
 package examples.auction;
 
+import io.baratine.service.Modify;
 import io.baratine.vault.IdAsset;
 import io.baratine.service.Result;
 
 public interface User
 {
+  @Modify
   void create(AuctionUserSessionImpl.UserInitData user,
               Result<IdAsset> userId);
 

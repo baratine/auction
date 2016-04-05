@@ -77,10 +77,10 @@ export class AuctionAdminComponent implements OnInit, AuctionListener
 
   onUpdate(auctions:Auction[])
   {
-    for (var bid of auctions) {
-      var i = this.auctions.findIndex(x =>x.id == auctions.id);
+    for (var auction of auctions) {
+      var i = this.auctions.findIndex(x =>x.id == auction.id);
       if (i > -1)
-        this.auctions[i] = bid;
+        this.auctions[i] = auction;
     }
   }
 

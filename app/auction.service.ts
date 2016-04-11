@@ -28,7 +28,9 @@ export class AuctionService
     this._subscribeUrl = _baseUrlProvider.url + "addAuctionListener";
     this._bidUrl = _baseUrlProvider.url + "bidAuction";
     this._refundUrl = _baseUrlProvider.url + "refund";
+    //this._auctionUpdatesUrl = _baseUrlProvider.url + "auction-updates";
     this._auctionUpdatesUrl = _baseUrlProvider.wsUrl + "auction-updates";
+    //this._auctionUpdatesUrl = "localhost:8080/user/auction-updates";
   }
 
   public create(title:string, bid:number)
@@ -40,8 +42,7 @@ export class AuctionService
     let body = urlSearchParams.toString();
 
     let headers = new Headers({
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Connection': 'Close'
+      'Content-Type': 'application/x-www-form-urlencoded'
     });
     let options = new RequestOptions({headers: headers});
 
@@ -55,7 +56,7 @@ export class AuctionService
     urlSearchParams.append("q", query);
     let url = this._searchUrl + '?' + urlSearchParams.toString();
 
-    let headers = new Headers({'Connection': 'Close'});
+    let headers = new Headers();
     let options = new RequestOptions({headers: headers});
 
     return this.http.get(url, options)
@@ -78,8 +79,7 @@ export class AuctionService
     let body = auction.id;
 
     let headers = new Headers({
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Connection': 'Close'
+      'Content-Type': 'application/x-www-form-urlencoded'
     });
     let options = new RequestOptions({headers: headers});
 
@@ -93,8 +93,7 @@ export class AuctionService
     let body = Json.stringify({"auction": auction.id, "bid": price});
 
     let headers = new Headers({
-      'Content-Type': 'application/json',
-      'Connection': 'Close'
+      'Content-Type': 'application/json'
     });
     let options = new RequestOptions({headers: headers});
 
@@ -104,7 +103,7 @@ export class AuctionService
 
   public refund(auction:Auction)
   {
-    let headers = new Headers({'Connection': 'Close'});
+    let headers = new Headers();
     let options = new RequestOptions({headers: headers});
 
     return this.http.post(this._refundUrl, auction.id, options)
@@ -122,10 +121,25 @@ export class AuctionService
     var websocket = new WebSocket(this._auctionUpdatesUrl);
 
     var self = this;
+
     websocket.addEventListener("message", function (e:MessageEvent)
     {
       self.auctionUpdate(self, e);
     });
+
+/*
+    var self = this;
+    var sock = new SockJS(this._auctionUpdatesUrl, ["ws", "http", "https"]);
+    sock.onopen = function() {
+      console.log('open');
+    };
+    sock.onmessage = function(e) {
+      self.auctionUpdate(self, e);
+    };
+    sock.onclose = function() {
+      console.log('close');
+    };
+*/
   }
 
   private auctionUpdate(self:AuctionService, e:MessageEvent)

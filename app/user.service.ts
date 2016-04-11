@@ -27,8 +27,7 @@ export class UserService
     let body = 'u=' + user + '&' + 'p=' + password;
 
     let headers = new Headers({
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Connection': 'Close'
+      'Content-Type': 'application/x-www-form-urlencoded'
     });
     let options = new RequestOptions({headers: headers});
 
@@ -41,8 +40,7 @@ export class UserService
     let body = Json.stringify({"user": user, "password": password});
 
     let headers = new Headers({
-      'Content-Type': 'application/json',
-      'Connection': 'Close'
+      'Content-Type': 'application/json'
     });
     let options = new RequestOptions({headers: headers});
 

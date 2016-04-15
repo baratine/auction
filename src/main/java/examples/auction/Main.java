@@ -12,7 +12,7 @@ public class Main
   public static void main(String[] args)
   {
     //property("server.file", "classpath:/public");
-    property("server.file", "/Users/alex/projects/baratine-github/auction");
+    property("server.file", "/Users/alex/projects/baratine-github/auction/src/main/web");
 
     //websocket("/user/auction-updates").to(AuctionSocket.class);
 

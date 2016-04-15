@@ -39,9 +39,7 @@ Java:
 
 ##### Running the Auction application
 
-1. install lucene-plugin: https://github.com/baratine/lucene-plugin 
-2. execute `./baratine-run.sh`
-3. open latest browser and navigate to http://localhost:8085
+execute `gradle clean jar run`
 
 For additional documentaton on Baratine™ visit [Baratine Home]
 [Baratine Home]: http://baratine.io

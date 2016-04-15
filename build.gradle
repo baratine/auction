@@ -17,18 +17,18 @@ sourceSets {
   main {
     resources {
       srcDir 'src/main/resources'
-      srcDir 'src/main/web'
     }
   }
 }
 
-sourceSets.main.resources.exclude 'node_modules/**';
-sourceSets.main.resources.exclude 'typings/**';
+sourceSets.main.resources.exclude 'web/node_modules/**';
+sourceSets.main.resources.exclude 'web/typings/**';
 
 dependencies {
   compile 'io.baratine:baratine:0.11.4';
   compile 'javax.json:javax.json-api:1.0';
   compile 'org.glassfish:javax.json:1.0.4';
+
   testCompile 'junit:junit:4.12'
 }
 

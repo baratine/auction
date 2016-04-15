@@ -2,19 +2,18 @@ package examples.auction;
 
 import static io.baratine.web.Web.*;
 
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.caucho.v5.ramp.jamp.WebJamp;
 
 public class Main
 {
   public static void main(String[] args)
   {
-    //property("server.file", "classpath:/public");
-    property("server.file", "src/main/web");
-
-    //websocket("/user/auction-updates").to(AuctionSocket.class);
+    if (new File("src/main/resources/web/index.htmlx").exists())
+      property("server.file", "src/main/resources/web");
+    else
+      property("server.file", "classpath:/web");
 
     include(AuctionAdminSessionImpl.class);
     include(AuctionUserSessionImpl.class);

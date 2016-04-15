@@ -26,8 +26,6 @@ public class Main
     include(UserVault.class);
     include(AuctionVault.class);
 
-    route("/jamp").to(WebJamp.class);
-
     Level level = Level.FINEST;
 
     Logger.getLogger("com.caucho").setLevel(level);

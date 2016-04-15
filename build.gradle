@@ -16,7 +16,7 @@ configurations {
 sourceSets {
   main {
     resources {
-      srcDirs 'src/main/resources'
+      srcDir 'src/main/resources'
       srcDir 'src/main/web'
     }
   }
@@ -28,6 +28,7 @@ sourceSets.main.resources.exclude 'typings/**';
 dependencies {
   compile 'io.baratine:baratine:0.11.4';
   compile 'javax.json:javax.json-api:1.0';
+  compile 'org.glassfish:javax.json:1.0.4';
   testCompile 'junit:junit:4.12'
 }
 

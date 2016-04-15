@@ -1,0 +1,46 @@
+<html>
+<head>
+  <base href="/">
+
+  <title>Baratine™ Auction Application</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet"
+        href="bootstrap.min.css">
+
+  <!-- 1. Load libraries -->
+  <!-- IE required polyfills, in this exact order -->
+  <script src="js/es6-shim.min.js"></script>
+  <script src="js/system-polyfills.js"></script>
+
+  <script src="js/angular2-polyfills.js"></script>
+  <script src="js/system.src.js"></script>
+  <script src="js/Rx.js"></script>
+  <script src="js/angular2.dev.js"></script>
+  <script src="js/router.dev.js"></script>
+  <script src="js/http.dev.js"></script>
+
+  <!-- 2. Configure SystemJS -->
+  <script>
+    System.config({
+                    packages: {
+                      app: {
+                        format: 'register',
+                        defaultExtension: 'js'
+                      }
+                    }
+                  });
+    System.import('app/user-main')
+            .then(null, console.error.bind(console));
+  </script>
+
+</head>
+
+<!-- 3. Display the application -->
+<body>
+<user-app>Loading...</user-app>
+</body>
+
+</html>

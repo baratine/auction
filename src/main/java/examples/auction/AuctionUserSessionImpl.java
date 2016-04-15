@@ -28,19 +28,19 @@ public class AuctionUserSessionImpl extends AbstractAuctionSession
   {
     validateSession();
 
-    String title = form.getFirst("t");
-    Integer bid = Integer.parseInt(form.getFirst("b"));
+    String title = form.first("t");
+    Integer bid = Integer.parseInt(form.first("b"));
 
     _auctions.create(new AuctionDataInit(_userId, title, bid),
-                     result.of((id, r) -> afterCreateAuction(id.toString(),
-                                                             r)));
+                     result.then((id, r) -> afterCreateAuction(id.toString(),
+                                                               r)));
   }
 
   private void afterCreateAuction(String auctionId, Result<WebAuction> result)
   {
     Auction auction = _manager.service(Auction.class, auctionId);
 
-    auction.open(result.of((b, r) -> getAuction(auctionId, r)));
+    auction.open(result.then((b, r) -> getAuction(auctionId, r)));
   }
 
   /**

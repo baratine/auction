@@ -201,8 +201,8 @@ public class AuctionImpl implements Auction
     if (_state != State.SETTLED)
       throw new IllegalStateException();
 
-    getAuctionSettlement(result.of((s, r) -> s.refund(r.of(t -> t
-                                                                == AuctionSettlement.Status.ROLLED_BACK))));
+    getAuctionSettlement(result.then((s, r) -> s.refund(r.of(t -> t
+                                                                  == AuctionSettlement.Status.ROLLED_BACK))));
   }
 
   private void getAuctionSettlement(Result<AuctionSettlement> result)

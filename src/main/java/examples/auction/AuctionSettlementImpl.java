@@ -8,13 +8,13 @@ import examples.auction.SettlementTransactionState.AuctionUpdateState;
 import examples.auction.SettlementTransactionState.AuctionWinnerUpdateState;
 import examples.auction.SettlementTransactionState.PaymentTxState;
 import examples.auction.SettlementTransactionState.UserUpdateState;
-import io.baratine.vault.Asset;
-import io.baratine.vault.Id;
-import io.baratine.vault.IdAsset;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.Services;
+import io.baratine.vault.Asset;
+import io.baratine.vault.Id;
+import io.baratine.vault.IdAsset;
 
 @Asset
 public class AuctionSettlementImpl implements AuctionSettlement
@@ -239,7 +239,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   private void settleComplete(Result<Status> result)
   {
-    getAuction().setSettled(result.of((x, r) -> {
+    getAuction().setSettled(result.then((x, r) -> {
       _state.setAuctionStateUpdateState(AuctionUpdateState.SUCCESS);
       _state.setSettleStatus(Status.SETTLED);
       r.ok(Status.SETTLED);

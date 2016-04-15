@@ -66,23 +66,23 @@ public class AbstractAuctionSession implements AuctionSession
   public void createUser(@Body AuctionUserSession.UserInitData user,
                          Result<WebUser> result)
   {
-    _users.create(user, result.of((id, r) ->
-                                    getUserService(id.toString()).get(r.of(u -> WebUser
-                                      .of(u)))));
+    _users.create(user, result.then((id, r) ->
+                                      getUserService(id.toString()).get(r.of(u -> WebUser
+                                        .of(u)))));
   }
 
   @Post("/login")
   public void login(@Body Form login, Result<Boolean> result)
   {
-    String user = login.getFirst("u");
-    String password = login.getFirst("p");
+    String user = login.first("u");
+    String password = login.first("p");
 
     if (user == null || password == null) {
       result.ok(false);
     }
     else {
       _users.findByName(user,
-                        result.of((u, r) -> authenticate(u, password, r)));
+                        result.then((u, r) -> authenticate(u, password, r)));
     }
   }
 
@@ -94,7 +94,7 @@ public class AbstractAuctionSession implements AuctionSession
     else {
       user.authenticate(password,
                         false,
-                        result.of((x, r) -> completeLogin(x, user, r)));
+                        result.then((x, r) -> completeLogin(x, user, r)));
     }
   }
 

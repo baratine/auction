@@ -32,7 +32,7 @@ public class AuctionAdminSessionImpl extends AbstractAuctionSession
 
     Auction auction = getAuctionService(auctionId);
 
-    auction.get(result.of((a, r) -> {
+    auction.get(result.then((a, r) -> {
       getUserService(a.getLastBidder())
         .get(r.of(u -> WebUser.of(u)));
     }));
@@ -46,7 +46,7 @@ public class AuctionAdminSessionImpl extends AbstractAuctionSession
     validateSession();
 
     getAuctionSettlementService(auctionId,
-                                result.of((s, r) -> s.getTransactionState(r)));
+                                result.then((s, r) -> s.getTransactionState(r)));
   }
 
   private void getAuctionSettlementService(String auctionId,

@@ -2,14 +2,18 @@ package examples.auction;
 
 import java.util.List;
 
+import io.baratine.service.Result;
 import io.baratine.web.Body;
-import io.baratine.web.Form;
 
-public interface AuctionSessionSync extends AuctionSession
+public interface AuctionUserSessionSync extends AuctionUserSession
 {
   WebUser createUser(@Body UserInitData user);
 
-  boolean login(@Body Form login);
+  boolean login(String user, String password);
+
+  WebAuction createAuction(String title, int price);
+
+  boolean bidAuction(WebBid bid);
 
   WebUser getUser();
 

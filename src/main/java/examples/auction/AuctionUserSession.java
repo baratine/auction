@@ -1,14 +1,13 @@
 package examples.auction;
 
 import io.baratine.service.Result;
-import io.baratine.web.Form;
 
 /**
  * User visible channel facade at session://web/auction-session
  */
 public interface AuctionUserSession extends AuctionSession
 {
-  void createAuction(Form form, Result<WebAuction> result);
+  void createAuction(String title, int price, Result<WebAuction> result);
 
   void bidAuction(WebBid bid, Result<Boolean> result);
 
@@ -16,6 +15,12 @@ public interface AuctionUserSession extends AuctionSession
   {
     private String auction;
     private int bid;
+
+    public WebBid(String auction, int bid)
+    {
+      this.auction = auction;
+      this.bid = bid;
+    }
 
     public String getAuction()
     {

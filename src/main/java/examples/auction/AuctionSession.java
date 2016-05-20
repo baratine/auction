@@ -4,13 +4,12 @@ import java.util.List;
 
 import io.baratine.service.Result;
 import io.baratine.web.Body;
-import io.baratine.web.Form;
 
 public interface AuctionSession
 {
   void createUser(@Body UserInitData user, Result<WebUser> result);
 
-  void login(@Body Form login, Result<Boolean> result);
+  void login(String user, String password, Result<Boolean> result);
 
   void getUser(Result<WebUser> result);
 
@@ -49,6 +48,26 @@ public interface AuctionSession
       this.state = state;
     }
 
+    public String getId()
+    {
+      return id;
+    }
+
+    public String getTitle()
+    {
+      return title;
+    }
+
+    public long getBid()
+    {
+      return bid;
+    }
+
+    public String getState()
+    {
+      return state;
+    }
+
     public static WebAuction of(AuctionData auction)
     {
       Auction.Bid bid = auction.getLastBid();
@@ -61,6 +80,18 @@ public interface AuctionSession
                          auction.getState().toString());
 
       return webAuction;
+    }
+
+    @Override
+    public String toString()
+    {
+      return this.getClass().getSimpleName() + "["
+             + title
+             + ", "
+             + bid
+             + ", "
+             + state
+             + ']';
     }
   }
 
@@ -110,8 +141,8 @@ public interface AuctionSession
 
   class WebUser
   {
-    String id;
-    String user;
+    private String id;
+    private String user;
 
     public WebUser()
     {
@@ -121,6 +152,11 @@ public interface AuctionSession
     {
       this.id = id;
       this.user = user;
+    }
+
+    public String getName()
+    {
+      return user;
     }
 
     public static WebUser of(UserData user)

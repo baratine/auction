@@ -18,7 +18,6 @@ import io.baratine.service.Service;
 import io.baratine.service.Services;
 import io.baratine.vault.Id;
 import io.baratine.web.Body;
-import io.baratine.web.Form;
 import io.baratine.web.Get;
 import io.baratine.web.Post;
 import io.baratine.web.Query;
@@ -72,11 +71,10 @@ public class AbstractAuctionSession implements AuctionSession
   }
 
   @Post("/login")
-  public void login(@Body Form login, Result<Boolean> result)
+  public void login(@Body("u") String user,
+                    @Body("p") String password,
+                    Result<Boolean> result)
   {
-    String user = login.first("u");
-    String password = login.first("p");
-
     if (user == null || password == null) {
       result.ok(false);
     }

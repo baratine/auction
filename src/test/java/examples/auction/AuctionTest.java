@@ -1,6 +1,5 @@
 package examples.auction;
 
-import java.time.ZonedDateTime;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 

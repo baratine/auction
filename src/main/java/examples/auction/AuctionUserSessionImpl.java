@@ -6,14 +6,13 @@ import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.web.Body;
 import io.baratine.web.CrossOrigin;
-import io.baratine.web.Form;
 import io.baratine.web.Path;
 import io.baratine.web.Post;
 
 /**
  * User visible channel facade at session:///auction-session.
  */
-@Service("session:")
+@Service("session:///user")
 @CrossOrigin(value = "*", allowCredentials = true)
 //@Api(AuctionUserSession.class)
 @Path("/user")
@@ -24,14 +23,13 @@ public class AuctionUserSessionImpl extends AbstractAuctionSession
     = Logger.getLogger(AuctionUserSessionImpl.class.getName());
 
   @Post("/createAuction")
-  public void createAuction(@Body Form form, Result<WebAuction> result)
+  public void createAuction(@Body("t") String title,
+                            @Body("b") int price,
+                            Result<WebAuction> result)
   {
     validateSession();
 
-    String title = form.first("t");
-    Integer bid = Integer.parseInt(form.first("b"));
-
-    _auctions.create(new AuctionDataInit(_userId, title, bid),
+    _auctions.create(new AuctionDataInit(_userId, title, price),
                      result.then((id, r) -> afterCreateAuction(id.toString(),
                                                                r)));
   }

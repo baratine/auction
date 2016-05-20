@@ -1,26 +1,25 @@
 package examples.auction;
 
-import io.baratine.service.Service;
+import java.util.List;
+
+import io.baratine.web.Body;
+import io.baratine.web.Form;
 
 public interface AuctionSessionSync extends AuctionSession
 {
-  boolean createUser(String userName, String password);
+  WebUser createUser(@Body UserInitData user);
 
-  boolean login(String userName, String password);
+  boolean login(@Body Form login);
+
+  WebUser getUser();
+
+  WebAuction getAuction(String id);
+
+  Auction findAuction(String title);
+
+  List<WebAuction> searchAuctions(String query);
+
+  void addAuctionListener(String idAuction);
 
   boolean logout();
-
-  UserData getUser();
-
-  String createAuction(String title, int bid);
-
-  AuctionDataPublic getAuction(String id);
-
-  String findAuction(String title);
-
-  boolean bidAuction(String id, int bid);
-
-  boolean setListener(@Service ChannelListener listener);
-
-  boolean addAuctionListener(String idAuction);
 }

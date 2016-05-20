@@ -1,9 +1,11 @@
 package examples.auction;
 
 import io.baratine.service.Modify;
+import io.baratine.service.Service;
 import io.baratine.vault.IdAsset;
 import io.baratine.service.Result;
 
+@Service
 public interface User
 {
   @Modify

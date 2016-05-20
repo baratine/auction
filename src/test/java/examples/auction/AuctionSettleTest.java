@@ -5,7 +5,7 @@ import com.caucho.junit.RunnerBaratine;
 import examples.auction.mock.MockPayPal;
 import examples.auction.mock.MockPayment;
 import io.baratine.service.Lookup;
-import io.baratine.service.ServiceManager;
+import io.baratine.service.Services;
 import io.baratine.service.ServiceRef;
 import org.junit.Assert;
 import org.junit.Test;
@@ -66,34 +66,34 @@ public class AuctionSettleTest
     = Logger.getLogger(AuctionSettleTest.class.getName());
 
   @Inject
-  @Lookup("public:///user")
-  UserManagerSync _users;
+  @Service("public:///user")
+  UserVaultSync _users;
 
   @Inject
-  @Lookup("public:///user")
+  @Service("public:///user")
   ServiceRef _usersRef;
 
   @Inject
-  @Lookup("public:///auction")
-  AuctionManagerSync _auctions;
+  @Service("public:///auction")
+  AuctionVaultSync _auctions;
 
   @Inject
-  @Lookup("public:///auction")
+  @Service("public:///auction")
   ServiceRef _auctionsRef;
 
   @Inject
-  @Lookup("public:///settlement")
+  @Service("public:///settlement")
   ServiceRef _settlementRef;
 
   @Inject
   RunnerBaratine _testContext;
 
   @Inject
-  @Lookup("public:///")
-  ServiceManager _auctionPod;
+  @Service("public:///")
+  Services _auctionPod;
 
   @Inject
-  @Lookup("public:///paypal")
+  @Service("public:///paypal")
   PayPalSync _paypal;
 
   UserSync createUser(String name, String password)

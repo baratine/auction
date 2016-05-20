@@ -1,95 +1,48 @@
 package examples.auction;
 
-import com.caucho.junit.ConfigurationBaratine;
+import java.util.logging.Logger;
+
+import javax.inject.Inject;
+
 import com.caucho.junit.RunnerBaratine;
-import io.baratine.service.Lookup;
-import io.baratine.service.ServiceManager;
+import io.baratine.service.Service;
 import io.baratine.service.ServiceRef;
+import io.baratine.service.Services;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.inject.Inject;
-import java.util.logging.Logger;
 
 /**
  *
  */
 @RunWith(RunnerBaratine.class)
-@ConfigurationBaratine(
-  services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
-  logLevel = "finer",
-  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "com.caucho.config",
-                                     level = "WARNING"),
-          @ConfigurationBaratine.Log(name = "examples.auction",
-                                     level = "FINER")},
-  port = 6811,
-  testTime = 0)
-
-@ConfigurationBaratine(
-  services = {IdentityManagerImpl.class, AuctionManagerImpl.class},
-  pod = "auction",
-  logLevel = "finer",
-  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "com.caucho.config",
-                                     level = "WARNING"),
-          @ConfigurationBaratine.Log(name = "examples.auction",
-                                     level = "FINER")},
-  port = 6810,
-  testTime = 0,
-  journalDelay = 120000)
-
-@ConfigurationBaratine(
-  services = {AuditServiceImpl.class},
-  pod = "audit",
-  logLevel = "finer",
-  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "com.caucho.config",
-                                     level = "WARNING"),
-          @ConfigurationBaratine.Log(name = "examples.auction",
-                                     level = "FINER")},
-  port = 6812,
-  testTime = 0)
-
-@ConfigurationBaratine(
-  services = {MockLuceneService.class},
-  pod = "lucene",
-  logLevel = "finer",
-  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "com.caucho.config",
-                                     level = "WARNING"),
-          @ConfigurationBaratine.Log(name = "examples.auction",
-                                     level = "FINER")},
-  port = 6813,
-  testTime = 0)
 public class AuctionReplayTest
 {
   private static final Logger log
     = Logger.getLogger(AuctionReplayTest.class.getName());
 
   @Inject
-  @Lookup("public:///user")
-  UserManagerSync _users;
+  @Service("public:///user")
+  UserVaultSync _users;
 
   @Inject
-  @Lookup("public:///user")
+  @Service("public:///user")
   ServiceRef _usersRef;
 
   @Inject
-  @Lookup("public:///auction")
-  AuctionManagerSync _auctions;
+  @Service("public:///auction")
+  AuctionVaultSync _auctions;
 
   @Inject
-  @Lookup("public:///auction")
+  @Service("public:///auction")
   ServiceRef _auctionsRef;
 
   @Inject
   RunnerBaratine _testContext;
 
   @Inject
-  @Lookup("public:///")
-  ServiceManager _auctionPod;
+  @Service("public:///")
+  Services _auctionPod;
 
   UserSync createUser(String name, String password)
   {
@@ -100,7 +53,7 @@ public class AuctionReplayTest
 
   UserSync getUser(String id)
   {
-    return _usersRef.lookup("/" + id).as(UserSync.class);
+    return _usersRef.service("/" + id).as(UserSync.class);
   }
 
   AuctionSync createAuction(UserSync user, String title, int bid)

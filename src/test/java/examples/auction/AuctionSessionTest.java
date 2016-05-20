@@ -3,7 +3,7 @@ package examples.auction;
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
 import io.baratine.service.Lookup;
-import io.baratine.service.ServiceManager;
+import io.baratine.service.Services;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,8 +63,8 @@ import java.util.concurrent.TimeUnit;
 public class AuctionSessionTest
 {
   @Inject
-  @Lookup("public:///")
-  ServiceManager _auctionPod;
+  @Service("public:///")
+  Services _auctionPod;
 
   @Inject
   RunnerBaratine _testContext;

@@ -82,11 +82,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
     if (_state.getSettleStatus() == Status.SETTLE_FAILED) {
       status.ok(_state.getSettleStatus());
     }
-/*
-    else if (_inProgress) {
-      status.ok(_state.getSettleStatus());
-    }
-*/
     else {
       _inProgress = true;
 

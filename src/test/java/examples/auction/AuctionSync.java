@@ -1,16 +1,29 @@
 package examples.auction;
 
+import io.baratine.vault.IdAsset;
+
 public interface AuctionSync extends Auction
 {
-  String create(AuctionDataInit initData);
+  IdAsset create(AuctionDataInit initData);
 
   boolean open();
 
+  boolean bid(AuctionBid bid)
+    throws IllegalStateException;
+
+  boolean setAuctionWinner(String user);
+
+  boolean clearAuctionWinner(String user);
+
+  boolean setSettled();
+
+  boolean setRolledBack();
+
+  AuctionData get();
+
   boolean close();
 
-  AuctionDataPublic get();
+  boolean refund();
 
-  boolean bid(Bid bid);
-
-  String getSettlementId();
+  boolean getSettlementId();
 }

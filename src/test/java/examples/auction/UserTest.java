@@ -1,34 +1,30 @@
 package examples.auction;
 
-import com.caucho.junit.ConfigurationBaratine;
+import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
+
 import com.caucho.junit.RunnerBaratine;
-import io.baratine.service.Lookup;
-import io.baratine.service.ServiceRef;
+import com.caucho.junit.ServiceTest;
+import examples.auction.AuctionSession.UserInitData;
+import io.baratine.service.ResultFuture;
+import io.baratine.service.Service;
+import io.baratine.service.Services;
+import io.baratine.vault.IdAsset;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.inject.Inject;
 
 /**
  * Unit test for simple App.
  */
 @RunWith(RunnerBaratine.class)
-@ConfigurationBaratine(
-  services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
-  logLevel = "FINER",
-  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "examples.auction",
-                                     level = "FINER")})
+@ServiceTest(UserVault.class)
 public class UserTest
 {
   @Inject
-  @Lookup("public:///user")
-  UserManagerSync _userManager;
-
-  @Inject
-  @Lookup("public:///user")
-  ServiceRef _userManagerRef;
+  @Service("/User")
+  UserVaultSync _userVault;
 
   /**
    * User create correctly sets the user name.
@@ -36,40 +32,62 @@ public class UserTest
   @Test
   public void createUser()
   {
-    final String id = _userManager.create("Spock", "Password", false);
+    IdAsset idAsset
+      = _userVault.create(new UserInitData("Spock", "Password", false));
 
-    UserSync user = _userManagerRef.lookup("/" + id).as(UserSync.class);
+    User user
+      = Services.current().service(User.class, idAsset.toString());
 
-    UserData userData = user.get();
+    ResultFuture<UserData> userDataResult = new ResultFuture<>();
 
-    Assert.assertEquals(id, userData.getId());
+    user.get(userDataResult);
+
+    UserData userData = userDataResult.get(1, TimeUnit.SECONDS);
+
     Assert.assertEquals("Spock", userData.getName());
   }
 
   @Test
   public void authenticateUser()
   {
-    final String id = _userManager.create("Kirk", "Password", false);
+    IdAsset idAsset
+      = _userVault.create(new UserInitData("Spock", "Password", false));
 
-    UserSync user = _userManagerRef.lookup("/" + id).as(UserSync.class);
+    User user
+      = Services.current().service(User.class, idAsset.toString());
 
-    boolean isLoggedIn = user.authenticate("Password");
+    ResultFuture<Boolean> authResultAllow = new ResultFuture<>();
+    user.authenticate("Password", false, authResultAllow);
 
-    Assert.assertTrue(isLoggedIn);
+    Assert.assertTrue(authResultAllow.get(1, TimeUnit.SECONDS));
 
-    isLoggedIn = user.authenticate("bogus");
-    Assert.assertFalse(isLoggedIn);
+    ResultFuture<Boolean> authResultReject = new ResultFuture<>();
+    user.authenticate("bogus", false, authResultReject);
+
+    Assert.assertFalse(authResultReject.get(1, TimeUnit.SECONDS));
   }
 
   @Test
   public void findUser()
   {
-    final String id = _userManager.create("Doug", "Password", false);
+    final IdAsset idAsset
+      = _userVault.create(new UserInitData("Doug", "Password", false));
 
-    String findId = _userManager.find("Doug");
-    Assert.assertEquals(id, findId);
+    final UserSync user
+      = Services.current().service(UserSync.class, idAsset.toString());
 
-    findId = _userManager.find("bogus");
-    Assert.assertNull(findId);
+    final User doug = _userVault.findByName("Doug");
+
+    ResultFuture<UserData> data = new ResultFuture<>();
+
+    doug.get(data);
+
+    Assert.assertEquals("DVS1aMAAR3I",
+                        data.get(1, TimeUnit.SECONDS).getEncodedId());
+
+
+    final User bogus = _userVault.findByName("bogus");
+
+    Assert.assertNull(bogus);
   }
 }

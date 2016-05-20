@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import javax.inject.Inject;
 
 import io.baratine.event.EventsSync;
+import io.baratine.service.Api;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
@@ -19,6 +20,7 @@ import io.baratine.vault.Id;
 import io.baratine.vault.IdAsset;
 
 @Asset
+@Api(Auction.class)
 public class AuctionImpl implements Auction
 {
   private final static Logger log

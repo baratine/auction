@@ -7,6 +7,7 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.logging.Logger;
 
+import io.baratine.service.Api;
 import io.baratine.vault.Asset;
 import io.baratine.vault.Id;
 import io.baratine.vault.IdAsset;
@@ -14,6 +15,7 @@ import io.baratine.service.Modify;
 import io.baratine.service.Result;
 
 @Asset
+@Api(User.class)
 public class UserImpl implements User
 {
   private static final Logger log = Logger.getLogger(UserImpl.class.getName());

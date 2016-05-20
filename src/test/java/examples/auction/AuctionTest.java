@@ -1,12 +1,18 @@
 package examples.auction;
 
+import java.time.ZonedDateTime;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.inject.Inject;
 
+import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
 import com.caucho.junit.ServiceTest;
+import com.caucho.junit.TestTime;
 import examples.auction.AuctionSession.UserInitData;
+import io.baratine.event.Events;
+import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.Services;
 import io.baratine.vault.IdAsset;
@@ -22,6 +28,7 @@ import org.junit.runner.RunWith;
 @RunWith(RunnerBaratine.class)
 @ServiceTest(UserVault.class)
 @ServiceTest(AuctionVault.class)
+@ConfigurationBaratine
 public class AuctionTest
 {
   private static final Logger log
@@ -34,6 +41,10 @@ public class AuctionTest
   @Inject
   @Service("/Auction")
   AuctionVaultSync _auctions;
+
+  @Inject
+  @Service("event:")
+  Events _events;
 
   @Inject
   Services _manager;
@@ -234,7 +245,7 @@ public class AuctionTest
    * Tests auction events.
    */
 
- /* @Test
+  @Test
   public void testAuctionEvents() throws InterruptedException
   {
     UserSync userSpock = createUser("Spock", "test");
@@ -246,30 +257,20 @@ public class AuctionTest
 
     auction.open();
 
-    AuctionDataPublic data = auction.get();
-    String id = data.getId();
-
-    String url = "event:///auction/" + id;
-
-    ServiceRef eventRef = _auctionPod.lookup(url);
-
-    System.out.println("TestAuction.testAuctionEvents: " + _auctionPod);
+    AuctionData data = auction.get();
 
     AuctionListenerImpl auctionCallback = new AuctionListenerImpl("book");
 
-    ServiceRef callabackRef
-      = _auctionPod.newService().service(auctionCallback).build();
+    _events.consumer(data.getEncodedId(), auctionCallback, Result.ignore());
 
-    eventRef.subscribe(callabackRef);
-
-    auction.bid(new Bid(userKirk.get().getId(), 17));
+    auction.bid(new AuctionBid(userKirk.get().getEncodedId(), 17));
 
     // wait for events
     Thread.sleep(100);
 
     Assert.assertEquals("bid", auctionCallback.getType());
-    Assert.assertEquals(userKirk.get().getId(),
-                        auctionCallback.getUser().get().getId());
+    Assert.assertEquals(userKirk.get().getEncodedId(),
+                        auctionCallback.getUser().get().getEncodedId());
     Assert.assertEquals(auctionCallback.getBid(), 17);
     Assert.assertEquals(auctionCallback.getCount(), 1);
 
@@ -279,17 +280,16 @@ public class AuctionTest
     Thread.sleep(100);
 
     Assert.assertEquals("close", auctionCallback.getType());
-    Assert.assertEquals(userKirk.get().getId(),
-                        auctionCallback.getUser().get().getId());
+    Assert.assertEquals(userKirk.get().getEncodedId(),
+                        auctionCallback.getUser().get().getEncodedId());
     Assert.assertEquals(auctionCallback.getBid(), 17);
     Assert.assertEquals(auctionCallback.getCount(), 2);
   }
-*/
-  /**
-   * Tests normal auction expire (5 days)
-   */
 
- /* @Test
+  /**
+   * Tests normal auction expire (15 seconds)
+   */
+  @Test
   public void testAuctionExpire() throws InterruptedException
   {
     UserSync userSpock = createUser("Spock", "test");
@@ -302,47 +302,42 @@ public class AuctionTest
     boolean result = auction.open();
     Assert.assertTrue(result);
 
-    result = auction.bid(new Bid(userKirk.get().getId(), 20));
+    result = auction.bid(new AuctionBid(userKirk.get().getEncodedId(), 20));
     Assert.assertTrue(result);
 
-    String id = auction.get().getId();
-
-    String url = "event:///auction/" + id;
-    ServiceRef eventRef = _auctionPod.lookup(url);
     AuctionListenerImpl auctionCallback = new AuctionListenerImpl("book");
-    ServiceRef callbackRef
-      = _auctionPod.newService().service(auctionCallback).build();
-    eventRef.subscribe(callbackRef);
+
+    _events.consumer(auction.get().getEncodedId(),
+                     auctionCallback,
+                     Result.ignore());
 
     // 1 seconds later auction is still open
-    _testContext.addTime(1, TimeUnit.SECONDS);
+    TestTime.addTime(1, TimeUnit.SECONDS);
 
     Thread.sleep(100);
 
-    AuctionDataPublic data = auction.get();
+    AuctionData data = auction.get();
 
-    Assert.assertEquals(AuctionDataPublic.State.OPEN, data.getState());
+    Assert.assertEquals(Auction.State.OPEN, data.getState());
 
     Assert.assertEquals("", auctionCallback.getAndClear());
 
     // 30 seconds after that, auction is closed
-    _testContext.addTime(30, TimeUnit.SECONDS);
+    TestTime.addTime(30, TimeUnit.SECONDS);
     Thread.sleep(100);
 
     data = auction.get();
-    Assert.assertEquals(AuctionDataPublic.State.CLOSED, data.getState());
+    Assert.assertEquals(Auction.State.CLOSED, data.getState());
     Assert.assertEquals("close book user=Kirk 20",
                         auctionCallback.getAndClear());
 
     // 24 hours after that, no extra events
-    _testContext.addTime(24, TimeUnit.HOURS);
+    TestTime.addTime(24, TimeUnit.HOURS);
     Thread.sleep(100);
     Assert.assertEquals("", auctionCallback.getAndClear());
   }
 
- */ 
-  
-  /*class AuctionListenerImpl implements AuctionEvents
+  class AuctionListenerImpl implements AuctionEvents
   {
     private String _title;
     private String _msg = "";
@@ -385,7 +380,7 @@ public class AuctionTest
     }
 
     @Override
-    public void onBid(AuctionDataPublic data)
+    public void onBid(AuctionData data)
     {
       _user = AuctionTest.this.getUser(data.getLastBid().getUserId());
       _bid = data.getLastBid().getBid();
@@ -410,7 +405,7 @@ public class AuctionTest
     }
 
     @Override
-    public void onClose(AuctionDataPublic data)
+    public void onClose(AuctionData data)
     {
       _user = AuctionTest.this.getUser(data.getLastBid().getUserId());
       _bid = data.getLastBid().getBid();
@@ -426,15 +421,15 @@ public class AuctionTest
     }
 
     @Override
-    public void onSettled(AuctionDataPublic auctionData)
+    public void onSettled(AuctionData auctionData)
     {
 
     }
 
     @Override
-    public void onRolledBack(AuctionDataPublic auctionData)
+    public void onRolledBack(AuctionData auctionData)
     {
 
     }
-  }*/
+  }
 }

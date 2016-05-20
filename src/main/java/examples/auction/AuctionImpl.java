@@ -64,6 +64,10 @@ public class AuctionImpl implements Auction
   @Service("event:")
   private transient EventsSync _events;
 
+  @Inject
+  @Service
+  private transient Timers _timers;
+
   private transient AuctionEvents _auctionEvents;
 
   public AuctionImpl()
@@ -149,14 +153,9 @@ public class AuctionImpl implements Auction
 
   private void startCloseTimer()
   {
-    String url = "timer:///";
-
-    Services manager = Services.current();
-    Timers timer = manager.service(url).as(Timers.class);
-
-    timer.runAt((x) -> closeOnTimer(Result.ignore()),
-                getDateToClose().toInstant().toEpochMilli(),
-                Result.ignore());
+    _timers.runAt((x) -> closeOnTimer(Result.ignore()),
+                  getDateToClose().toInstant().toEpochMilli(),
+                  Result.ignore());
 
     log.finer("start timer for auction: " + getAuctionDataPublic());
   }

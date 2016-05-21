@@ -1,6 +1,7 @@
 package examples.auction;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.HttpClient;
@@ -20,7 +21,7 @@ import org.junit.runner.RunWith;
 @ServiceTest(AuctionUserSessionImpl.class)
 @ServiceTest(AuditServiceImpl.class)
 @ConfigurationBaratine(workDir = "/tmp/baratine")
-public class UserSessionWebTest
+public class AuctionUserSessionWebTest
 {
   public final static String sessionA = "aaaaa";
   public final static String sessionB = "abbbb";
@@ -110,6 +111,23 @@ public class UserSessionWebTest
     Assert.assertFalse(isAccepted);
   }
 
+  @Test
+  public void testSearchActions(HttpClient client) throws IOException
+  {
+    userCreate(client, sessionA, "Spock", "passwd", false);
+
+    boolean isLoggedIn = userLogin(client, sessionA, "Spock", "passwd");
+
+    Assert.assertTrue(isLoggedIn);
+
+    auctionCreate(client, sessionA, "book", 15);
+
+    final WebAuction[] books = auctionSearch(client, sessionA, "book");
+
+    Assert.assertEquals("[WebAuction[book, 15, OPEN]]",
+                        Arrays.asList(books).toString());
+  }
+
   private WebUser userCreate(HttpClient client,
                              String session,
                              final String name,
@@ -185,5 +203,22 @@ public class UserSessionWebTest
     boolean isAccepted = response.readObject(Boolean.class);
 
     return isAccepted;
+  }
+
+  private WebAuction[] auctionSearch(HttpClient client,
+                                     String session,
+                                     String query)
+    throws IOException
+  {
+    HttpClient.Response response
+      = client.get("/user/searchAuctions?q=" + query)
+              .session(session)
+              .go();
+
+    Assert.assertEquals(200, response.status());
+
+    WebAuction[] auctions = response.readObject(WebAuction[].class);
+
+    return auctions;
   }
 }

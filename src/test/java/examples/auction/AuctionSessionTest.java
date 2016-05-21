@@ -171,14 +171,12 @@ public class AuctionSessionTest
     // create the auction by User Spock
     AuctionUserSessionSync sessionSpock = createUser("Spock1", "password");
 
-    Assert.assertTrue(sessionSpock.login(null, null, "password"));
-
-    String id = sessionSpock.createAuction("book-listener", 15);
-    Assert.assertNotNull(id);
-
+    WebAuction auction = sessionSpock.createAuction("book-listener", 15);
+    
     TestChannelListener listenerCreate = new TestChannelListener();
 
     boolean result = sessionSpock.setListener(listenerCreate);
+    
     Assert.assertTrue(result);
 
     result = sessionSpock.addAuctionListener(id);

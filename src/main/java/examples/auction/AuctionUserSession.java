@@ -16,6 +16,10 @@ public interface AuctionUserSession extends AuctionSession
     private String auction;
     private int bid;
 
+    public WebBid()
+    {
+    }
+
     public WebBid(String auction, int bid)
     {
       this.auction = auction;

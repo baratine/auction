@@ -329,7 +329,9 @@ public class AuctionImpl implements Auction
 
     Auction.Bid last = getLastBid();
 
-    if (last == null || bid > last.getBid()) {
+    int currentPrice = last == null ? _startingBid : last.getBid();
+
+    if (bid > currentPrice) {
       BidImpl nextBid = new BidImpl(bidderId, _encodedId, bid);
 
       _bids.add(nextBid);

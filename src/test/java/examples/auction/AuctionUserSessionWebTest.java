@@ -1,16 +1,24 @@
 package examples.auction;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.HttpClient;
 import com.caucho.junit.ServiceTest;
 import com.caucho.junit.WebRunnerBaratine;
+import com.caucho.v5.websocket.WebSocketClient;
 import examples.auction.AuctionSession.UserInitData;
 import examples.auction.AuctionSession.WebAuction;
 import examples.auction.AuctionSession.WebUser;
 import examples.auction.AuctionUserSession.WebBid;
+import io.baratine.web.ServiceWebSocket;
+import io.baratine.web.WebSocket;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -128,6 +136,46 @@ public class AuctionUserSessionWebTest
                         Arrays.asList(books).toString());
   }
 
+  @Test
+  public void testAuctionEvents(HttpClient client)
+    throws IOException, InterruptedException
+  {
+    userCreate(client, sessionA, "Spock", "passwd", false);
+
+    boolean isLoggedIn = userLogin(client, sessionA, "Spock", "passwd");
+
+    Assert.assertTrue(isLoggedIn);
+
+    WebAuction auction = auctionCreate(client, sessionA, "book", 15);
+
+    Assert.assertEquals("WebAuction[book, 15, OPEN]", String.valueOf(auction));
+
+    auctionSubscribe(client, sessionA, auction);
+
+    AuctionUpdatesSocket auctionUpdatesSocket = new AuctionUpdatesSocket();
+
+    Map<String,List<String>> headers = new HashMap<>();
+    List<String> cookie = new ArrayList<>();
+    cookie.add("JSESSIONID=" + sessionA);
+    headers.put("Cookie", cookie);
+
+    WebSocketClient ws
+      = WebSocketClient.open("ws://localhost:8080/user/auction-updates",
+                             headers,
+                             auctionUpdatesSocket);
+
+    userCreate(client, sessionB, "Kirk", "pass", false);
+    userLogin(client, sessionB, "Kirk", "pass");
+
+    boolean isAccepted = auctionBid(client, sessionB, auction.getId(), 17);
+
+    Assert.assertTrue(isAccepted);
+    
+    Assert.assertEquals("", auctionUpdatesSocket.getState());
+
+    Thread.sleep(100);
+  }
+
   private WebUser userCreate(HttpClient client,
                              String session,
                              final String name,
@@ -186,6 +234,23 @@ public class AuctionUserSessionWebTest
     return auction;
   }
 
+  boolean auctionSubscribe(HttpClient client,
+                           String session,
+                           WebAuction auction) throws IOException
+  {
+    HttpClient.Response response
+      = client.post("/user/addAuctionListener")
+              .session(session)
+              .body(auction.getId())
+              .go();
+
+    Assert.assertEquals(200, response.status());
+
+    boolean isSuccess = response.readObject(Boolean.class);
+
+    return isSuccess;
+  }
+
   private boolean auctionBid(HttpClient client,
                              String session,
                              String auction,
@@ -220,5 +285,29 @@ public class AuctionUserSessionWebTest
     WebAuction[] auctions = response.readObject(WebAuction[].class);
 
     return auctions;
+  }
+
+  class AuctionUpdatesSocket implements ServiceWebSocket<String,String>
+  {
+    private AtomicReference<StringBuilder> _state
+      = new AtomicReference<>(new StringBuilder());
+
+    @Override
+    public void next(String s, WebSocket<String> webSocket) throws IOException
+    {
+      StringBuilder state = _state.get();
+
+      if (state.length() > 0)
+        state.append('\n');
+
+      state.append(s);
+    }
+
+    public String getState()
+    {
+      StringBuilder state = _state.getAndSet(new StringBuilder());
+
+      return state.toString();
+    }
   }
 }

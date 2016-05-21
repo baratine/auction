@@ -241,7 +241,8 @@ public class AbstractAuctionSession implements AuctionSession
 
   public void addEvent(AuctionData event)
   {
-    _updates.next(WebAuction.of(event));
+    if (_updates != null)
+      _updates.next(WebAuction.of(event));
   }
 
   protected void validateSession()

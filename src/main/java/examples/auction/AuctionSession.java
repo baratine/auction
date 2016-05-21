@@ -29,7 +29,7 @@ public interface AuctionSession
     void auctionUpdated(WebAuction auction);
   }
 
-  class WebAuction
+  public static class WebAuction
   {
     private String id;
     private String title;

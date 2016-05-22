@@ -208,6 +208,8 @@ public class AbstractAuctionSession implements AuctionSession
   @Post("/addAuctionListener")
   public void addAuctionListener(@Body String id, Result<Boolean> result)
   {
+    validateSession();
+    
     Objects.requireNonNull(id);
     try {
       addAuctionListenerImpl(id);

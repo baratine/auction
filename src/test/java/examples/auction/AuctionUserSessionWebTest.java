@@ -19,6 +19,7 @@ import examples.auction.AuctionSession.UserInitData;
 import examples.auction.AuctionSession.WebAuction;
 import examples.auction.AuctionSession.WebUser;
 import examples.auction.AuctionUserSession.WebBid;
+import examples.auction.mock.MockPayPal;
 import io.baratine.web.ServiceWebSocket;
 import io.baratine.web.WebSocket;
 import org.junit.Assert;
@@ -30,6 +31,8 @@ import org.junit.runner.RunWith;
 @ServiceTest(AuctionVault.class)
 @ServiceTest(AuctionUserSessionImpl.class)
 @ServiceTest(AuditServiceImpl.class)
+@ServiceTest(AuctionSettlementVault.class)
+@ServiceTest(MockPayPal.class)
 @ConfigurationBaratine(workDir = "/tmp/baratine")
 public class AuctionUserSessionWebTest
 {
@@ -173,9 +176,7 @@ public class AuctionUserSessionWebTest
       "{\"bid\":17,\"id\":\"xxx\",\"state\":\"OPEN\",\"title\":\"book\"}",
       state);
 
-    Thread.sleep(100);
-
-    TestTime.addTime(16, TimeUnit.SECONDS);
+    TestTime.addTime(15100, TimeUnit.MILLISECONDS);
 
     Thread.sleep(100);
 
@@ -186,7 +187,16 @@ public class AuctionUserSessionWebTest
     Assert.assertEquals(
       "{\"bid\":17,\"id\":\"xxx\",\"state\":\"CLOSED\",\"title\":\"book\"}",
       state);
+    
+    Thread.sleep(200);
 
+    state = auctionUpdatesListener.getState().replaceAll(
+      "\\\"id\":\\\"[a-zA-Z0-9]+\\\"",
+      "\"id\":\"xxx\"");
+    
+    Assert.assertEquals(
+      "{\"bid\":17,\"id\":\"xxx\",\"state\":\"SETTLED\",\"title\":\"book\"}",
+      state);
   }
 
   private AuctionUpdatesListener auctionUpdatesListener(String session)

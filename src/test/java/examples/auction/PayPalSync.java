@@ -2,15 +2,14 @@ package examples.auction;
 
 public interface PayPalSync extends PayPal
 {
-  Payment settle(AuctionDataPublic auction,
-                 AuctionDataPublic.Bid bid,
+  Payment settle(AuctionData auction,
+                 Auction.Bid bid,
                  CreditCard creditCard,
-                 String userId,
                  String payPalRequestId);
 
   Refund refund(String settlementId,
                 String payPalRequestId,
                 String sale);
 
-  void setPaymentResult(Payment state);
+  void configure(Payment state, long sleep);
 }

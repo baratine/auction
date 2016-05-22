@@ -355,7 +355,7 @@ public class AuctionImpl implements Auction
     setWinner(user);
 
     //TODO:
-    getAuctionEvents().onSettled(getAuctionDataPublic());
+    //getAuctionEvents().onSettled(getAuctionDataPublic());
 
     result.ok(true);
   }

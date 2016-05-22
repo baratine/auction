@@ -1,6 +1,7 @@
 package examples.auction.mock;
 
-import examples.auction.AuctionDataPublic;
+import examples.auction.Auction;
+import examples.auction.AuctionData;
 import examples.auction.CreditCard;
 import examples.auction.PayPal;
 import examples.auction.Payment;
@@ -8,18 +9,26 @@ import examples.auction.Refund;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 
-@Service("public:///paypal")
+@Service("/paypal")
 public class MockPayPal implements PayPal
 {
-  private Payment _payment;
+  private Payment _payment = new MockPayment("sale-id-0",
+                                             Payment.PaymentState.approved);
+  private long _sleep = 100;
 
   @Override
-  public void settle(AuctionDataPublic auction,
-                     AuctionDataPublic.Bid bid,
+  public void settle(AuctionData auction,
+                     Auction.Bid bid,
                      CreditCard creditCard,
                      String payPalRequestId,
                      Result<Payment> result)
   {
+    try {
+      Thread.sleep(_sleep);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
     result.ok(_payment);
   }
 
@@ -34,10 +43,12 @@ public class MockPayPal implements PayPal
     result.ok(refund);
   }
 
-  public void setPaymentResult(Payment payment, Result<Void> result)
+  public void configure(Payment payment, long sleep, Result<Void> result)
   {
     _payment = payment;
+    _sleep = sleep;
 
     result.ok(null);
   }
+
 }

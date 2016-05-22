@@ -6,11 +6,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.HttpClient;
 import com.caucho.junit.ServiceTest;
+import com.caucho.junit.TestTime;
 import com.caucho.junit.WebRunnerBaratine;
 import com.caucho.v5.websocket.WebSocketClient;
 import examples.auction.AuctionSession.UserInitData;
@@ -152,17 +154,8 @@ public class AuctionUserSessionWebTest
 
     auctionSubscribe(client, sessionA, auction);
 
-    AuctionUpdatesSocket auctionUpdatesSocket = new AuctionUpdatesSocket();
-
-    Map<String,List<String>> headers = new HashMap<>();
-    List<String> cookie = new ArrayList<>();
-    cookie.add("JSESSIONID=" + sessionA);
-    headers.put("Cookie", cookie);
-
-    WebSocketClient ws
-      = WebSocketClient.open("ws://localhost:8080/user/auction-updates",
-                             headers,
-                             auctionUpdatesSocket);
+    AuctionUpdatesListener auctionUpdatesListener
+      = auctionUpdatesListener(sessionA);
 
     userCreate(client, sessionB, "Kirk", "pass", false);
     userLogin(client, sessionB, "Kirk", "pass");
@@ -170,10 +163,48 @@ public class AuctionUserSessionWebTest
     boolean isAccepted = auctionBid(client, sessionB, auction.getId(), 17);
 
     Assert.assertTrue(isAccepted);
-    
-    Assert.assertEquals("", auctionUpdatesSocket.getState());
+
+    String state = auctionUpdatesListener.getState().replaceAll(
+      "\\\"id\":\\\"[a-zA-Z0-9]+\\\"",
+      "\"id\":\"xxx\"");
+
+    Assert.assertEquals(
+      "{\"bid\":17,\"id\":\"xxx\",\"state\":\"OPEN\",\"title\":\"book\"}",
+      state);
 
     Thread.sleep(100);
+
+    TestTime.addTime(16, TimeUnit.SECONDS);
+
+    Thread.sleep(100);
+    
+    state = auctionUpdatesListener.getState().replaceAll(
+      "\\\"id\":\\\"[a-zA-Z0-9]+\\\"",
+      "\"id\":\"xxx\"");
+
+    Assert.assertEquals(
+      "{\"bid\":17,\"id\":\"xxx\",\"state\":\"CLOSED\",\"title\":\"book\"}",
+      state);
+    
+  }
+
+  private AuctionUpdatesListener auctionUpdatesListener(String session)
+    throws IOException
+  {
+    AuctionUpdatesListener auctionUpdatesListener
+      = new AuctionUpdatesListener();
+
+    Map<String,List<String>> headers = new HashMap<>();
+    List<String> cookie = new ArrayList<>();
+    cookie.add("JSESSIONID=" + session);
+    headers.put("Cookie", cookie);
+
+    WebSocketClient ws
+      = WebSocketClient.open("ws://localhost:8080/user/auction-updates",
+                             headers,
+                             auctionUpdatesListener);
+
+    return auctionUpdatesListener;
   }
 
   private WebUser userCreate(HttpClient client,
@@ -287,7 +318,7 @@ public class AuctionUserSessionWebTest
     return auctions;
   }
 
-  class AuctionUpdatesSocket implements ServiceWebSocket<String,String>
+  class AuctionUpdatesListener implements ServiceWebSocket<String,String>
   {
     private AtomicReference<StringBuilder> _state
       = new AtomicReference<>(new StringBuilder());

@@ -164,7 +164,8 @@ public class AuctionUserSessionWebTest
 
     Assert.assertTrue(isAccepted);
 
-    String state = auctionUpdatesListener.getState().replaceAll(
+    String state
+      = auctionUpdatesListener.getState().replaceAll(
       "\\\"id\":\\\"[a-zA-Z0-9]+\\\"",
       "\"id\":\"xxx\"");
 
@@ -177,7 +178,7 @@ public class AuctionUserSessionWebTest
     TestTime.addTime(16, TimeUnit.SECONDS);
 
     Thread.sleep(100);
-    
+
     state = auctionUpdatesListener.getState().replaceAll(
       "\\\"id\":\\\"[a-zA-Z0-9]+\\\"",
       "\"id\":\"xxx\"");
@@ -185,7 +186,7 @@ public class AuctionUserSessionWebTest
     Assert.assertEquals(
       "{\"bid\":17,\"id\":\"xxx\",\"state\":\"CLOSED\",\"title\":\"book\"}",
       state);
-    
+
   }
 
   private AuctionUpdatesListener auctionUpdatesListener(String session)

@@ -14,7 +14,7 @@ public class MockPayPal implements PayPal
 {
   private Payment _payment = new MockPayment("sale-id-0",
                                              Payment.PaymentState.approved);
-  private long _sleep = 100;
+  private long _sleep = 0;
 
   @Override
   public void settle(AuctionData auction,

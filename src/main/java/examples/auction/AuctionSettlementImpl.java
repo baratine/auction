@@ -8,6 +8,7 @@ import examples.auction.SettlementTransactionState.AuctionUpdateState;
 import examples.auction.SettlementTransactionState.AuctionWinnerUpdateState;
 import examples.auction.SettlementTransactionState.PaymentTxState;
 import examples.auction.SettlementTransactionState.UserUpdateState;
+import io.baratine.service.Ensure;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
@@ -60,6 +61,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   @Override
   @Modify
+  @Ensure
   public void settle(Auction.Bid bid,
                      Result<Status> status)
   {
@@ -277,6 +279,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   @Modify
   @Override
+  @Ensure
   public void refund(Result<Status> status)
   {
     if (_boundState == BoundState.UNBOUND)

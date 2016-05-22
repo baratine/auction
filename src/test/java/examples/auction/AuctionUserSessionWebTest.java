@@ -169,34 +169,27 @@ public class AuctionUserSessionWebTest
 
     String state
       = auctionUpdatesListener.getState().replaceAll(
-      "\\\"id\":\\\"[a-zA-Z0-9]+\\\"",
+      "\\\"id\":\\\"[a-zA-Z0-9\\-]+\\\"",
       "\"id\":\"xxx\"");
 
     Assert.assertEquals(
       "{\"bid\":17,\"id\":\"xxx\",\"state\":\"OPEN\",\"title\":\"book\"}",
       state);
 
-    TestTime.addTime(15100, TimeUnit.MILLISECONDS);
-
+    TestTime.addTime(15000, TimeUnit.MILLISECONDS);
+    Thread.sleep(100);
+    
+    TestTime.addTime(1000, TimeUnit.MILLISECONDS);
     Thread.sleep(100);
 
     state = auctionUpdatesListener.getState().replaceAll(
-      "\\\"id\":\\\"[a-zA-Z0-9]+\\\"",
+      "\\\"id\":\\\"[a-zA-Z0-9\\-]+\\\"",
       "\"id\":\"xxx\"");
 
     Assert.assertEquals(
-      "{\"bid\":17,\"id\":\"xxx\",\"state\":\"CLOSED\",\"title\":\"book\"}",
-      state);
-    
-    Thread.sleep(200);
-
-    state = auctionUpdatesListener.getState().replaceAll(
-      "\\\"id\":\\\"[a-zA-Z0-9]+\\\"",
-      "\"id\":\"xxx\"");
-    
-    Assert.assertEquals(
-      "{\"bid\":17,\"id\":\"xxx\",\"state\":\"SETTLED\",\"title\":\"book\"}",
-      state);
+      "{\"bid\":17,\"id\":\"xxx\",\"state\":\"CLOSED\",\"title\":\"book\"}\n"
+      + "{\"bid\":17,\"id\":\"xxx\",\"state\":\"SETTLED\",\"title\":\"book\"}",
+      state);    
   }
 
   private AuctionUpdatesListener auctionUpdatesListener(String session)

@@ -1,14 +1,5 @@
 package examples.auction;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.HttpClient;
 import com.caucho.junit.ServiceTest;
@@ -25,6 +16,11 @@ import io.baratine.web.WebSocket;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(WebRunnerBaratine.class)
 @ServiceTest(UserVault.class)
@@ -178,7 +174,7 @@ public class AuctionUserSessionWebTest
 
     TestTime.addTime(15000, TimeUnit.MILLISECONDS);
     Thread.sleep(100);
-    
+
     TestTime.addTime(1000, TimeUnit.MILLISECONDS);
     Thread.sleep(100);
 
@@ -189,7 +185,7 @@ public class AuctionUserSessionWebTest
     Assert.assertEquals(
       "{\"bid\":17,\"id\":\"xxx\",\"state\":\"CLOSED\",\"title\":\"book\"}\n"
       + "{\"bid\":17,\"id\":\"xxx\",\"state\":\"SETTLED\",\"title\":\"book\"}",
-      state);    
+      state);
   }
 
   private AuctionUpdatesListener auctionUpdatesListener(String session)
@@ -198,15 +194,10 @@ public class AuctionUserSessionWebTest
     AuctionUpdatesListener auctionUpdatesListener
       = new AuctionUpdatesListener();
 
-    Map<String,List<String>> headers = new HashMap<>();
-    List<String> cookie = new ArrayList<>();
-    cookie.add("JSESSIONID=" + session);
-    headers.put("Cookie", cookie);
-
     WebSocketClient ws
-      = WebSocketClient.open("ws://localhost:8080/user/auction-updates",
-                             headers,
-                             auctionUpdatesListener);
+      = WebSocketClient.newClient("ws://localhost:8080/user/auction-updates")
+                       .cookie("JSESSIONID", session)
+                       .service(auctionUpdatesListener).build();
 
     return auctionUpdatesListener;
   }

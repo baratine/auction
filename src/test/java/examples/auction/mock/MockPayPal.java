@@ -50,5 +50,4 @@ public class MockPayPal implements PayPal
 
     result.ok(null);
   }
-
 }

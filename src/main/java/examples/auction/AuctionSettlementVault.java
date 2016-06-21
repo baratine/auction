@@ -18,6 +18,7 @@ public interface AuctionSettlementVault
                       Auction.Bid bid,
                       Result<AuctionSettlement.Status> result)
   {
+    System.out.println("AuctionSettlementVault.settle");
     Services.current().service(AuctionSettlementImpl.class, id)
             .settle(bid, result.of());
   }

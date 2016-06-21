@@ -65,6 +65,14 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
     log.finer(String.format("settle %1$s", this));
 
+    System.out.println("AuctionSettlementImpl.settle");
+
+    settleImpl(status);
+  }
+
+  @Override
+  public void settleResume(Result<Status> status)
+  {
     settleImpl(status);
   }
 

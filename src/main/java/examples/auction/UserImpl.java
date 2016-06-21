@@ -90,7 +90,7 @@ public class UserImpl implements User
   @Override
   public void get(Result<UserData> user)
   {
-    user.ok(new UserData(getEncodedId(), _name));
+    user.ok(new UserData(getEncodedId(), _name, _wonAuctions));
   }
 
   private String getEncodedId()

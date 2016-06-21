@@ -1,21 +1,27 @@
 package examples.auction;
 
-import java.util.logging.Logger;
-
-import javax.inject.Inject;
-
+import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
+import com.caucho.junit.ServiceTest;
 import io.baratine.service.Service;
-import io.baratine.service.ServiceRef;
 import io.baratine.service.Services;
+import io.baratine.vault.IdAsset;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import javax.inject.Inject;
+import java.util.logging.Logger;
 
 /**
  *
  */
 @RunWith(RunnerBaratine.class)
+@ServiceTest(UserVault.class)
+@ServiceTest(AuctionVault.class)
+@ServiceTest(AuditServiceImpl.class)
+@ServiceTest(AuctionSettlementVault.class)
+@ConfigurationBaratine(workDir = "/tmp/baratine", testTime = ConfigurationBaratine.TEST_TIME, journalDelay = 12000)
 public class AuctionReplayTest
 {
   private static final Logger log
@@ -26,59 +32,36 @@ public class AuctionReplayTest
   UserVaultSync _users;
 
   @Inject
-  @Service("public:///user")
-  ServiceRef _usersRef;
-
-  @Inject
   @Service("public:///auction")
   AuctionVaultSync _auctions;
-
-  @Inject
-  @Service("public:///auction")
-  ServiceRef _auctionsRef;
 
   @Inject
   RunnerBaratine _testContext;
 
   @Inject
-  @Service("public:///")
-  Services _auctionPod;
+  Services _services;
 
   UserSync createUser(String name, String password)
   {
-    String id = _users.create(name, password, false);
+    IdAsset id = _users.create(
+      new AuctionSession.UserInitData(name, password, false));
 
-    return getUser(id);
-  }
-
-  UserSync getUser(String id)
-  {
-    return _usersRef.service("/" + id).as(UserSync.class);
+    return _services.service(UserSync.class, id.toString());
   }
 
   AuctionSync createAuction(UserSync user, String title, int bid)
   {
-    String id = _auctions.create(new AuctionDataInit(user.get().getId(),
-                                                     title,
-                                                     bid));
+    IdAsset id = _auctions.create(
+      new AuctionDataInit(user.get().getEncodedId(),
+                          title,
+                          bid));
 
-    return getAuction(id);
-  }
-
-  AuctionSync getAuction(String id)
-  {
-    return getAuctionServiceRef(id).as(AuctionSync.class);
-  }
-
-  ServiceRef getAuctionServiceRef(String id)
-  {
-    return _auctionsRef.lookup("/" + id);
+    return _services.service(AuctionSync.class, id.toString());
   }
 
   /**
    * Tests normal bid.
    */
-
   @Test
   public void testAuctionBid() throws InterruptedException
   {
@@ -92,24 +75,25 @@ public class AuctionReplayTest
     boolean result = auction.open();
     Assert.assertTrue(result);
 
-    String auctionId = auction.get().getId();
+    String auctionId = auction.get().getEncodedId();
 
     // successful bid
-    result = auction.bid(new Bid(userKirk.get().getId(), 20));
+    result = auction.bid(new AuctionBid(userKirk.get().getEncodedId(), 20));
     Assert.assertTrue(result);
-    AuctionDataPublic data = auction.get();
+    AuctionData data = auction.get();
     Assert.assertEquals(data.getLastBid().getBid(), 20);
     Assert.assertEquals(data.getLastBid().getUserId(),
-                        userKirk.get().getId());
+                        userKirk.get().getEncodedId());
 
-    _testContext.closeImmediate();
+    //State.sleep(10);
+
+    _testContext.stopImmediate();
 
     _testContext.start();
 
-    auction = getAuction(auctionId);
+    auction = _services.service(AuctionSync.class, auctionId);
 
     data = auction.get();
-    System.out.println("AuctionReplayTest.testAuctionBid " + data);
     Assert.assertEquals(data.getLastBid().getBid(), 20);
   }
 }

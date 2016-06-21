@@ -175,12 +175,16 @@ public class AuctionImpl implements Auction
 
     log.warning("close: " + this);
 
+    System.out.println("AuctionImpl.close: 0");
+
     if (_state == State.OPEN) {
       _audit.auctionToClose(getAuctionDataPublic(), Result.ignore());
 
       toClose();
 
       getAuctionEvents().onClose(getAuctionDataPublic());
+
+      System.out.println("AuctionImpl.close: 1");
 
       settle();
 
@@ -211,6 +215,10 @@ public class AuctionImpl implements Auction
       _settlementVault.create(getAuctionDataPublic(),
                               result.of(s -> {
                                 _settlementId = s.toString();
+
+                                System.out.println(
+                                  "AuctionImpl.getAuctionSettlementId");
+
                                 return _settlementId;
                               }));
     }
@@ -244,6 +252,8 @@ public class AuctionImpl implements Auction
 
     if (bid == null)
       return;
+
+    System.out.println("AuctionImpl.settle");
 
     getAuctionSettlementId((x, e) -> {
       _settlementVault.settle(x, bid, Result.ignore());

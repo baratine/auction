@@ -133,5 +133,4 @@ public class AuctionSettlementEnsureTest
                                                         id.toString())));
     return auction.get(1, TimeUnit.SECONDS);
   }
-
 }

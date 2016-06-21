@@ -11,16 +11,17 @@ public class SettlementTransactionState
     = AuctionSettlement.Status.NONE;
 
   private UserUpdateState _userSettleState = UserUpdateState.NONE;
+  private UserUpdateState _userResetState = UserUpdateState.NONE;
 
   private AuctionWinnerUpdateState
     _auctionWinnerUpdateState = AuctionWinnerUpdateState.NONE;
-
-  private PaymentTxState _paymentState = PaymentTxState.NONE;
-  private AuctionUpdateState _auctionStateUpdateState = AuctionUpdateState.NONE;
-
-  private UserUpdateState _userResetState = UserUpdateState.NONE;
   private AuctionWinnerUpdateState
     _auctionWinnerResetState = AuctionWinnerUpdateState.NONE;
+
+  private PaymentTxState _paymentState = PaymentTxState.NONE;
+
+  private AuctionUpdateState _auctionStateUpdateState = AuctionUpdateState.NONE;
+
   private PaymentTxState _refundState = PaymentTxState.NONE;
 
   private Payment _payment;

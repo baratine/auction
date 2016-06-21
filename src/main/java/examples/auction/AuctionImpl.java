@@ -1,13 +1,5 @@
 package examples.auction;
 
-import java.io.Serializable;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.inject.Inject;
-
 import io.baratine.event.EventsSync;
 import io.baratine.service.Api;
 import io.baratine.service.Modify;
@@ -18,6 +10,13 @@ import io.baratine.timer.Timers;
 import io.baratine.vault.Asset;
 import io.baratine.vault.Id;
 import io.baratine.vault.IdAsset;
+
+import javax.inject.Inject;
+import java.io.Serializable;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Asset
 @Api(Auction.class)
@@ -202,40 +201,21 @@ public class AuctionImpl implements Auction
     if (_state != State.SETTLED)
       throw new IllegalStateException();
 
-    getAuctionSettlement(result.then((s, r) -> s.refund(r.of(t -> t
-                                                                  == AuctionSettlement.Status.ROLLED_BACK))));
+    getAuctionSettlementId(
+      result.then((id, r) -> _settlementVault.refund(id, r.of(s -> s == AuctionSettlement.Status.ROLLED_BACK))));
   }
 
-  private void getAuctionSettlement(Result<AuctionSettlement> result)
+  private void getAuctionSettlementId(Result<String> result)
   {
-    log.finer("getAuctionSettlement: 0 " + _settlementId);
     if (_settlementId == null) {
       _settlementVault.create(getAuctionDataPublic(),
                               result.of(s -> {
                                 _settlementId = s.toString();
-                                log.finer("getAuctionSettlement: 1 "
-                                          + _settlementId + ", " + _manager);
-                                try {
-                                  AuctionSettlement settlement
-                                    = _manager.service(AuctionSettlement.class,
-                                                       _settlementId);
-
-                                  log.finer("getAuctionSettlement: 2 "
-                                            + settlement);
-
-                                  return settlement;
-                                } catch (Exception e) {
-                                  log.log(Level.SEVERE, e.getMessage(), e);
-
-                                  throw new RuntimeException(e);
-                                }
-
+                                return _settlementId;
                               }));
     }
     else {
-      log.finer("getAuctionSettlement: 2 " + _settlementId);
-
-      result.ok(_manager.service(AuctionSettlement.class, _settlementId));
+      result.ok(_settlementId);
     }
   }
 
@@ -265,8 +245,8 @@ public class AuctionImpl implements Auction
     if (bid == null)
       return;
 
-    getAuctionSettlement((s, e) -> {
-      s.settle(bid, Result.ignore());
+    getAuctionSettlementId((x, e) -> {
+      _settlementVault.settle(x, bid, Result.ignore());
     });
   }
 

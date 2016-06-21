@@ -1,9 +1,5 @@
 package examples.auction;
 
-import java.util.logging.Logger;
-
-import javax.inject.Inject;
-
 import examples.auction.SettlementTransactionState.AuctionUpdateState;
 import examples.auction.SettlementTransactionState.AuctionWinnerUpdateState;
 import examples.auction.SettlementTransactionState.PaymentTxState;
@@ -16,6 +12,9 @@ import io.baratine.service.Services;
 import io.baratine.vault.Asset;
 import io.baratine.vault.Id;
 import io.baratine.vault.IdAsset;
+
+import javax.inject.Inject;
+import java.util.logging.Logger;
 
 @Asset
 public class AuctionSettlementImpl implements AuctionSettlement
@@ -30,8 +29,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private Auction.Bid _bid;
 
   private SettlementTransactionState _state;
-
-  private BoundState _boundState = BoundState.UNBOUND;
 
   private boolean _inProgress = false;
 
@@ -61,18 +58,10 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
   @Override
   @Modify
-  @Ensure
   public void settle(Auction.Bid bid,
                      Result<Status> status)
   {
-    log.finer(String.format("create %1$s", this));
-
-    if (_boundState != BoundState.UNBOUND)
-      throw new IllegalStateException();
-
     _bid = bid;
-
-    _boundState = BoundState.NEW;
 
     log.finer(String.format("settle %1$s", this));
 
@@ -83,6 +72,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
   {
     if (_state.getSettleStatus() == Status.SETTLE_FAILED) {
       status.ok(_state.getSettleStatus());
+
+      return;
     }
     else {
       _inProgress = true;
@@ -282,11 +273,10 @@ public class AuctionSettlementImpl implements AuctionSettlement
   @Ensure
   public void refund(Result<Status> status)
   {
-    if (_boundState == BoundState.UNBOUND)
-      throw new IllegalStateException();
-
     if (_state.isRefunded()) {
       status.ok(Status.ROLLED_BACK);
+
+      return;
     }
     else if (_state.isCommitting() && _inProgress) {
       throw new IllegalStateException();
@@ -476,17 +466,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
            + "["
            + _id
            + ", "
-           + _boundState
-           + ", "
            + _state
            + "]";
-  }
-
-  enum BoundState
-  {
-    UNBOUND,
-    NEW,
-    BOUND
   }
 }
 

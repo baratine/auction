@@ -1,11 +1,11 @@
 package examples.auction;
 
-import java.util.List;
-
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.vault.IdAsset;
 import io.baratine.vault.Vault;
+
+import java.util.List;
 
 @Service("/Auction")
 public interface AuctionVault extends Vault<IdAsset,AuctionImpl>

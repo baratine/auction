@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 
-@Service("/audit")
+@Service("/Audit")
 public class AuditServiceImpl implements AuditService
 {
   public final static Logger log

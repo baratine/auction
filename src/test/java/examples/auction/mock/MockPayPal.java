@@ -9,7 +9,7 @@ import examples.auction.Refund;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 
-@Service("/paypal")
+@Service("/PayPal")
 public class MockPayPal implements PayPal
 {
   private Payment _payment = new MockPayment("sale-id-0",

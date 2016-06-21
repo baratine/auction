@@ -36,11 +36,11 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private boolean _inProgress = false;
 
   @Inject
-  @Service("/paypal")
+  @Service("/PayPal")
   private transient PayPal _paypal;
 
   @Inject
-  @Service("/audit")
+  @Service("/Audit")
   private transient AuditService _audit;
 
   @Inject

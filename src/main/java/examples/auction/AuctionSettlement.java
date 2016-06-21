@@ -1,7 +1,9 @@
 package examples.auction;
 
 import io.baratine.service.Result;
+import io.baratine.service.Service;
 
+@Service
 public interface AuctionSettlement
 {
   void settle(Auction.Bid bid, Result<Status> result);

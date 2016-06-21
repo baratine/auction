@@ -2,16 +2,13 @@ package examples.auction;
 
 public interface AuctionSettlementSync extends AuctionSettlement
 {
+  Status settle(Auction.Bid bid);
 
-  boolean create(String auctionId, String userId, AuctionDataPublic.Bid bid);
+  Status refund();
 
-  Status commit();
+  Status settleStatus();
 
-  Status rollback();
-
-  Status commitStatus();
-
-  Status rollbackStatus();
+  Status refundStatus();
 
   SettlementTransactionState getTransactionState();
 }

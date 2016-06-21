@@ -25,5 +25,5 @@ public interface AuctionSync extends Auction
 
   boolean refund();
 
-  boolean getSettlementId();
+  String getSettlementId();
 }

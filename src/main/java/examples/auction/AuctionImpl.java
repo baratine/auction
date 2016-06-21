@@ -57,7 +57,7 @@ public class AuctionImpl implements Auction
   private transient AuctionSettlementVault _settlementVault;
 
   @Inject
-  @Service("/audit")
+  @Service("/Audit")
   private transient AuditService _audit;
 
   @Inject

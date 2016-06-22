@@ -16,7 +16,6 @@ import io.baratine.vault.IdAsset;
 import javax.inject.Inject;
 import java.util.logging.Logger;
 
-@Asset
 public class AuctionSettlementImpl implements AuctionSettlement
 {
   private final static Logger log

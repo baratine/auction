@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
 @RunWith(RunnerBaratine.class)
 @ServiceTest(UserVault.class)
 @ServiceTest(AuctionVault.class)
-@ConfigurationBaratine
+@ConfigurationBaratine()
 public class AuctionTest
 {
   private static final Logger log
@@ -46,7 +46,7 @@ public class AuctionTest
   Events _events;
 
   @Inject
-  Services _manager;
+  Services _services;
 
   /**
    * User create correctly sets the user name.
@@ -76,7 +76,7 @@ public class AuctionTest
 
   UserSync getUser(String id)
   {
-    return _manager.service(UserSync.class, id);
+    return _services.service(UserSync.class, id);
   }
 
   AuctionSync createAuction(UserSync user, String title, int bid)
@@ -91,7 +91,7 @@ public class AuctionTest
 
   AuctionSync getAuction(String id)
   {
-    return _manager.service(AuctionSync.class, id);
+    return _services.service(AuctionSync.class, id);
   }
 
   /**

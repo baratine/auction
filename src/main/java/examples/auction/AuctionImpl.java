@@ -18,8 +18,6 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@Asset
-@Api(Auction.class)
 public class AuctionImpl implements Auction
 {
   private final static Logger log

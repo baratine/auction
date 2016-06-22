@@ -14,8 +14,6 @@ import io.baratine.vault.IdAsset;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
 
-@Asset
-@Api(User.class)
 public class UserImpl implements User
 {
   private static final Logger log = Logger.getLogger(UserImpl.class.getName());

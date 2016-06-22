@@ -24,10 +24,10 @@ public interface AuctionSettlementVault
   }
 
   @Ensure
-  default void refund (String id, Result<AuctionSettlement.Status> result) {
+  default void refund(String id, Result<AuctionSettlement.Status> result)
+  {
     Services.current().service(AuctionSettlementImpl.class, id)
             .refund(result.of());
-
   }
 }
 

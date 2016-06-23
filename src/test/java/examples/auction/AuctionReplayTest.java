@@ -1,17 +1,20 @@
 package examples.auction;
 
+import java.util.logging.Logger;
+
+import javax.inject.Inject;
+
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
 import com.caucho.junit.ServiceTest;
+
 import io.baratine.service.Service;
 import io.baratine.service.Services;
 import io.baratine.vault.IdAsset;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.inject.Inject;
-import java.util.logging.Logger;
 
 /**
  *
@@ -40,24 +43,6 @@ public class AuctionReplayTest
 
   @Inject
   Services _services;
-
-  UserSync createUser(String name, String password)
-  {
-    IdAsset id = _users.create(
-      new AuctionSession.UserInitData(name, password, false));
-
-    return _services.service(UserSync.class, id.toString());
-  }
-
-  AuctionSync createAuction(UserSync user, String title, int bid)
-  {
-    IdAsset id = _auctions.create(
-      new AuctionDataInit(user.get().getEncodedId(),
-                          title,
-                          bid));
-
-    return _services.service(AuctionSync.class, id.toString());
-  }
 
   /**
    * Tests normal bid.
@@ -95,5 +80,23 @@ public class AuctionReplayTest
 
     data = auction.get();
     Assert.assertEquals(data.getLastBid().getBid(), 20);
+  }
+
+  UserSync createUser(String name, String password)
+  {
+    IdAsset id = _users.create(
+      new AuctionSession.UserInitData(name, password, false));
+
+    return _services.service(UserSync.class, id.toString());
+  }
+
+  AuctionSync createAuction(UserSync user, String title, int bid)
+  {
+    IdAsset id = _auctions.create(
+      new AuctionDataInit(user.get().getEncodedId(),
+                          title,
+                          bid));
+
+    return _services.service(AuctionSync.class, id.toString());
   }
 }

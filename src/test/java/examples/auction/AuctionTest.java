@@ -9,19 +9,21 @@ import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
 import com.caucho.junit.ServiceTest;
 import com.caucho.junit.TestTime;
-import examples.auction.AuctionSession.UserInitData;
+
 import io.baratine.event.Events;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.Services;
 import io.baratine.vault.IdAsset;
+
+import examples.auction.AuctionSession.UserInitData;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
  * AuctionResource unit tests.
- * <p/>
+ * <p>
  * testTime is set to use artificial time to test auction timeouts.
  */
 @RunWith(RunnerBaratine.class)

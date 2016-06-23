@@ -1,22 +1,21 @@
 package examples.auction;
 
-import io.baratine.event.EventsSync;
-import io.baratine.service.Api;
-import io.baratine.service.Modify;
-import io.baratine.service.Result;
-import io.baratine.service.Service;
-import io.baratine.service.Services;
-import io.baratine.timer.Timers;
-import io.baratine.vault.Asset;
-import io.baratine.vault.Id;
-import io.baratine.vault.IdAsset;
-
-import javax.inject.Inject;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.inject.Inject;
+
+import io.baratine.event.EventsSync;
+import io.baratine.service.Modify;
+import io.baratine.service.Result;
+import io.baratine.service.Service;
+import io.baratine.service.Services;
+import io.baratine.timer.Timers;
+import io.baratine.vault.Id;
+import io.baratine.vault.IdAsset;
 
 public class AuctionImpl implements Auction
 {
@@ -204,7 +203,9 @@ public class AuctionImpl implements Auction
       throw new IllegalStateException();
 
     getAuctionSettlementId(
-      result.then((id, r) -> _settlementVault.refund(id, r.of(s -> s == AuctionSettlement.Status.ROLLED_BACK))));
+      result.then((id, r) -> _settlementVault.refund(id,
+                                                     r.of(s -> s
+                                                               == AuctionSettlement.Status.ROLLED_BACK))));
   }
 
   private void getAuctionSettlementId(Result<String> result)

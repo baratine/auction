@@ -1,21 +1,24 @@
 package examples.auction;
 
+import java.util.logging.Logger;
+
+import javax.inject.Inject;
+
 import com.caucho.junit.LogConfig;
 import com.caucho.junit.RunnerBaratine;
 import com.caucho.junit.ServiceTest;
 import com.caucho.junit.State;
-import examples.auction.mock.MockPayPal;
-import examples.auction.mock.MockPayment;
+
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.Services;
 import io.baratine.vault.IdAsset;
+
+import examples.auction.mock.MockPayPal;
+import examples.auction.mock.MockPayment;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.inject.Inject;
-import java.util.logging.Logger;
 
 /**
  */
@@ -46,43 +49,6 @@ public class AuctionSettleResumeTest
 
   @Inject
   Services _services;
-
-  UserSync createUser(String name, String password)
-  {
-    IdAsset id
-      = _users.create(new AuctionSession.UserInitData(name, password, false));
-
-    return getUser(id.toString());
-  }
-
-  UserSync getUser(String id)
-  {
-    return _services.service(UserSync.class, id);
-  }
-
-  AuctionSync createAuction(UserSync user, String title, int bid)
-  {
-    IdAsset id = _auctions.create(
-      new AuctionDataInit(user.get().getEncodedId(), title, bid));
-
-    return getAuction(id.toString());
-  }
-
-  AuctionSync getAuction(String id)
-  {
-    return _services.service(AuctionSync.class, id);
-  }
-
-  AuctionSettlementSync getSettlement(AuctionSync auction)
-  {
-    String id = auction.getSettlementId();
-
-    while (id == null)
-      id = auction.getSettlementId();
-
-    System.out.println("AuctionSettleRetryTest.getSettlement " + id);
-    return _services.service(AuctionSettlementSync.class, id);
-  }
 
   @Test
   public void testAuctionSettle() throws InterruptedException
@@ -198,5 +164,42 @@ public class AuctionSettleResumeTest
     Assert.assertEquals(state.getRefundState(),
                         SettlementTransactionState.PaymentTxState.NONE);
 
+  }
+
+  UserSync createUser(String name, String password)
+  {
+    IdAsset id
+      = _users.create(new AuctionSession.UserInitData(name, password, false));
+
+    return getUser(id.toString());
+  }
+
+  UserSync getUser(String id)
+  {
+    return _services.service(UserSync.class, id);
+  }
+
+  AuctionSync createAuction(UserSync user, String title, int bid)
+  {
+    IdAsset id = _auctions.create(
+      new AuctionDataInit(user.get().getEncodedId(), title, bid));
+
+    return getAuction(id.toString());
+  }
+
+  AuctionSync getAuction(String id)
+  {
+    return _services.service(AuctionSync.class, id);
+  }
+
+  AuctionSettlementSync getSettlement(AuctionSync auction)
+  {
+    String id = auction.getSettlementId();
+
+    while (id == null)
+      id = auction.getSettlementId();
+
+    System.out.println("AuctionSettleRetryTest.getSettlement " + id);
+    return _services.service(AuctionSettlementSync.class, id);
   }
 }

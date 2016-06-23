@@ -48,6 +48,20 @@ public interface AuctionSession
       this.state = state;
     }
 
+    public static WebAuction of(AuctionData auction)
+    {
+      Auction.Bid bid = auction.getLastBid();
+      int price = bid != null ? bid.getBid() : auction.getStartingBid();
+
+      WebAuction webAuction
+        = new WebAuction(auction.getEncodedId(),
+                         auction.getTitle(),
+                         price,
+                         auction.getState().toString());
+
+      return webAuction;
+    }
+
     public String getId()
     {
       return id;
@@ -66,20 +80,6 @@ public interface AuctionSession
     public String getState()
     {
       return state;
-    }
-
-    public static WebAuction of(AuctionData auction)
-    {
-      Auction.Bid bid = auction.getLastBid();
-      int price = bid != null ? bid.getBid() : auction.getStartingBid();
-
-      WebAuction webAuction
-        = new WebAuction(auction.getEncodedId(),
-                         auction.getTitle(),
-                         price,
-                         auction.getState().toString());
-
-      return webAuction;
     }
 
     @Override
@@ -154,14 +154,14 @@ public interface AuctionSession
       this.user = user;
     }
 
-    public String getName()
-    {
-      return user;
-    }
-
     public static WebUser of(UserData user)
     {
       return new WebUser(user.getEncodedId(), user.getName());
+    }
+
+    public String getName()
+    {
+      return user;
     }
 
     @Override

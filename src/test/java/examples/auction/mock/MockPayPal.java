@@ -1,13 +1,14 @@
 package examples.auction.mock;
 
+import io.baratine.service.Result;
+import io.baratine.service.Service;
+
 import examples.auction.Auction;
 import examples.auction.AuctionData;
 import examples.auction.CreditCard;
 import examples.auction.PayPal;
 import examples.auction.Payment;
 import examples.auction.Refund;
-import io.baratine.service.Result;
-import io.baratine.service.Service;
 
 @Service("/PayPal")
 public class MockPayPal implements PayPal

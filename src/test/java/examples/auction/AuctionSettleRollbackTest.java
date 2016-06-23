@@ -1,21 +1,24 @@
 package examples.auction;
 
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
+
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
 import com.caucho.junit.ServiceTest;
 import com.caucho.junit.State;
-import examples.auction.AuctionSession.UserInitData;
-import examples.auction.mock.MockPayPal;
+
 import io.baratine.service.ResultFuture;
 import io.baratine.service.Service;
 import io.baratine.service.Services;
+
+import examples.auction.AuctionSession.UserInitData;
+import examples.auction.mock.MockPayPal;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.inject.Inject;
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 @RunWith(RunnerBaratine.class)
 @ServiceTest(UserVault.class)

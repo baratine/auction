@@ -15,7 +15,6 @@ import io.baratine.service.Result;
 import io.baratine.service.ResultFuture;
 import io.baratine.service.Service;
 import io.baratine.service.Services;
-import io.baratine.vault.IdAsset;
 
 import examples.auction.AuctionSession.UserInitData;
 import examples.auction.mock.MockPayPal;

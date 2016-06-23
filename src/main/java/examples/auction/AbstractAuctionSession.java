@@ -40,19 +40,14 @@ public class AbstractAuctionSession implements AuctionSession
   @Inject
   @Service("/Auction")
   protected AuctionAbstractVault<Auction> _auctions;
-
+  protected User _user;
+  protected String _userId;
   @Inject
   @Service("/User")
   private UserAbstractVault<User> _users;
-
   @Inject
   @Service("event:")
   private Events _events;
-
-  protected User _user;
-
-  protected String _userId;
-
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
   private WebAuctionUpdates _updates;
 
@@ -68,6 +63,11 @@ public class AbstractAuctionSession implements AuctionSession
     _users.create(user, result.then((id, r) ->
                                       getUserService(id.toString()).get(r.of(u -> WebUser
                                         .of(u)))));
+  }
+
+  public User getUserService(String id)
+  {
+    return _manager.service(User.class, id);
   }
 
   @Post("/login")
@@ -125,9 +125,10 @@ public class AbstractAuctionSession implements AuctionSession
     _user.get(result.of(u -> WebUser.of(u)));
   }
 
-  public User getUserService(String id)
+  protected void validateSession()
   {
-    return _manager.service(User.class, id);
+    if (_user == null)
+      throw new IllegalStateException("not logged in");
   }
 
   public void getAuction(String id,
@@ -183,30 +184,6 @@ public class AbstractAuctionSession implements AuctionSession
     request.upgrade(_updates);
   }
 
-  class WebAuctionUpdates implements ServiceWebSocket<WebAuction,WebAuction>
-  {
-    private WebSocket<WebAuction> _updatesSocket;
-
-    @Override
-    public void open(WebSocket<WebAuction> webSocket)
-    {
-      _updatesSocket = webSocket;
-    }
-
-    @Override
-    public void next(WebAuction auction,
-                     WebSocket<WebAuction> webSocket)
-      throws IOException
-    {
-
-    }
-
-    public void next(WebAuction auction)
-    {
-      _updatesSocket.next(auction);
-    }
-  }
-
   @Post("/addAuctionListener")
   public void addAuctionListener(@Body String id, Result<Boolean> result)
   {
@@ -250,12 +227,6 @@ public class AbstractAuctionSession implements AuctionSession
       _updates.next(WebAuction.of(event));
   }
 
-  protected void validateSession()
-  {
-    if (_user == null)
-      throw new IllegalStateException("not logged in");
-  }
-
   public void logout(Result<Boolean> result)
   {
     _user = null;
@@ -292,6 +263,30 @@ public class AbstractAuctionSession implements AuctionSession
            + ", "
            + _userId
            + "]@" + System.identityHashCode(this);
+  }
+
+  class WebAuctionUpdates implements ServiceWebSocket<WebAuction,WebAuction>
+  {
+    private WebSocket<WebAuction> _updatesSocket;
+
+    @Override
+    public void open(WebSocket<WebAuction> webSocket)
+    {
+      _updatesSocket = webSocket;
+    }
+
+    @Override
+    public void next(WebAuction auction,
+                     WebSocket<WebAuction> webSocket)
+      throws IOException
+    {
+
+    }
+
+    public void next(WebAuction auction)
+    {
+      _updatesSocket.next(auction);
+    }
   }
 
   private class AuctionEventsImpl implements AuctionEvents

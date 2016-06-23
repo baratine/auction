@@ -1,18 +1,21 @@
 package examples.auction;
 
+import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
+
 import com.caucho.junit.RunnerBaratine;
 import com.caucho.junit.ServiceTest;
-import examples.auction.AuctionSession.UserInitData;
+
 import io.baratine.service.ResultFuture;
 import io.baratine.service.Service;
 import io.baratine.service.Services;
 import io.baratine.vault.IdAsset;
+
+import examples.auction.AuctionSession.UserInitData;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.inject.Inject;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Unit test for simple App.

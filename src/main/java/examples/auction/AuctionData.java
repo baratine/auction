@@ -1,10 +1,10 @@
 package examples.auction;
 
-import static examples.auction.Auction.State;
-
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+
+import static examples.auction.Auction.State;
 
 /**
  *

@@ -1,20 +1,21 @@
 package examples.auction;
 
-import examples.auction.SettlementTransactionState.AuctionUpdateState;
-import examples.auction.SettlementTransactionState.AuctionWinnerUpdateState;
-import examples.auction.SettlementTransactionState.PaymentTxState;
-import examples.auction.SettlementTransactionState.UserUpdateState;
+import java.util.logging.Logger;
+
+import javax.inject.Inject;
+
 import io.baratine.service.Ensure;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.Services;
-import io.baratine.vault.Asset;
 import io.baratine.vault.Id;
 import io.baratine.vault.IdAsset;
 
-import javax.inject.Inject;
-import java.util.logging.Logger;
+import examples.auction.SettlementTransactionState.AuctionUpdateState;
+import examples.auction.SettlementTransactionState.AuctionWinnerUpdateState;
+import examples.auction.SettlementTransactionState.PaymentTxState;
+import examples.auction.SettlementTransactionState.UserUpdateState;
 
 public class AuctionSettlementImpl implements AuctionSettlement
 {
@@ -66,12 +67,6 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
     System.out.println("AuctionSettlementImpl.settle");
 
-    settleImpl(status);
-  }
-
-  @Override
-  public void settleResume(Result<Status> status)
-  {
     settleImpl(status);
   }
 
@@ -446,6 +441,12 @@ public class AuctionSettlementImpl implements AuctionSettlement
     _state.setRefundStatus(status);
 
     return status;
+  }
+
+  @Override
+  public void settleResume(Result<Status> status)
+  {
+    settleImpl(status);
   }
 
   @Override

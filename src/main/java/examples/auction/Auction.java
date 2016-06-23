@@ -3,7 +3,6 @@ package examples.auction;
 import io.baratine.service.Api;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
-import io.baratine.service.Service;
 import io.baratine.vault.Asset;
 import io.baratine.vault.IdAsset;
 

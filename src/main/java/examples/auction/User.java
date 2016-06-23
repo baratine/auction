@@ -8,7 +8,6 @@ import io.baratine.vault.IdAsset;
 import io.baratine.service.Result;
 import io.baratine.web.Path;
 
-@Service
 @Asset
 @Api
 public interface User

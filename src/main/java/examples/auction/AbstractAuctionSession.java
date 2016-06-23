@@ -39,11 +39,11 @@ public class AbstractAuctionSession implements AuctionSession
 
   @Inject
   @Service("/Auction")
-  protected AuctionVault _auctions;
+  protected AuctionAbstractVault<Auction> _auctions;
 
   @Inject
   @Service("/User")
-  private UserVault _users;
+  private UserAbstractVault<User> _users;
 
   @Inject
   @Service("event:")
@@ -80,7 +80,9 @@ public class AbstractAuctionSession implements AuctionSession
     }
     else {
       _users.findByName(user,
-                        result.then((u, r) -> authenticate(u, password, r)));
+                        result.then((u, r) -> authenticate(u,
+                                                           password,
+                                                           r)));
     }
   }
 
@@ -209,7 +211,7 @@ public class AbstractAuctionSession implements AuctionSession
   public void addAuctionListener(@Body String id, Result<Boolean> result)
   {
     validateSession();
-    
+
     Objects.requireNonNull(id);
     try {
       addAuctionListenerImpl(id);
@@ -234,7 +236,8 @@ public class AbstractAuctionSession implements AuctionSession
 
     AuctionEventsImpl auctionListener = new AuctionEventsImpl();
 
-    _events.subscriber(id, auctionListener, (c, e) -> {});
+    _events.subscriber(id, auctionListener, (c, e) -> {
+    });
 
     auctionListener.subscribe();
 

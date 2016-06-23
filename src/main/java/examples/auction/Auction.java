@@ -7,7 +7,6 @@ import io.baratine.service.Service;
 import io.baratine.vault.Asset;
 import io.baratine.vault.IdAsset;
 
-@Service
 @Asset
 @Api
 public interface Auction

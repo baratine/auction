@@ -383,6 +383,8 @@ public class AuctionImpl implements Auction
     toRolledBack();
 
     getAuctionEvents().onRolledBack(getAuctionDataPublic());
+
+    result.ok(true);
   }
 
   public void toRolledBack()

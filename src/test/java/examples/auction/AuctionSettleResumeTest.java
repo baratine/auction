@@ -4,15 +4,15 @@ import java.util.logging.Logger;
 
 import javax.inject.Inject;
 
-import com.caucho.junit.LogConfig;
-import com.caucho.junit.RunnerBaratine;
-import com.caucho.junit.ServiceTest;
-import com.caucho.junit.State;
-
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.Services;
 import io.baratine.vault.IdAsset;
+
+import com.caucho.junit.LogConfig;
+import com.caucho.junit.RunnerBaratine;
+import com.caucho.junit.ServiceTest;
+import com.caucho.junit.State;
 
 import examples.auction.mock.MockPayPal;
 import examples.auction.mock.MockPayment;

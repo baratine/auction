@@ -4,6 +4,7 @@ import {NgForm}    from 'angular2/common';
 import {User} from "./user";
 import {UserService} from './user.service'
 import {UserAppComponent} from "./app.component";
+import {AuctionService} from "./auction.service";
 
 @Component({
              selector: 'login-form',
@@ -16,7 +17,7 @@ export class LoginComponent
   user:User;
   message:string;
 
-  constructor(private _userService:UserService)
+  constructor(private _userService:UserService, private _auctionService:AuctionService)
   {
   }
 
@@ -29,6 +30,8 @@ export class LoginComponent
 
         if (loggedIn === "true") {
           this.message = "login successful: " + user;
+
+          this._auctionService.registerForAuctionUpdates();
         }
         else {
           this.message = "login failed.";

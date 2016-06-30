@@ -1,4 +1,4 @@
-System.register(['angular2/core', './user.service'], function(exports_1) {
+System.register(['angular2/core', './user.service', "./auction.service"], function(exports_1) {
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
         if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -8,7 +8,7 @@ System.register(['angular2/core', './user.service'], function(exports_1) {
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var core_1, user_service_1;
+    var core_1, user_service_1, auction_service_1;
     var LoginComponent;
     return {
         setters:[
@@ -17,11 +17,15 @@ System.register(['angular2/core', './user.service'], function(exports_1) {
             },
             function (user_service_1_1) {
                 user_service_1 = user_service_1_1;
+            },
+            function (auction_service_1_1) {
+                auction_service_1 = auction_service_1_1;
             }],
         execute: function() {
             LoginComponent = (function () {
-                function LoginComponent(_userService) {
+                function LoginComponent(_userService, _auctionService) {
                     this._userService = _userService;
+                    this._auctionService = _auctionService;
                 }
                 LoginComponent.prototype.login = function (user, password) {
                     var _this = this;
@@ -29,6 +33,7 @@ System.register(['angular2/core', './user.service'], function(exports_1) {
                         console.log("login: " + loggedIn);
                         if (loggedIn === "true") {
                             _this.message = "login successful: " + user;
+                            _this._auctionService.registerForAuctionUpdates();
                         }
                         else {
                             _this.message = "login failed.";
@@ -52,7 +57,7 @@ System.register(['angular2/core', './user.service'], function(exports_1) {
                         styleUrls: [''],
                         bindings: [user_service_1.UserService]
                     }), 
-                    __metadata('design:paramtypes', [user_service_1.UserService])
+                    __metadata('design:paramtypes', [user_service_1.UserService, auction_service_1.AuctionService])
                 ], LoginComponent);
                 return LoginComponent;
             })();

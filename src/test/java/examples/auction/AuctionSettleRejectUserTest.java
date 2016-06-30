@@ -5,16 +5,16 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
+import io.baratine.service.Result;
+import io.baratine.service.ResultFuture;
+import io.baratine.service.Service;
+import io.baratine.service.Services;
+
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.LogConfig;
 import com.caucho.junit.RunnerBaratine;
 import com.caucho.junit.ServiceTest;
 import com.caucho.junit.State;
-
-import io.baratine.service.Result;
-import io.baratine.service.ResultFuture;
-import io.baratine.service.Service;
-import io.baratine.service.Services;
 
 import examples.auction.AuctionSession.UserInitData;
 import examples.auction.mock.MockPayPal;
@@ -28,14 +28,17 @@ import org.junit.runner.RunWith;
 @ServiceTest(AuditServiceImpl.class)
 @ServiceTest(AuctionSettlementVault.class)
 @ServiceTest(MockPayPal.class)
-@ConfigurationBaratine(workDir = "/tmp/baratine", testTime = ConfigurationBaratine.TEST_TIME)
+@ConfigurationBaratine(workDir = "/tmp/baratine",
+                       testTime = ConfigurationBaratine.TEST_TIME)
 @LogConfig("com")
 public class AuctionSettleRejectUserTest
 {
-  @Inject @Service("/User")
+  @Inject
+  @Service("/User")
   UserAbstractVault _users;
 
-  @Inject @Service("/Auction")
+  @Inject
+  @Service("/Auction")
   AuctionVault _auctions;
 
   @Inject
@@ -95,8 +98,8 @@ public class AuctionSettleRejectUserTest
     ResultFuture<UserSync> user = new ResultFuture<>();
 
     _users.create(new UserInitData(name, passwd, false),
-                  user.of(id -> _services.service(UserSync.class,
-                                                  id.toString())));
+                  user.then(id -> _services.service(UserSync.class,
+                                                    id.toString())));
 
     return user.get(1, TimeUnit.SECONDS);
   }
@@ -106,8 +109,8 @@ public class AuctionSettleRejectUserTest
     ResultFuture<AuctionSync> auction = new ResultFuture<>();
 
     _auctions.create(new AuctionDataInit(userId, title, bid),
-                     auction.of(id -> _services.service(AuctionSync.class,
-                                                        id.toString())));
+                     auction.then(id -> _services.service(AuctionSync.class,
+                                                          id.toString())));
     return auction.get(1, TimeUnit.SECONDS);
   }
 

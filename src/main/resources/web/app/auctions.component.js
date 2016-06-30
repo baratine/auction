@@ -27,7 +27,6 @@ System.register(['angular2/core', "./auction.service"], function(exports_1) {
                 }
                 AuctionsComponent.prototype.ngOnInit = function () {
                     this._auctionService.addAuctionListener(this);
-                    this._auctionService.registerForAuctionUpdates();
                 };
                 AuctionsComponent.prototype.onNew = function (auction) {
                     console.log(auction);

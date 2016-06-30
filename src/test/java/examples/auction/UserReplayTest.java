@@ -2,14 +2,14 @@ package examples.auction;
 
 import javax.inject.Inject;
 
-import com.caucho.junit.ConfigurationBaratine;
-import com.caucho.junit.RunnerBaratine;
-import com.caucho.junit.ServiceTest;
-
 import io.baratine.service.Service;
 import io.baratine.service.ServiceRef;
 import io.baratine.service.Services;
 import io.baratine.vault.IdAsset;
+
+import com.caucho.junit.ConfigurationBaratine;
+import com.caucho.junit.RunnerBaratine;
+import com.caucho.junit.ServiceTest;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,7 +20,9 @@ import org.junit.runner.RunWith;
  */
 @RunWith(RunnerBaratine.class)
 @ServiceTest(UserVault.class)
-@ConfigurationBaratine(workDir = "/tmp/baratine", testTime = ConfigurationBaratine.TEST_TIME, journalDelay = 12000)
+@ConfigurationBaratine(workDir = "/tmp/baratine",
+                       testTime = ConfigurationBaratine.TEST_TIME,
+                       journalDelay = 12000)
 public class UserReplayTest
 {
   @Inject

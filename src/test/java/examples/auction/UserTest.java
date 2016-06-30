@@ -4,13 +4,13 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
-import com.caucho.junit.RunnerBaratine;
-import com.caucho.junit.ServiceTest;
-
 import io.baratine.service.ResultFuture;
 import io.baratine.service.Service;
 import io.baratine.service.Services;
 import io.baratine.vault.IdAsset;
+
+import com.caucho.junit.RunnerBaratine;
+import com.caucho.junit.ServiceTest;
 
 import examples.auction.AuctionSession.UserInitData;
 import org.junit.Assert;

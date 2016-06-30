@@ -27,7 +27,6 @@ export class AuctionAdminComponent implements OnInit, AuctionListener
   ngOnInit():any
   {
     this._auctionService.addAuctionListener(this);
-    this._auctionService.registerForAuctionUpdates();
   }
 
   push(auctions:Auction[])

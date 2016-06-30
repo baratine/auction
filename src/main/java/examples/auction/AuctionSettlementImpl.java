@@ -116,7 +116,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
     }
     else {
       getWinner().addWonAuction(_bid.getAuctionId(),
-                                status.of(x -> afterUserUpdated(x)));
+                                status.then(x -> afterUserUpdated(x)));
     }
   }
 
@@ -142,7 +142,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
     }
     else {
       getAuction().setAuctionWinner(_bid.getUserId(),
-                                    status.of(x -> afterAuctionUpdated(x)));
+                                    status.then(x -> afterAuctionUpdated(x)));
     }
   }
 
@@ -174,12 +174,12 @@ public class AuctionSettlementImpl implements AuctionSettlement
 
     Result.Fork<Boolean,Boolean> fork = paymentResult.fork();
 
-    getAuction().get(fork.branch().of(a -> {
+    getAuction().get(fork.branch().then(a -> {
       auctionData.set(a);
       return a != null;
     }));
 
-    getWinner().getCreditCard(fork.branch().of(c -> {
+    getWinner().getCreditCard(fork.branch().then(c -> {
       creditCard.set(c);
       return c != null;
     }));
@@ -195,7 +195,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
                    _bid,
                    creditCard,
                    getEncodedId(),
-                   status.of(x -> processPayment(x)));
+                   status.then(x -> processPayment(x)));
   }
 
   private boolean processPayment(Payment payment)
@@ -295,7 +295,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
       status.ok(_state.getRefundStatus());
     }
     else {
-      refundPending(status.of(x -> processRefund(x)));
+      refundPending(status.then(x -> processRefund(x)));
     }
   }
 
@@ -321,7 +321,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
     }
     else {
       getWinner().removeWonAuction(_bid.getAuctionId(),
-                                   result.of(x -> afterUserReset(x)));
+                                   result.then(x -> afterUserReset(x)));
     }
   }
 
@@ -355,7 +355,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
     }
     else {
       getAuction().clearAuctionWinner(_bid.getUserId(),
-                                      result.of(x -> afterAuctionReset(x)));
+                                      result.then(x -> afterAuctionReset(x)));
     }
   }
 
@@ -402,7 +402,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
   private void payPalRefund(Payment payment, Result<Boolean> result)
   {
     _paypal.refund(getEncodedId(), payment.getSaleId(), payment.getSaleId(),
-                   result.of(refund -> processRefund(refund)));
+                   result.then(refund -> processRefund(refund)));
   }
 
   private String getEncodedId()

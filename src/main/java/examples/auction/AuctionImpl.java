@@ -204,7 +204,7 @@ public class AuctionImpl implements Auction
 
     getAuctionSettlementId(
       result.then((id, r) -> _settlementVault.refund(id,
-                                                     r.of(s -> s
+                                                     r.then(s -> s
                                                                == AuctionSettlement.Status.ROLLED_BACK))));
   }
 
@@ -212,7 +212,7 @@ public class AuctionImpl implements Auction
   {
     if (_settlementId == null) {
       _settlementVault.create(getAuctionDataPublic(),
-                              result.of(s -> {
+                              result.then(s -> {
                                 _settlementId = s.toString();
 
                                 System.out.println(

@@ -20,14 +20,14 @@ public interface AuctionSettlementVault
   {
     System.out.println("AuctionSettlementVault.settle");
     Services.current().service(AuctionSettlementImpl.class, id)
-            .settle(bid, result.of());
+            .settle(bid, result.then());
   }
 
   @Ensure
   default void refund(String id, Result<AuctionSettlement.Status> result)
   {
     Services.current().service(AuctionSettlementImpl.class, id)
-            .refund(result.of());
+            .refund(result.then());
   }
 }
 

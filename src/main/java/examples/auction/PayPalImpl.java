@@ -9,7 +9,7 @@ import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.Workers;
 
-@Service("/paypal")
+@Service("/PayPal")
 @Workers(20)
 public class PayPalImpl implements PayPal
 {
@@ -17,11 +17,11 @@ public class PayPalImpl implements PayPal
     = Logger.getLogger(PayPalImpl.class.getName());
 
   @Inject
-  PayPalRestLink _rest;
+  private PayPalRestLink _rest;
 
   @Inject
-  @Service("/audit")
-  AuditService _audit;
+  @Service("/Audit")
+  private AuditService _audit;
 
   @Override
   public void settle(AuctionData auction,

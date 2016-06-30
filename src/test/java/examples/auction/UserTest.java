@@ -6,11 +6,13 @@ import javax.inject.Inject;
 
 import com.caucho.junit.RunnerBaratine;
 import com.caucho.junit.ServiceTest;
-import examples.auction.AuctionSession.UserInitData;
+
 import io.baratine.service.ResultFuture;
 import io.baratine.service.Service;
 import io.baratine.service.Services;
 import io.baratine.vault.IdAsset;
+
+import examples.auction.AuctionSession.UserInitData;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +28,9 @@ public class UserTest
   @Service("/User")
   UserVaultSync _userVault;
 
+  @Inject
+  Services _services;
+
   /**
    * User create correctly sets the user name.
    */
@@ -35,8 +40,7 @@ public class UserTest
     IdAsset idAsset
       = _userVault.create(new UserInitData("Spock", "Password", false));
 
-    User user
-      = Services.current().service(User.class, idAsset.toString());
+    User user = _services.service(User.class, idAsset.toString());
 
     ResultFuture<UserData> userDataResult = new ResultFuture<>();
 
@@ -74,7 +78,9 @@ public class UserTest
       = _userVault.create(new UserInitData("Doug", "Password", false));
 
     final UserSync user
-      = Services.current().service(UserSync.class, idAsset.toString());
+      = _services.service(UserSync.class, idAsset.toString());
+
+    Assert.assertEquals("Doug", user.get().getName());
 
     final User doug = _userVault.findByName("Doug");
 
@@ -84,7 +90,6 @@ public class UserTest
 
     Assert.assertEquals("DVS1aMAAR3I",
                         data.get(1, TimeUnit.SECONDS).getEncodedId());
-
 
     final User bogus = _userVault.findByName("bogus");
 

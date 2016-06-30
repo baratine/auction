@@ -9,18 +9,14 @@ import java.util.logging.Logger;
 import javax.inject.Inject;
 
 import io.baratine.event.EventsSync;
-import io.baratine.service.Api;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.service.Services;
 import io.baratine.timer.Timers;
-import io.baratine.vault.Asset;
 import io.baratine.vault.Id;
 import io.baratine.vault.IdAsset;
 
-@Asset
-@Api(Auction.class)
 public class AuctionImpl implements Auction
 {
   private final static Logger log
@@ -57,7 +53,7 @@ public class AuctionImpl implements Auction
   private transient AuctionSettlementVault _settlementVault;
 
   @Inject
-  @Service("/audit")
+  @Service("/Audit")
   private transient AuditService _audit;
 
   @Inject
@@ -176,12 +172,16 @@ public class AuctionImpl implements Auction
 
     log.warning("close: " + this);
 
+    System.out.println("AuctionImpl.close: 0");
+
     if (_state == State.OPEN) {
       _audit.auctionToClose(getAuctionDataPublic(), Result.ignore());
 
       toClose();
 
       getAuctionEvents().onClose(getAuctionDataPublic());
+
+      System.out.println("AuctionImpl.close: 1");
 
       settle();
 
@@ -202,39 +202,27 @@ public class AuctionImpl implements Auction
     if (_state != State.SETTLED)
       throw new IllegalStateException();
 
-    getAuctionSettlement(result.then((s, r) -> s.refund(r.then(t -> t
-                                                                  == AuctionSettlement.Status.ROLLED_BACK))));
+    getAuctionSettlementId(
+      result.then((id, r) -> _settlementVault.refund(id,
+                                                     r.of(s -> s
+                                                               == AuctionSettlement.Status.ROLLED_BACK))));
   }
 
-  private void getAuctionSettlement(Result<AuctionSettlement> result)
+  private void getAuctionSettlementId(Result<String> result)
   {
-    log.finer("getAuctionSettlement: 0 " + _settlementId);
     if (_settlementId == null) {
       _settlementVault.create(getAuctionDataPublic(),
-                              result.then(s -> {
+                              result.of(s -> {
                                 _settlementId = s.toString();
-                                log.finer("getAuctionSettlement: 1 "
-                                          + _settlementId + ", " + _manager);
-                                try {
-                                  AuctionSettlement settlement
-                                    = _manager.service(AuctionSettlement.class,
-                                                       _settlementId);
 
-                                  log.finer("getAuctionSettlement: 2 "
-                                            + settlement);
+                                System.out.println(
+                                  "AuctionImpl.getAuctionSettlementId");
 
-                                  return settlement;
-                                } catch (Exception e) {
-                                  log.log(Level.SEVERE, e.getMessage(), e);
-
-                                  throw new RuntimeException(e);
-                                }
+                                return _settlementId;
                               }));
     }
     else {
-      log.finer("getAuctionSettlement: 2 " + _settlementId);
-
-      result.ok(_manager.service(AuctionSettlement.class, _settlementId));
+      result.ok(_settlementId);
     }
   }
 
@@ -264,8 +252,10 @@ public class AuctionImpl implements Auction
     if (bid == null)
       return;
 
-    getAuctionSettlement((s, e) -> {
-      s.settle(bid, Result.ignore());
+    System.out.println("AuctionImpl.settle");
+
+    getAuctionSettlementId((x, e) -> {
+      _settlementVault.settle(x, bid, Result.ignore());
     });
   }
 
@@ -394,6 +384,8 @@ public class AuctionImpl implements Auction
     toRolledBack();
 
     getAuctionEvents().onRolledBack(getAuctionDataPublic());
+
+    result.ok(true);
   }
 
   public void toRolledBack()

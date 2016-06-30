@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
 @ServiceTest(AuctionSettlementVault.class)
 @ServiceTest(MockPayPal.class)
 @ConfigurationBaratine(workDir = "/tmp/baratine", testTime = ConfigurationBaratine.TEST_TIME)
-public class AuctionSettleTest
+public class AuctionSettlementEnsureTest
 {
   @Inject @Service("/User")
   UserVault _users;
@@ -48,7 +48,7 @@ public class AuctionSettleTest
   RunnerBaratine _baratine;
 
   @Test
-  public void testSettle()
+  public void testEnsure()
     throws IOException, InterruptedException
   {
     UserSync spock = createUser("Spock", "passwd");
@@ -61,11 +61,29 @@ public class AuctionSettleTest
                                                  13)));
     Assert.assertEquals(13, auction.get().getLastBid().getBid());
 
+    _mockPayPal.isSettle = false;
+
     auction.close();
+
+    String spockId = spock.get().getEncodedId();
+    String kirkId = kirk.get().getEncodedId();
+    String auctionId = auction.get().getEncodedId();
+
+    State.sleep(100);
+
+    _baratine.stop();
+
+    _mockPayPal.isSettle = true;
+
+    _baratine.start();
+
+    spock = _services.service(UserSync.class, spockId);
+    kirk = _services.service(UserSync.class, kirkId);
+    auction = _services.service(AuctionSync.class, auctionId);
 
     Auction.State state = auction.get().getState();
 
-    int counter = 10;
+    int counter = 100;
     while (state != Auction.State.SETTLED && counter-- > 0) {
       state = auction.get().getState();
       State.sleep(100);
@@ -118,5 +136,4 @@ public class AuctionSettleTest
                                                         id.toString())));
     return auction.get(1, TimeUnit.SECONDS);
   }
-
 }

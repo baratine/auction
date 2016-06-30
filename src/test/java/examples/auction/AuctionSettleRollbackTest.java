@@ -1,221 +1,137 @@
 package examples.auction;
 
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
+
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.RunnerBaratine;
-import examples.auction.mock.MockPayPal;
-import examples.auction.mock.MockPayment;
-import io.baratine.service.Lookup;
+import com.caucho.junit.ServiceTest;
+import com.caucho.junit.State;
+
+import io.baratine.service.ResultFuture;
+import io.baratine.service.Service;
 import io.baratine.service.Services;
-import io.baratine.service.ServiceRef;
+
+import examples.auction.AuctionSession.UserInitData;
+import examples.auction.mock.MockPayPal;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.inject.Inject;
-import java.util.logging.Logger;
-
-/**
- */
 @RunWith(RunnerBaratine.class)
-@ConfigurationBaratine(
-  services = {IdentityManagerImpl.class, UserManagerImpl.class}, pod = "user",
-  logLevel = "finer",
-  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "examples.auction",
-                                     level = "FINER")},
-  testTime = 0)
-
-@ConfigurationBaratine(
-  services = {IdentityManagerImpl.class, AuctionManagerImpl.class, MockPayPal.class},
-  pod = "auction",
-  logLevel = "finer",
-  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "examples.auction",
-                                     level = "FINER")},
-  testTime = 0)
-
-@ConfigurationBaratine(
-  services = {AuditServiceImpl.class},
-  pod = "audit",
-  logLevel = "finer",
-  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "examples.auction",
-                                     level = "FINER")},
-  testTime = 0)
-
-@ConfigurationBaratine(
-  services = {MockLuceneService.class},
-  pod = "lucene",
-  logLevel = "finer",
-  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "examples.auction",
-                                     level = "FINER")},
-  testTime = 0)
-
-@ConfigurationBaratine(
-  services = {AuctionSettlementManagerImpl.class},
-  pod = "settlement",
-  logLevel = "finer",
-  logs = {@ConfigurationBaratine.Log(name = "com.caucho", level = "FINER"),
-          @ConfigurationBaratine.Log(name = "examples.auction",
-                                     level = "FINER")},
-  testTime = 0)
+@ServiceTest(UserVault.class)
+@ServiceTest(AuctionVault.class)
+@ServiceTest(AuditServiceImpl.class)
+@ServiceTest(AuctionSettlementVault.class)
+@ServiceTest(MockPayPal.class)
+@ConfigurationBaratine(workDir = "/tmp/baratine", testTime = ConfigurationBaratine.TEST_TIME)
 public class AuctionSettleRollbackTest
 {
-  private static final Logger log
-    = Logger.getLogger(AuctionSettleRollbackTest.class.getName());
+  @Inject @Service("/User")
+  UserVault _users;
+
+  @Inject @Service("/Auction")
+  AuctionVault _auctions;
+
+  @Inject @Service("/AuctionSettlement")
+  AuctionSettlementVault _settlements;
+
+  @Inject @Service("/PayPal")
+  MockPayPal _mockPayPal;
 
   @Inject
-  @Service("public:///user")
-  UserVaultSync _users;
+  Services _services;
 
   @Inject
-  @Service("public:///user")
-  ServiceRef _usersRef;
-
-  @Inject
-  @Service("public:///auction")
-  AuctionVaultSync _auctions;
-
-  @Inject
-  @Service("public:///auction")
-  ServiceRef _auctionsRef;
-
-  @Inject
-  @Service("public:///settlement")
-  ServiceRef _settlementRef;
-
-  @Inject
-  RunnerBaratine _testContext;
-
-  @Inject
-  @Service("public:///")
-  Services _auctionPod;
-
-  @Inject
-  @Service("public:///paypal")
-  PayPalSync _paypal;
-
-  UserSync createUser(String name, String password)
-  {
-    String id = _users.create(name, password, false);
-
-    return getUser(id);
-  }
-
-  UserSync getUser(String id)
-  {
-    return _usersRef.lookup("/" + id).as(UserSync.class);
-  }
-
-  AuctionSync createAuction(UserSync user, String title, int bid)
-  {
-    String id
-      = _auctions.create(new AuctionDataInit(user.get().getId(),
-                                             title,
-                                             bid));
-
-    return getAuction(id);
-  }
-
-  AuctionSync getAuction(String id)
-  {
-    return _auctionsRef.lookup("/" + id).as(AuctionSync.class);
-  }
-
-  AuctionSettlementSync getSettlement(AuctionSync auction)
-  {
-    String settlementId = auction.getSettlementId();
-
-    AuctionSettlementSync settlement =
-      _settlementRef.lookup("/" + settlementId).as(AuctionSettlementSync.class);
-
-    return settlement;
-  }
+  RunnerBaratine _baratine;
 
   @Test
-  public void testAuctionSettle() throws InterruptedException
+  public void test()
+    throws IOException, InterruptedException
   {
-    UserSync userSpock = createUser("Spock", "test");
-    UserSync userKirk = createUser("Kirk", "test");
+    UserSync spock = createUser("Spock", "passwd");
+    UserSync kirk = createUser("Kirk", "passwd");
 
-    AuctionSync auction = createAuction(userSpock, "book", 1);
-
-    Assert.assertNotNull(auction);
+    AuctionSync auction = createAuction(spock.get().getEncodedId(), "Book", 12);
 
     Assert.assertTrue(auction.open());
+    Assert.assertTrue(auction.bid(new AuctionBid(kirk.get().getEncodedId(),
+                                                 13)));
+    Assert.assertEquals(13, auction.get().getLastBid().getBid());
 
-    Assert.assertTrue(auction.bid(new Bid(userKirk.get().getId(), 2)));
+    auction.close();
 
-    _paypal.setPaymentResult(new MockPayment("sale-id",
-                                             Payment.PaymentState.approved));
+    Auction.State state = auction.get().getState();
 
-    Assert.assertTrue(auction.close());
-
-    AuctionSettlementSync settlement = getSettlement(auction);
-
-    AuctionSettlement.Status status = settlement.commitStatus();
-
-    int i = 0;
-    while (status == AuctionSettlement.Status.SETTLING && i++ < 10) {
-      Thread.sleep(10);
-      status = settlement.commitStatus();
+    int counter = 10;
+    while (state != Auction.State.SETTLED && counter-- > 0) {
+      state = auction.get().getState();
+      State.sleep(100);
     }
 
-    Assert.assertEquals(AuctionSettlement.Status.SETTLED, status);
+    Assert.assertEquals(Auction.State.SETTLED, state);
 
-    AuctionDataPublic auctionData = auction.get();
-    Assert.assertEquals(AuctionDataPublic.State.SETTLED,
-                        auctionData.getState());
+    String settlementId = auction.getSettlementId();
 
-    UserSync winner = getUser(auctionData.getLastBidder());
-    UserData winnerUserData = winner.get();
+    AuctionSettlementSync settlement
+      = _services.service(AuctionSettlementSync.class, settlementId);
 
-    Assert.assertTrue(winnerUserData.getWonAuctions()
-                                    .contains(auctionData.getId()));
+    AuctionSettlement.Status settleStatus = settlement.settleStatus();
+    AuctionSettlement.Status refundStatus = settlement.refundStatus();
 
-    Assert.assertEquals(auctionData.getLastBidder(), winnerUserData.getId());
+    Assert.assertEquals(AuctionSettlement.Status.SETTLED,
+                        settleStatus);
+    Assert.assertEquals(AuctionSettlement.Status.NONE,
+                        refundStatus);
 
-    //refund
-    status = settlement.rollback();
+    SettlementTransactionState transactionState
+      = settlement.getTransactionState();
 
-    i = 0;
-    while (status == AuctionSettlement.Status.ROLLING_BACK && i < 10) {
-      Thread.sleep(10);
-      status = settlement.rollbackStatus();
-    }
+    Assert.assertEquals(SettlementTransactionState.AuctionUpdateState.SUCCESS,
+                        transactionState.getAuctionStateUpdateState());
+    Assert.assertEquals(SettlementTransactionState.AuctionWinnerUpdateState.SUCCESS,
+                        transactionState.getAuctionWinnerUpdateState());
+    Assert.assertEquals(SettlementTransactionState.PaymentTxState.SUCCESS,
+                        transactionState.getPaymentState());
 
-    auctionData = auction.get();
+    // REFUND //
 
-    Assert.assertEquals(AuctionDataPublic.State.ROLLED_BACK,
-                        auctionData.getState());
+    AuctionSettlement.Status status = settlement.refund();
 
-    Assert.assertNull(auctionData.getWinner());
+    Assert.assertEquals(AuctionSettlement.Status.ROLLED_BACK, status);
 
-    Assert.assertEquals(0, winner.get().getWonAuctions().size());
+    SettlementTransactionState refundState = settlement.getTransactionState();
 
-    SettlementTransactionState state = settlement.getTransactionState();
-
-    Assert.assertEquals(state.getSettleStatus(),
-                        AuctionSettlement.Status.SETTLED);
-
-    Assert.assertEquals(state.getRefundStatus(),
-                        AuctionSettlement.Status.ROLLED_BACK);
-
-    Assert.assertEquals(state.getAuctionWinnerUpdateState(),
-                        SettlementTransactionState.AuctionWinnerUpdateState.SUCCESS);
-    Assert.assertEquals(state.getAuctionWinnerResetState(),
-                        SettlementTransactionState.AuctionWinnerUpdateState.ROLLED_BACK);
-
-    Assert.assertEquals(state.getUserSettleState(),
-                        SettlementTransactionState.UserUpdateState.SUCCESS);
-    Assert.assertEquals(state.getUserResetState(),
-                        SettlementTransactionState.UserUpdateState.ROLLED_BACK);
-
-    Assert.assertEquals(state.getPaymentState(),
-                        SettlementTransactionState.PaymentTxState.SUCCESS);
-    Assert.assertEquals(state.getRefundState(),
-                        SettlementTransactionState.PaymentTxState.REFUNDED);
-
+    Assert.assertEquals(SettlementTransactionState.UserUpdateState.ROLLED_BACK,
+                        refundState.getUserResetState());
+    Assert.assertEquals(SettlementTransactionState.AuctionWinnerUpdateState.ROLLED_BACK,
+                        refundState.getAuctionWinnerResetState());
+    Assert.assertEquals(SettlementTransactionState.PaymentTxState.REFUNDED,
+                        refundState.getRefundState());
   }
+
+  private UserSync createUser(final String name,
+                              final String passwd) throws IOException
+  {
+    ResultFuture<UserSync> user = new ResultFuture<>();
+
+    _users.create(new UserInitData(name, passwd, false),
+                  user.of(id -> _services.service(UserSync.class,
+                                                  id.toString())));
+
+    return user.get(1, TimeUnit.SECONDS);
+  }
+
+  private AuctionSync createAuction(String userId, String title, int bid)
+  {
+    ResultFuture<AuctionSync> auction = new ResultFuture<>();
+
+    _auctions.create(new AuctionDataInit(userId, title, bid),
+                     auction.of(id -> _services.service(AuctionSync.class,
+                                                        id.toString())));
+    return auction.get(1, TimeUnit.SECONDS);
+  }
+
 }

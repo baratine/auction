@@ -7,15 +7,11 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.logging.Logger;
 
-import io.baratine.service.Api;
-import io.baratine.vault.Asset;
-import io.baratine.vault.Id;
-import io.baratine.vault.IdAsset;
 import io.baratine.service.Modify;
 import io.baratine.service.Result;
+import io.baratine.vault.Id;
+import io.baratine.vault.IdAsset;
 
-@Asset
-@Api(User.class)
 public class UserImpl implements User
 {
   private static final Logger log = Logger.getLogger(UserImpl.class.getName());
@@ -90,7 +86,7 @@ public class UserImpl implements User
   @Override
   public void get(Result<UserData> user)
   {
-    user.ok(new UserData(getEncodedId(), _name));
+    user.ok(new UserData(getEncodedId(), _name, _wonAuctions));
   }
 
   private String getEncodedId()

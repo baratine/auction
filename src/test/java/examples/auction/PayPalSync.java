@@ -11,5 +11,5 @@ public interface PayPalSync extends PayPal
                 String payPalRequestId,
                 String sale);
 
-  void configure(Payment state, long sleep);
+  void configure(Payment state, long sleep, boolean isSettle);
 }

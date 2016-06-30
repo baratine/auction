@@ -1,10 +1,10 @@
 package examples.auction;
 
-import static io.baratine.web.Web.*;
-
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static io.baratine.web.Web.*;
 
 public class Main
 {

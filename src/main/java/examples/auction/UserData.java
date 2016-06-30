@@ -15,10 +15,12 @@ public class UserData
   }
 
   public UserData(String userId,
-                  String name)
+                  String name,
+                  Set<String> wonAuctions)
   {
     _encodedId = userId;
     _name = name;
+    _wonAuctions = wonAuctions;
   }
 
   public String getEncodedId()

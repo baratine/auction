@@ -1,6 +1,4 @@
-System.register(['angular2/core', "./auction.service"], function(exports_1, context_1) {
-    "use strict";
-    var __moduleName = context_1 && context_1.id;
+System.register(['angular2/core', "./auction.service"], function(exports_1) {
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
         if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -32,14 +30,14 @@ System.register(['angular2/core', "./auction.service"], function(exports_1, cont
                     this._auctionService.registerForAuctionUpdates();
                 };
                 AuctionAdminComponent.prototype.push = function (auctions) {
-                    for (var _i = 0, auctions_1 = auctions; _i < auctions_1.length; _i++) {
-                        var auction = auctions_1[_i];
+                    for (var _i = 0; _i < auctions.length; _i++) {
+                        var auction = auctions[_i];
                         var i = this.auctions.findIndex(function (x) { return x.id == auction.id; });
                         if (i > -1)
                             this.auctions[i] = auction;
                     }
-                    for (var _a = 0, auctions_2 = auctions; _a < auctions_2.length; _a++) {
-                        var auction = auctions_2[_a];
+                    for (var _a = 0; _a < auctions.length; _a++) {
+                        var auction = auctions[_a];
                         var i = this.auctions.findIndex(function (x) { return x.id == auction.id; });
                         if (i == -1) {
                             this.auctions.push(auction);
@@ -64,8 +62,8 @@ System.register(['angular2/core', "./auction.service"], function(exports_1, cont
                 AuctionAdminComponent.prototype.onNew = function (auction) {
                 };
                 AuctionAdminComponent.prototype.onUpdate = function (auctions) {
-                    for (var _i = 0, auctions_3 = auctions; _i < auctions_3.length; _i++) {
-                        var auction = auctions_3[_i];
+                    for (var _i = 0; _i < auctions.length; _i++) {
+                        var auction = auctions[_i];
                         var i = this.auctions.findIndex(function (x) { return x.id == auction.id; });
                         if (i > -1)
                             this.auctions[i] = auction;
@@ -91,7 +89,7 @@ System.register(['angular2/core', "./auction.service"], function(exports_1, cont
                     __metadata('design:paramtypes', [auction_service_1.AuctionService])
                 ], AuctionAdminComponent);
                 return AuctionAdminComponent;
-            }());
+            })();
             exports_1("AuctionAdminComponent", AuctionAdminComponent);
         }
     }

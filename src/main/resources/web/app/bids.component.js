@@ -1,6 +1,4 @@
-System.register(['angular2/core', "./auction.service"], function(exports_1, context_1) {
-    "use strict";
-    var __moduleName = context_1 && context_1.id;
+System.register(['angular2/core', "./auction.service"], function(exports_1) {
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
         if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -31,14 +29,14 @@ System.register(['angular2/core', "./auction.service"], function(exports_1, cont
                     this._auctionService.addAuctionListener(this);
                 };
                 BidsComponent.prototype.push = function (bids) {
-                    for (var _i = 0, bids_1 = bids; _i < bids_1.length; _i++) {
-                        var bid = bids_1[_i];
+                    for (var _i = 0; _i < bids.length; _i++) {
+                        var bid = bids[_i];
                         var i = this.bids.findIndex(function (x) { return x.id == bid.id; });
                         if (i > -1)
                             this.bids[i] = bid;
                     }
-                    for (var _a = 0, bids_2 = bids; _a < bids_2.length; _a++) {
-                        var bid = bids_2[_a];
+                    for (var _a = 0; _a < bids.length; _a++) {
+                        var bid = bids[_a];
                         var i = this.bids.findIndex(function (x) { return x.id == bid.id; });
                         if (i == -1)
                             this.bids.push(bid);
@@ -62,8 +60,8 @@ System.register(['angular2/core', "./auction.service"], function(exports_1, cont
                 BidsComponent.prototype.onNew = function (auction) {
                 };
                 BidsComponent.prototype.onUpdate = function (auctions) {
-                    for (var _i = 0, auctions_1 = auctions; _i < auctions_1.length; _i++) {
-                        var bid = auctions_1[_i];
+                    for (var _i = 0; _i < auctions.length; _i++) {
+                        var bid = auctions[_i];
                         var i = this.bids.findIndex(function (x) { return x.id == bid.id; });
                         if (i > -1)
                             this.bids[i] = bid;
@@ -89,7 +87,7 @@ System.register(['angular2/core', "./auction.service"], function(exports_1, cont
                     __metadata('design:paramtypes', [auction_service_1.AuctionService])
                 ], BidsComponent);
                 return BidsComponent;
-            }());
+            })();
             exports_1("BidsComponent", BidsComponent);
         }
     }

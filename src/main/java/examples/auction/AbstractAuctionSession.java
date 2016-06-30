@@ -66,7 +66,7 @@ public class AbstractAuctionSession implements AuctionSession
                          Result<WebUser> result)
   {
     _users.create(user, result.then((id, r) ->
-                                      getUserService(id.toString()).get(r.of(u -> WebUser
+                                      getUserService(id.toString()).get(r.then(u -> WebUser
                                         .of(u)))));
   }
 
@@ -103,7 +103,7 @@ public class AbstractAuctionSession implements AuctionSession
     if (isLoggedIn) {
       _user = user;
 
-      user.get(result.of(u -> {
+      user.get(result.then(u -> {
         _userId = u.getEncodedId();
         return true;
       }));
@@ -120,7 +120,7 @@ public class AbstractAuctionSession implements AuctionSession
   {
     validateSession();
 
-    _user.get(result.of(u -> WebUser.of(u)));
+    _user.get(result.then(u -> WebUser.of(u)));
   }
 
   public User getUserService(String id)
@@ -137,7 +137,7 @@ public class AbstractAuctionSession implements AuctionSession
       throw new IllegalArgumentException();
     }
 
-    getAuctionService(id).get(result.of(a -> WebAuction.of(a)));
+    getAuctionService(id).get(result.then(a -> WebAuction.of(a)));
   }
 
   protected Auction getAuctionService(String id)
@@ -163,7 +163,7 @@ public class AbstractAuctionSession implements AuctionSession
 
     AbstractAuctionSession.log.info(String.format("search %1$s", query));
 
-    _auctions.findAuctionDataByTitle(query, result.of(l -> asWebAuctions(l)));
+    _auctions.findAuctionDataByTitle(query, result.then(l -> asWebAuctions(l)));
   }
 
   private List<AuctionUserSession.WebAuction> asWebAuctions(List<AuctionData> auctions)
@@ -209,7 +209,7 @@ public class AbstractAuctionSession implements AuctionSession
   public void addAuctionListener(@Body String id, Result<Boolean> result)
   {
     validateSession();
-    
+
     Objects.requireNonNull(id);
     try {
       addAuctionListenerImpl(id);

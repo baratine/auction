@@ -5,4 +5,4 @@ System.register([], function(exports_1) {
         }
     }
 });
-//# sourceMappingURL=auction.js.map
+//# sourceMappingURL=userx.js.map

@@ -202,7 +202,7 @@ public class AuctionImpl implements Auction
     if (_state != State.SETTLED)
       throw new IllegalStateException();
 
-    getAuctionSettlement(result.then((s, r) -> s.refund(r.of(t -> t
+    getAuctionSettlement(result.then((s, r) -> s.refund(r.then(t -> t
                                                                   == AuctionSettlement.Status.ROLLED_BACK))));
   }
 
@@ -211,7 +211,7 @@ public class AuctionImpl implements Auction
     log.finer("getAuctionSettlement: 0 " + _settlementId);
     if (_settlementId == null) {
       _settlementVault.create(getAuctionDataPublic(),
-                              result.of(s -> {
+                              result.then(s -> {
                                 _settlementId = s.toString();
                                 log.finer("getAuctionSettlement: 1 "
                                           + _settlementId + ", " + _manager);
@@ -229,7 +229,6 @@ public class AuctionImpl implements Auction
 
                                   throw new RuntimeException(e);
                                 }
-
                               }));
     }
     else {

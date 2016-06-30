@@ -1,6 +1,4 @@
-System.register(['angular2/core'], function(exports_1, context_1) {
-    "use strict";
-    var __moduleName = context_1 && context_1.id;
+System.register(['angular2/core'], function(exports_1) {
     var __extends = (this && this.__extends) || function (d, b) {
         for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
         function __() { this.constructor = d; }
@@ -34,7 +32,7 @@ System.register(['angular2/core'], function(exports_1, context_1) {
                     __metadata('design:paramtypes', [])
                 ], BaseUrlProvider);
                 return BaseUrlProvider;
-            }());
+            })();
             exports_1("BaseUrlProvider", BaseUrlProvider);
             UserUrlProvider = (function (_super) {
                 __extends(UserUrlProvider, _super);
@@ -48,7 +46,7 @@ System.register(['angular2/core'], function(exports_1, context_1) {
                     __metadata('design:paramtypes', [])
                 ], UserUrlProvider);
                 return UserUrlProvider;
-            }(BaseUrlProvider));
+            })(BaseUrlProvider);
             exports_1("UserUrlProvider", UserUrlProvider);
             AdminUrlProvider = (function (_super) {
                 __extends(AdminUrlProvider, _super);
@@ -62,7 +60,7 @@ System.register(['angular2/core'], function(exports_1, context_1) {
                     __metadata('design:paramtypes', [])
                 ], AdminUrlProvider);
                 return AdminUrlProvider;
-            }(BaseUrlProvider));
+            })(BaseUrlProvider);
             exports_1("AdminUrlProvider", AdminUrlProvider);
         }
     }

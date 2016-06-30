@@ -1,6 +1,4 @@
-System.register(['angular2/core', "./auction.service"], function(exports_1, context_1) {
-    "use strict";
-    var __moduleName = context_1 && context_1.id;
+System.register(['angular2/core', "./auction.service"], function(exports_1) {
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
         if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -45,7 +43,7 @@ System.register(['angular2/core', "./auction.service"], function(exports_1, cont
                     __metadata('design:paramtypes', [auction_service_1.AuctionService])
                 ], NewAuctionComponent);
                 return NewAuctionComponent;
-            }());
+            })();
             exports_1("NewAuctionComponent", NewAuctionComponent);
         }
     }

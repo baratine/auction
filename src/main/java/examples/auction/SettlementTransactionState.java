@@ -25,6 +25,7 @@ public class SettlementTransactionState
   private PaymentTxState _refundState = PaymentTxState.NONE;
 
   private Payment _payment;
+
   private Refund _refund;
 
   public SettlementTransactionState()

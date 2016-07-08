@@ -234,8 +234,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
     getAuction().setSettled(result.then((x, r) -> {
       _state.setAuctionStateUpdateState(AuctionUpdateState.SUCCESS);
       _state.setSettleStatus(Status.SETTLED);
-      r.ok(Status.SETTLED);
       _inProgress = false;
+      r.ok(Status.SETTLED);
     }));
   }
 
@@ -275,6 +275,7 @@ public class AuctionSettlementImpl implements AuctionSettlement
   @Ensure
   public void refund(Result<Status> status)
   {
+    System.out.println("AuctionSettlementImpl.refund" + this);
     if (_state.isRefunded()) {
       status.ok(Status.ROLLED_BACK);
 
@@ -475,6 +476,8 @@ public class AuctionSettlementImpl implements AuctionSettlement
            + _id
            + ", "
            + _state
+           + ", "
+           + _inProgress
            + "]";
   }
 }

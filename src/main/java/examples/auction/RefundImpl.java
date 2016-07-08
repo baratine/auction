@@ -40,6 +40,10 @@ public class RefundImpl implements Refund
   private String _refund;
   private RefundState _status;
 
+  public RefundImpl()
+  {
+  }
+
   public RefundImpl(String refund)
   {
     _refund = refund;

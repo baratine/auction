@@ -12,6 +12,7 @@ public class PaymentImpl implements Payment
   private String _payment;
 
   private PaymentState _state;
+
   private String _saleId;
 
   public PaymentImpl()
@@ -51,5 +52,4 @@ public class PaymentImpl implements Payment
   {
     return PaymentImpl.class.getSimpleName() + "[" + _payment + "]";
   }
-
 }

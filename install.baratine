@@ -1,0 +1,1 @@
+mvn install:install-file -Dfile=/Users/alex/projects/caucho/5.0/baratine/build/libs/baratine-0.11-SNAPSHOT.jar -DgroupId=io.baratine     -DartifactId=baratine -Dversion=0.11.4 -Dpackaging=jar

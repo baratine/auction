@@ -5,22 +5,22 @@
 ##### Auction application demonstrates how to use Baratine™ to build a Single Page Web Application.
 
 The application uses the following Baratine provided services
- * DatabaseService
- * Store (key - value)
- * Timer
- * Event
- * WebSocket
+* DatabaseService
+* Store (key - value)
+* Timer
+* Event
+* WebSocket
 
 ##### The main interfaces are
 
 Java:
 
-* AuctionSession
+* AuctionSession, AuctionUserSession, AuctionAdminSession
 * User
-* UserManager
+* UserVault
 * Auction
-* AuctionManager
-* ChannelListener
+* AuctionVault
+* WebAuctionUpdates
 
 HTML, JavaScript:
 * index.html
@@ -29,11 +29,11 @@ HTML, JavaScript:
 
 Java:
 
-* AuctionSessionImpl - implements a user session; invoked by the UI (index.html)
+* AbstractAuctionSession, AuctionUserSessionImpl - implements a user session; invoked by the UI (index.html)
 * UserImpl - implements User; manages UserDataPublic class which contains user detail
-* UserManagerImpl - creates and manages users
+* UserVault - creates and manages users
 * AuctionImpl - implements Auction; manages AuctionDataPublic class which contains Auction detail
-* AuctionManagerImpl - creates and manages auctions
+* AuctionVault - creates and manages auctions
 
 ##### Building the Auction application
 

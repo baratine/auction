@@ -5,11 +5,11 @@ import java.util.logging.Logger;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.web.Body;
-import io.baratine.web.CrossOrigin;
 import io.baratine.web.Get;
 import io.baratine.web.Path;
 import io.baratine.web.Post;
 import io.baratine.web.Query;
+import io.baratine.web.cors.CrossOrigin;
 
 /**
  * User visible channel facade at session://web/auction-admin-session.

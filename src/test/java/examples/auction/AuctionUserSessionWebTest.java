@@ -11,6 +11,7 @@ import io.baratine.web.WebSocket;
 import com.caucho.junit.ConfigurationBaratine;
 import com.caucho.junit.HttpClient;
 import com.caucho.junit.ServiceTest;
+import com.caucho.junit.State;
 import com.caucho.junit.TestTime;
 import com.caucho.junit.WebRunnerBaratine;
 import com.caucho.v5.websocket.WebSocketClient;
@@ -256,6 +257,8 @@ public class AuctionUserSessionWebTest
     userLogin(client, sessionB, "Kirk", "pass");
 
     boolean isAccepted = auctionBid(client, sessionB, auction.getId(), 17);
+
+    State.sleep(100);
 
     Assert.assertTrue(isAccepted);
 

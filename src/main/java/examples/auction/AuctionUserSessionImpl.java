@@ -5,16 +5,15 @@ import java.util.logging.Logger;
 import io.baratine.service.Result;
 import io.baratine.service.Service;
 import io.baratine.web.Body;
-import io.baratine.web.CrossOrigin;
 import io.baratine.web.Path;
 import io.baratine.web.Post;
+import io.baratine.web.cors.CrossOrigin;
 
 /**
  * User visible channel facade at session:///auction-session.
  */
 @Service("session:///user")
 @CrossOrigin(value = "*", allowCredentials = true)
-//@Api(AuctionUserSession.class)
 @Path("/user")
 public class AuctionUserSessionImpl extends AbstractAuctionSession
   implements AuctionUserSession

@@ -30,6 +30,7 @@ public class PayPalRestLink
   private String _clientId;
   private String _secret;
   private String _endpoint;
+  private boolean _isLoaded;
 
   public PayPalRestLink() throws IOException
   {
@@ -56,6 +57,10 @@ public class PayPalRestLink
       _clientId = p.getProperty("client-id").trim();
       _secret = p.getProperty("secret").trim();
       _endpoint = p.getProperty("endpoint");
+      _isLoaded = true;
+    } catch (java.io.FileNotFoundException e) {
+      log.log(Level.INFO,
+              "paypal.properties is not found, PayPal will not be available");
     } finally {
       in.close();
     }
@@ -165,6 +170,8 @@ public class PayPalRestLink
                      String description
   ) throws IOException
   {
+    if (!_isLoaded)
+      return null;
 
     final String payment;
 
@@ -220,6 +227,9 @@ public class PayPalRestLink
                        String saleId)
     throws IOException
   {
+    if (!_isLoaded)
+      return null;
+
     Map<String,String> headers = new HashMap<>();
 
     headers.put("Content-Type", "application/json");

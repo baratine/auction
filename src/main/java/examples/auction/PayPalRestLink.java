@@ -42,13 +42,13 @@ public class PayPalRestLink
       log.log(Level.WARNING, t.getMessage(), t);
     }
 
-    if (in == null) {
-      in = new FileInputStream(System.getProperty("user.home")
-                               + File.separator
-                               + ".paypal.properties");
-    }
-
     try {
+      if (in == null) {
+        in = new FileInputStream(System.getProperty("user.home")
+                                 + File.separator
+                                 + ".paypal.properties");
+      }
+
       Properties p = new Properties();
 
       p.load(in);
@@ -62,7 +62,8 @@ public class PayPalRestLink
       log.log(Level.INFO,
               "paypal.properties is not found, PayPal will not be available");
     } finally {
-      in.close();
+      if (in != null)
+        in.close();
     }
   }
 

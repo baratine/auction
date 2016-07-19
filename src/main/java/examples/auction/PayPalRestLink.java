@@ -30,7 +30,7 @@ public class PayPalRestLink
   private String _clientId;
   private String _secret;
   private String _endpoint;
-  private boolean _isLoaded;
+  private boolean _isActive;
 
   public PayPalRestLink() throws IOException
   {
@@ -57,7 +57,8 @@ public class PayPalRestLink
       _clientId = p.getProperty("client-id").trim();
       _secret = p.getProperty("secret").trim();
       _endpoint = p.getProperty("endpoint");
-      _isLoaded = true;
+
+      _isActive = true;
     } catch (java.io.FileNotFoundException e) {
       log.log(Level.INFO,
               "paypal.properties is not found, PayPal will not be available");
@@ -69,6 +70,9 @@ public class PayPalRestLink
 
   public PayPalAuth auth() throws IOException
   {
+    if (!_isActive)
+      return new DummyPayPalAuth();
+
     Map<String,String> headers = new HashMap<>();
 
     headers.put("Authorization", "Basic " + getBA());
@@ -171,8 +175,8 @@ public class PayPalRestLink
                      String description
   ) throws IOException
   {
-    if (!_isLoaded)
-      return null;
+    if (!_isActive)
+      return new DummyPayment();
 
     final String payment;
 
@@ -228,8 +232,8 @@ public class PayPalRestLink
                        String saleId)
     throws IOException
   {
-    if (!_isLoaded)
-      return null;
+    if (!_isActive)
+      return new DummyRefund();
 
     Map<String,String> headers = new HashMap<>();
 
@@ -255,5 +259,37 @@ public class PayPalRestLink
            + _secret + ", "
            + _endpoint
            + ']';
+  }
+
+  public static class DummyPayment implements Payment
+  {
+    @Override
+    public PaymentState getState()
+    {
+      return PaymentState.approved;
+    }
+
+    @Override
+    public String getSaleId()
+    {
+      return "";
+    }
+  }
+
+  public static class DummyRefund implements Refund
+  {
+    @Override
+    public RefundState getStatus()
+    {
+      return RefundState.completed;
+    }
+  }
+
+  public static class DummyPayPalAuth extends PayPalAuth
+  {
+    public DummyPayPalAuth()
+    {
+      super("", "");
+    }
   }
 }

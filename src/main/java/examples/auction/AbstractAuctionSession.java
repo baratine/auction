@@ -48,7 +48,9 @@ public class AbstractAuctionSession implements AuctionSession
   @Inject
   @Service("event:")
   private Events _events;
+
   private HashMap<String,AuctionEventsImpl> _listenerMap = new HashMap<>();
+
   private WebAuctionUpdates _updates;
 
   @OnInit
@@ -189,7 +191,11 @@ public class AbstractAuctionSession implements AuctionSession
   {
     validateSession();
 
+    if (_listenerMap.containsKey(id))
+      return;
+
     Objects.requireNonNull(id);
+
     try {
       addAuctionListenerImpl(id);
 
@@ -213,8 +219,7 @@ public class AbstractAuctionSession implements AuctionSession
 
     AuctionEventsImpl auctionListener = new AuctionEventsImpl();
 
-    _events.subscriber(id, auctionListener, (c, e) -> {
-    });
+    _events.subscriber(id, auctionListener, (c, e) -> {});
 
     auctionListener.subscribe();
 

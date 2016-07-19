@@ -11,6 +11,16 @@ public class PayPalAuth
   private String _token;
   private String _auth;
 
+  public PayPalAuth()
+  {
+  }
+
+  public PayPalAuth(String token, String auth)
+  {
+    _token = token;
+    _auth = auth;
+  }
+
   public PayPalAuth(String response)
   {
     _auth = _auth;

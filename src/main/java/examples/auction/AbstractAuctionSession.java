@@ -191,8 +191,11 @@ public class AbstractAuctionSession implements AuctionSession
   {
     validateSession();
 
-    if (_listenerMap.containsKey(id))
+    if (_listenerMap.containsKey(id)) {
+      result.ok(true);
+
       return;
+    }
 
     Objects.requireNonNull(id);
 
